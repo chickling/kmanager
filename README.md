@@ -43,7 +43,7 @@ This project is a maven project, you can manualy build it, just run:
 
 `mvn clean package`
 
-or download the official jar file through folder `dist`.
+or download the official latest version jar file through `release` tab.
 
 Then, you can use below command to run:
 
