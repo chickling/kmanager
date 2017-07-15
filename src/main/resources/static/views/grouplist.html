@@ -1,0 +1,11 @@
+<div class="page-header">
+  <h1>Please select the group you would like to monitor</h1>
+</div>
+
+<div class="alert alert-info" ng-show="loading">
+Loading ...
+</div>
+
+<ul class="list-group">
+<li ng-repeat="g in groups" class="list-group-item"><a href="./#/group/{{g}}">{{g}}</a></li>
+</ul>

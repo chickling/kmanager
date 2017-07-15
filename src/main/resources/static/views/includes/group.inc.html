@@ -1,0 +1,47 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th ng-show="groupBy == 'consumer'">Topic</th>
+      <th ng-show="groupBy == 'topic'">Consumer Group</th>
+      <th>Partition</th>
+      <th>Offset</th>
+      <th>logSize</th>
+      <th>Lag</th>
+      <th>Owner</th>
+      <th>Created</th>
+      <th>Last Seen</th>
+    </tr>
+  </thead>
+  <tbody ng-repeat="c in info.offsets">
+    <tr class="topic-row" ng-show="groupBy == 'consumer'">
+      <td><a href="#/group/{{c.group}}/{{c.topic}}">{{c.topic}}</a></td>
+      <td></td>
+      <td>{{c.offset}}</td>
+      <td>{{c.logSize}}</td>
+      <td>{{c.logSize - c.offset}}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr class="topic-row" ng-show="groupBy == 'topic'">
+      <td><a href="#/group/{{c.group}}/{{c.topic}}">{{c.group}}</a></td>
+      <td></td>
+      <td>{{c.offset}}</td>
+      <td>{{c.logSize}}</td>
+      <td>{{c.logSize - c.offset}}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr class="partition-row" ng-repeat="p in c.partitions">
+      <td></td>
+      <td>{{p.partition}}</td>
+      <td>{{p.offset}}</td>
+      <td>{{p.logSize}}</td>
+      <td>{{p.logSize - p.offset}}</td>
+      <td>{{p.owner}}</td>
+      <td><moment timestamp="{{p.creation}}"></moment></td>
+      <td><moment timestamp="{{p.modified}}"></moment></td>
+    </tr>
+  </tbody>
+</table>

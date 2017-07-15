@@ -1,0 +1,172 @@
+<div class="page-header">
+	<h2>Topic partition consume lag alerting task list</h2>
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-primary" data-toggle="modal"
+		data-target="#taskModal" id="newTask">New Task</button>
+	<!-- Modal -->
+	<div class="modal fade" id="taskModal" tabindex="-1" role="dialog"
+		aria-labelledby="taskModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="taskModalLabel">New Task</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-horizontal" id="taskForm"
+						action="alerting/new" method="post">
+						<div class="form-group">
+							<label for="inputTopicName" class="col-sm-4 control-label">Topic
+								Name</label>
+							<div class="col-sm-8">
+								<select data-placeholder="Choose a Topic Name..."
+									class="form-control chosen-select chosen-select-topic"
+									tabindex="2" form="taskForm" name="topic" id="inputTopicName"
+									ng-model="taskform.topic"
+									ng-options="topic.code as topic.value for topic in topicOptions">
+								</select>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="inputConsumerGroup" class="col-sm-4 control-label">Consumer
+								Group</label>
+							<div class="col-sm-8">
+								<div class="col-sm-8" id="create-consumer"
+									style="width: 100%; height: 100%; padding: 0;"></div>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="inputThreshold" class="col-sm-4 control-label">Message
+								Lag Threshold</label>
+							<div class="col-sm-8">
+								<input type="number" min="1" class="form-control"
+									id="inputThreshold" name="threshold" placeholder="Threshold"
+									oninput="onInputNumber(event)" />
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="inputDiapause" class="col-sm-4 control-label">Alerting
+								send Diapause</label>
+							<div class="col-sm-8">
+								<input type="number" min="1" class="form-control"
+									id="inputDiapause" name="diapause"
+									placeholder="Diapause (Minutes)" oninput="onInputNumber(event)" />
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="inputEmail" class="col-sm-4 control-label">MailTo</label>
+							<div class="col-sm-8">
+								<input type="email" class="form-control" id="inputEmail"
+									name="mailTo"
+									placeholder="You can enter a mail list, split by ;"
+									oninput="onInputEmail(event)" />
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary" id="submitTask">Submit
+						task</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="maindiv" class="row main">
+	<div class="table-responsive">
+		<table id="task-list" class="table">
+			<thead>
+				<tr>
+					<th>Task Name</th>
+					<!-- <th>Email To</th> -->
+					<th>Operation</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="t in tasks">
+					<td><a data-toggle="modal" data-target="#taskDetailModal"
+						data-group="{{t.group}}" data-topic="{{t.topic}}"
+						data-threshold="{{t.threshold}}" data-diapause="{{t.diapause}}"
+						data-mailto="{{t.mailTo}}">{{t.group}}-{{t.topic}}</a></td>
+					<!-- <td>{{t.mailTo}}</td> -->
+					<td><button class="btn btn-primary btn-sm"
+							ng-click="deleteTask(t)">delete</button></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="alert alert-info" ng-show="loading">Loading ...</div>
+	<div class="alert alert-info" ng-show="!alertEnabled">Alerting disabled</div>
+</div>
+
+<!-- Task Detail Model -->
+<div class="modal fade" id="taskDetailModal" tabindex="-1" role="dialog"
+	aria-labelledby="taskDetailModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="taskDetailModalLabel">Task detail</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal" id="taskDetailForm"
+					action="alerting/update" method="post">
+					<div class="form-group">
+						<label for="taskDetail-inputTopic" class="col-sm-4 control-label">Topic</label>
+						<div class="col-sm-8">
+							<input type="text" class="form-control"
+								id="taskDetail-inputTopic" name="topic" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="taskDetail-inputConsumer"
+							class="col-sm-4 control-label">Consumer Group</label>
+						<div class="col-sm-8">
+							<input type="text" class="form-control"
+								id="taskDetail-inputConsumer" name="group" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="taskDetail-inputThreshold"
+							class="col-sm-4 control-label">Message Lag Threshold</label>
+						<div class="col-sm-8">
+							<input type="number" class="form-control"
+								id="taskDetail-inputThreshold" name="threshold"
+								placeholder="Threshold" min="1" oninput="onInputNumber(event)" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="inputDiapause" class="col-sm-4 control-label">Alerting
+							send Diapause</label>
+						<div class="col-sm-8">
+							<input type="number" min="1" class="form-control"
+								id="taskDetail-inputDiapause" name="diapause"
+								placeholder="Diapause (Minutes)" oninput="onInputNumber(event)" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="taskDetail-inputEmail" class="col-sm-4 control-label">MailTo</label>
+						<div class="col-sm-8">
+							<input type="email" class="form-control"
+								id="taskDetail-inputEmail" name="mailTo"
+								placeholder="You can enter a mail list, split by ;"
+								oninput="OnInputEmail(event)" />
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="updateTask">Update
+					task</button>
+			</div>
+		</div>
+	</div>
+</div>

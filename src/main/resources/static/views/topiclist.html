@@ -1,0 +1,11 @@
+<div class="page-header">
+    <h1>Please select the topic you would like to view consumers on</h1>
+</div>
+
+<div class="alert alert-info" ng-show="loading">
+    Loading ...
+</div>
+
+<ul class="list-group">
+    <li ng-repeat="g in topics" class="list-group-item"><a href="./#/topicdetail/{{g}}">{{g}}</a></li>
+</ul>

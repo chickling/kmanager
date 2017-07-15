@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="offsetapp">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="pierre">
+
+<title>KMonitor</title>
+
+<!-- Bootstrap core CSS
+<link href="./css/bootstrap.css" rel="stylesheet" media="screen"> -->
+<!-- Latest compiled and minified CSS -->
+
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+	crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+	crossorigin="anonymous">
+
+<link href="./css/chosen.css" rel="stylesheet">
+<link href="./css/bootstrap-datetimepicker.css" rel="stylesheet">
+<link href="./style.css" rel="stylesheet">
+<link href="./css/cluster-viz.css" rel="stylesheet">
+<link href="./css/sweetalert.css" rel="stylesheet">
+
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.9/angular.js"></script>
+<script
+	src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.9/angular-route.js"></script>
+<script
+	src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.9/angular-resource.js"></script>
+
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+<link rel="shortcut icon" type="image/svg" href="./favicon.svg" />
+</head>
+
+<body>
+	<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+		<div class="container">
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse"
+					data-target="#bs-example-navbar-collapse-1">
+					<span class="sr-only">Toggle navigation</span> <span
+						class="icon-bar"></span> <span class="icon-bar"></span> <span
+						class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#">KMonitor</a>
+			</div>
+
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse"
+				id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li><a href="./#/groups">Consumer Groups</a></li>
+					<li><a href="./#/topics">Topic List</a></li>
+					<li><a href="./#/alerts">Alerting</a></li>
+					<li class="dropdown"><a href="javascript:void(0)"
+						class="dropdown-toggle" data-toggle="dropdown">Visualizations
+							<b class="caret"></b>
+					</a>
+						<ul class="dropdown-menu">
+							<li><a href="./#/activetopicsviz">Active Topic Consumers</a></li>
+							<li><a href="./#/clusterviz">Cluster Overview</a></li>
+							<li><a href="./#/setting">Setting</a></li>
+						</ul></li>
+				</ul>
+			</div>
+			<!-- /.navbar-collapse -->
+		</div>
+		<!-- /.container-fluid -->
+	</nav>
+	<div class="container">
+		<div ng-view></div>
+	</div>
+	<!-- /.container -->
+	<footer class="footer">
+		<div class="container">
+			<p class="text-muted">&copy; 2017 @Chickling.</p>
+		</div>
+	</footer>
+
+	<!-- Bootstrap core JavaScript
+    ================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<!-- <script src="//code.jquery.com/jquery-1.10.2.min.js"></script> -->
+	<script src="./scripts/jquery-3.1.1.min.js"></script>
+	<script
+		src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js"></script>
+	<!-- <script
+		src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script> -->
+	<script src="./scripts/bootstrap.min.js"></script>
+	<script type="text/javascript"
+		src="./scripts/datetimepicker/bootstrap-datetimepicker.js"
+		charset="UTF-8"></script>
+	<script src="//code.highcharts.com/stock/highstock.js"></script>
+	<script src="//code.highcharts.com/stock/modules/exporting.js"></script>
+	<script
+		src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+	<script src="./scripts/d3.v3.min.js"></script>
+	<script src="./scripts/sweetalert.min.js"></script>
+	<script src="./scripts/chosen.jquery.min.js"></script>
+	<script src="./scripts/directives.js"></script>
+	<script src="./scripts/controllers.js"></script>
+	<script src="./scripts/app.js"></script>
+	<script src="./scripts/cluster-viz.js"></script>
+	<script src="./scripts/alerting.js"></script>
+</body>
+</html>

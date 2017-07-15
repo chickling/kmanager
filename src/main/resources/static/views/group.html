@@ -1,0 +1,40 @@
+<div class="page-header">
+  <h1>Details for the consumer group </strong>{{group}}</strong></h1>
+</div>
+
+<ol class="breadcrumb">
+  <li><a href="./#/groups">Groups List</a></li>
+  <li class="active">{{group}}</li>
+</ol>
+
+<div class="alert alert-info" ng-show="loading">
+  Loading ...
+</div>
+
+<div ng-hide="loading">
+  <h2>Brokers</h2>
+
+  <table class="table">
+  <thead>
+      <tr>
+    <th>id</th>
+    <th>host</th>
+    <th>port</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr ng-repeat="b in info.brokers">
+    <td>{{b.bid}}</td>
+    <td>{{b.host}}</td>
+    <td>{{b.port}}</td>
+      </tr>
+  </tbody>
+  </table>
+
+  <hr/>
+
+  <h2>Consumer Offsets</h2>
+  <div ng-include="'views/includes/group.inc.html'">
+  </div>
+  
+</div>

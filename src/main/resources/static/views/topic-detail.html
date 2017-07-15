@@ -1,0 +1,31 @@
+<div class="page-header">
+	<h1>
+		Details for the topic </strong>{{topic}}</strong>
+	</h1>
+</div>
+
+<div class="alert alert-info" ng-show="loading">Loading ...</div>
+
+<div ng-hide="loading">
+	<h2>Active Consumers</h2>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>name</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="c in info.consumers">
+				<td ng-if="c.name == 'Unable to find Active Consumers'">
+					{{c.name}}</td>
+				<td ng-if="c.name != 'Unable to find Active Consumers'"><a
+					href="./#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<a class="btn btn-default" href="./#/topic/{{topic}}/consumers"
+		role="button">More details...</a>
+	<hr />
+
+</div>

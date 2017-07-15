@@ -1,0 +1,100 @@
+<form style="margin-bottom: 25px;">
+	<h3>Zookeeper</h3>
+	<div class="form-group">
+		<label for="inputZookeeper">Hosts</label> <input type="text"
+			class="form-control" id="inputZookeeper" name="zkHosts"
+			ng-model="settingForm.zkHosts"
+			placeholder="zk1:2181,zk2:2181,zkN:2181">
+	</div>
+	<!-- <div class="form-group">
+		<label for="exampleInputPassword1">Session timeout</label> <input
+			type="password" class="form-control" id="exampleInputPassword1"
+			placeholder="leave blank, default will be 30s">
+	</div>
+	<div class="form-group">
+		<label for="exampleInputPassword1">Connection timeout</label> <input
+			type="password" class="form-control" id="exampleInputPassword1"
+			placeholder="leave blank, default will be 30s">
+	</div> -->
+	<div class="form-group">
+		<label for="inputDataCollectFrequency">Data collect frequency
+			(minute default: 1m)</label> <input type="number" min="1"
+			ng-model="settingForm.dataCollectFrequency" class="form-control"
+			id="inputDataCollectFrequency" name="dataCollectFrequency"
+			placeholder="Frequency for collecting offset info from zookeeper">
+	</div>
+	<div class="form-group">
+		<label for="inputExcludeByLastSeen">Exclude by last seen
+			(minute default:2592000 [30d])</label> <input type="number" min="0"
+			ng-model="settingForm.excludeByLastSeen" class="form-control"
+			id="inputExcludeByLastSeen" name="excludeByLastSeen"
+			placeholder="Exclude these consumer's data which was inactive for that long time">
+	</div>
+
+	<h3>Elasticsearch</h3>
+	<div class="form-group">
+		<label for="inputESHosts">Hosts</label> <input type="text"
+			class="form-control" id="inputESHosts" name="esHosts"
+			ng-model="settingForm.esHosts"
+			placeholder="esHost1:9300,esHost2:9300,esHostN:9300">
+	</div>
+	<div class="form-group">
+		<label for="inputESIndex">Index</label> <input type="text"
+			class="form-control" id="inputESIndex" name="esIndex"
+			ng-model="settingForm.esIndex"
+			placeholder="Like logx_healthcheck_kafka, whatever">
+	</div>
+	<!-- <div class="form-group">
+		<label for="inputESDocType">Doc type</label> <input type="text"
+			class="form-control" id="inputESDocType" name="exDocType"
+			placeholder="">
+	</div> -->
+
+	<h3>Alerting</h3>
+	<div class="checkbox">
+		<label> <input type="checkbox" name="isAlertEnabled"
+			ng-model="settingForm.isAlertEnabled" ng-model="alertEnabled">
+			enable alerting
+		</label>
+	</div>
+
+	<div ng-show="settingForm.isAlertEnabled">
+		<h3>Email</h3>
+		<div class="form-group">
+			<label for="inputSMTPServer">SMTP server</label> <input type="text"
+				class="form-control" id="inputSMTPServer" name="smtpServer"
+				ng-model="settingForm.smtpServer" placeholder="SMTP server address">
+		</div>
+		<div class="checkbox">
+			<label> <input ng-model="settingForm.smtpAuth"
+				type="checkbox" name="smtpAuth"> authenticate
+			</label>
+		</div>
+		<div class="form-group" ng-show="settingForm.smtpAuth">
+			<label for="inputSMTPUser">User</label> <input type="text"
+				class="form-control" id="inputSMTPUser"
+				ng-model="settingForm.smtpUser"
+				placeholder="SMTP server auth username">
+		</div>
+		<div class="form-group" ng-show="settingForm.smtpAuth">
+			<label for="inputSMTPPasswd">Password</label> <input type="password"
+				class="form-control" id="inputSMTPPasswd"
+				ng-model="settingForm.smtpPasswd"
+				placeholder="SMTP server auth password">
+		</div>
+		<div class="form-group">
+			<label for="inputMailSender">Mail sender</label> <input type="text"
+				class="form-control" id="inputMailSender"
+				ng-model="settingForm.mailSender"
+				placeholder="Like KafkaAlerting@kmonitor.com or something">
+		</div>
+		<div class="form-group">
+			<label for="inputMailSender">Mail subject</label> <input type="text"
+				class="form-control" id="inputMailSender"
+				ng-model="settingForm.mailSubject"
+				placeholder="Something like (Alerting)Kafka monitor alerting! ">
+		</div>
+	</div>
+
+	<button class="btn btn-default" ng-click="submitSetting()">Submit</button>
+</form>
