@@ -127,7 +127,92 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 				}
 			});
 			
-			offsetinfo.onShowNewAlertModal(true, function(d) {});
+			$scope.task = {
+				group : "",
+				topic : "",
+				diapause : "",
+				threshold : "",
+				mailTo : ""
+			}
+			
+			$('#taskModal')
+			.on(
+					'show.bs.modal',
+					function(event) {
+						var button = $(event.relatedTarget);
+						var topic = button.data('topic');
+						var group = button.data('group');
+						var modal = $(this);
+						var isTaskExists = false;
+						offsetinfo.listTasks().success(function(d) {
+							d.forEach(function(task) {
+								if (task.group === group && task.topic === topic) {
+									isTaskExists = true;
+									$scope.task = task;
+									modal.find('.modal-title').text('Task already exists!');
+									modal.find('.modal-body #topic').val(topic);
+									modal.find('.modal-body #group').val(group);
+									modal.find('.modal-body #threshold').val(task.threshold);
+									$('#submitTask').prop('disabled', true);
+									document.getElementById('submitTask').className += " disabled";
+								    $scope.$watch('task', function() {
+								    	console.log($scope.task);
+								    });
+								}
+							});
+						});
+						
+						if(isTaskExists){
+							return;
+						}
+						$("#inputTopicName").empty().append(
+								'<p class="form-control">' + topic + '</p>');
+						$('#create-consumer').empty().append(
+								'<p class="form-control">' + group + '</p>');
+						document.getElementById("inputThreshold").style.borderColor = "";
+						document.getElementById("inputEmail").style.borderColor = "";
+						modal.find('.modal-title').text('New Task');
+						modal.find('.modal-body #topic').val(topic);
+						modal.find('.modal-body #group').val(group);
+					});
+
+			$("#submitTask")
+				.click(
+					function() {
+						var frm = $('#taskForm');
+						var go = true;
+						var inputThreshold = $("#inputThreshold").val();
+						if (!inputThreshold || inputThreshold === "") {
+							document.getElementById("inputThreshold").style.borderColor = "red";
+							go = false;
+						}
+						var inputDiapause = $("#inputDiapause").val();
+						if (!inputDiapause || inputDiapause === "") {
+							document.getElementById("inputDiapause").style.borderColor = "red";
+							go = false;
+						}
+						var inputEmail = $("#inputEmail").val();
+						if (!inputEmail || inputEmail === "") {
+							document.getElementById("inputEmail").style.borderColor = "red";
+							go = false;
+						}
+						if (!go) {
+							go = true;
+							return;
+						}
+
+						var sendData = formArrToObject(frm.serializeArray());
+						offsetinfo.newAlert('alerting/task', sendData, function(d) {
+							$scope.tasks = d;
+							$('#taskModal').modal('hide');
+							swal({
+								title : "Task created!",
+								type : "success",
+								timer : 1000,
+								showConfirmButton : false
+							});
+						});
+					});
 			$scope.offsetHistoryByDateRange = function() {
 				$scope.loading = true;
 				offsetinfo.queryOffsetHistoryWithOptions(JSON.stringify($scope.rangeform), function(d) {
@@ -173,11 +258,75 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 						$scope.tasks = d;
 						$scope.loading = false;
 					});
-					offsetinfo.onShowAlertTaskDetailModal(function(d) {
-						$scope.tasks = d.data;
-						$scope.loading = false;
-						location.reload();
-					});
+					
+					$('#taskDetailModal')
+					.on(
+							'show.bs.modal',
+							function(event) {
+								var button = $(event.relatedTarget);
+								var group = button.data('group');
+								var topic = button.data('topic');
+								var threshold = button.data('threshold');
+								var diapause = button.data('diapause');
+								var mailTo = button.data('mailto');
+								document.getElementById("taskDetail-inputThreshold").style.borderColor = "";
+								document.getElementById("taskDetail-inputDiapause").style.borderColor = "";
+								document.getElementById("taskDetail-inputEmail").style.borderColor = "";
+								var modal = $(this);
+								modal.find('.modal-body #taskDetail-inputTopic').val(
+										topic);
+								modal.find('.modal-body #taskDetail-inputConsumer')
+										.val(group);
+								$('#taskDetail-inputTopic').prop('readonly', true);
+								$('#taskDetail-inputConsumer').prop('readonly', true);
+								// Message Lag Threshold
+								modal.find('.modal-body #taskDetail-inputThreshold')
+										.val(threshold);
+								// diapause
+								modal.find('.modal-body #taskDetail-inputDiapause')
+										.val(diapause);
+								// Mail to
+								modal.find('.modal-body #taskDetail-inputEmail').val(
+										mailTo);
+							});
+
+					$("#updateTask")
+							.click(
+							function() {
+								var frm = $('#taskDetailForm');
+								var inputThreshold = $("#taskDetail-inputThreshold")
+										.val();
+								if (!inputThreshold || inputThreshold === "") {
+									document
+											.getElementById("taskDetail-inputThreshold").style.borderColor = "red";
+									return;
+								}
+								var inputDiapause = $("#taskDetail-inputDiapause")
+										.val();
+								if (!inputDiapause || inputDiapause === "") {
+									document.getElementById("taskDetail-inputDiapause").style.borderColor = "red";
+									return;
+								}
+								var inputEmail = $("#taskDetail-inputEmail").val();
+								if (!inputEmail || inputEmail === "") {
+									document.getElementById("taskDetail-inputEmail").style.borderColor = "red";
+									return;
+								}
+
+								var sendData = formArrToObject(frm.serializeArray());
+								
+								offsetinfo.newAlert('alerting/task', sendData, function(d) {
+									$scope.tasks = d;
+									$('#taskModal').modal('hide');
+									swal({
+										title : "Task updated!",
+										type : "success",
+										timer : 1000,
+										showConfirmButton : false
+									});
+								});
+							});
+					
 					$scope.taskform = {
 							group: "",
 							topic: "",
@@ -201,14 +350,99 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 						});
 					}
 					
-					offsetinfo.onShowNewAlertModal(false, function(d) {
-						// TODO reload task list here when new task add? 
-					});
+					$('#taskModal')
+					.on(
+							'show.bs.modal',
+							function(event) {
+								var button = $(event.relatedTarget) // Button that
+								var modal = $(this);
+								$('.chosen-select-topic')
+										.trigger("chosen:updated")
+										.chosen({
+											width : "100%",
+											no_results_text : 'Oops, no such Topic!'
+										})
+										.on(
+												'change',
+												function(evt, params) {
+													var choosedTopic = $(
+															'#inputTopicName_chosen .chosen-single span')
+															.text();
+													$.ajax({
+														url : "activeconsumers/"
+																+ choosedTopic,
+														type : "GET",
+														success : function(groups) {
+															generateGroupSelect(
+																	choosedTopic,
+																	groups);
+														}
+													});
+													$('#create-consumer')
+															.empty()
+															.append(
+																	'<div id="escapingBallG"><div id="escapingBall_1" class="escapingBallG"></div></div>');
+												});
+								$('#create-consumer')
+										.empty()
+										.append(
+												'<select data-placeholder="Choose a Consumer..." class="chosen-select chosen-select-group" tabindex="2" form="taskForm" name="group" id="inputGroupName"><option value=""></option></select>');
+								var select = $('#taskForm .chosen-select-group');
+								select.find('option').remove().end().append(
+										'<option value=""></option>');
+								$('.chosen-select-group').chosen({
+									width : "100%",
+									no_results_text : 'Oops, no such Group!'
+								})
+							});
 				}else{
 					$scope.alertEnabled = false;
 					$scope.loading = false;
 					$('#newTask').prop('disabled', true);
 				}
+				
+				$("#submitTask")
+				.click(
+						function() {
+							var frm = $('#taskForm');
+							var go = true;
+							var inputThreshold = $("#inputThreshold").val();
+							if (!inputThreshold || inputThreshold === "") {
+								document.getElementById("inputThreshold").style.borderColor = "red";
+								go = false;
+							}
+							var inputDiapause = $("#inputDiapause").val();
+							if (!inputDiapause || inputDiapause === "") {
+								document.getElementById("inputDiapause").style.borderColor = "red";
+								go = false;
+							}
+							var inputEmail = $("#inputEmail").val();
+							if (!inputEmail || inputEmail === "") {
+								document.getElementById("inputEmail").style.borderColor = "red";
+								go = false;
+							}
+							if (!go) {
+								go = true;
+								return;
+							}
+
+							var sendData = formArrToObject(frm.serializeArray());
+							var choosedTopic = $(
+									'#inputTopicName_chosen .chosen-single span')
+									.text();
+							sendData.topic = choosedTopic;
+							
+							offsetinfo.newAlert('alerting/task', sendData, function(d) {
+								$scope.tasks = d;
+								$('#taskModal').modal('hide');
+								swal({
+									title : "Task created!",
+									type : "success",
+									timer : 1000,
+									showConfirmButton : false
+								});
+							});
+						});
 			});
 		} ])
 		.controller("SettingCtrl", [ "$scope", "offsetinfo",
@@ -245,23 +479,33 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 					$scope.settingForm.mailSubject = "";
 				}
 				
-				offsetinfo.postSetting($scope.settingForm, function(d) {
-					if(d.isSystemReady!=undefined && d.isSystemReady){
-						swal({
-							title : "Setting updated! Kmonitor is ready to use!",
-							type : "success",
-							timer : 1000,
-							showConfirmButton : false
+				swal({
+					  title: "Submit setting",
+					  text: "Make sure you have input everything right then click OK",
+					  type: "info",
+					  showCancelButton: false,
+					  closeOnConfirm: false,
+					  showLoaderOnConfirm: true
+					},
+					function(){
+						offsetinfo.postSetting($scope.settingForm, function(d) {
+							if(d.isSystemReady!=undefined && d.isSystemReady){
+								swal({
+									title : "Setting updated! Kmonitor is ready to use!",
+									type : "success",
+									timer : 1500,
+									showConfirmButton : false
+								});
+							}else{
+								swal({
+									title : "Something went wrong!",
+									text: d.message,
+									type : "error",
+									showConfirmButton : true
+								});
+							}
 						});
-					}else{
-						swal({
-							title : "Something went wrong!",
-							text: d.message,
-							type : "error",
-							showConfirmButton : true
-						});
-					}
-				});
+					});
 			}
 		} ])
 		/*.controller("BrokerCtrl", [ "$scope", "$routeParams", "offsetinfo",

@@ -146,18 +146,18 @@ angular.module("offsetapp.services", [ "ngResource" ])
 					topic : topic
 				}, processConsumer(cb));
 			},
-			onShowNewAlertModal : function(isInOffsetHistory, cb) {
-				if(isInOffsetHistory){
-					cb(newAlertInOffsetHistory());
-				}else{
-					newAlert(cb);
-				}
+			newAlert : function(_url, requestBody, cb) {
+				$http({
+				    method: 'POST',
+				    url: _url,
+				    headers: {'Content-Type': 'application/json'},
+				    data: requestBody
+				}).success(function (response) {
+					cb(response);
+				});	
 			},
 			listTasks : function(cb) {
 				return $http.get("./alerting/tasks");
-			},
-			onShowAlertTaskDetailModal : function(cb) {
-				return alertTaskDetail(cb);
 			},
 			deleteTask: function(task, cb) {
 				return $http.delete("./alerting/delete/" + task.group + "-" + task.topic)

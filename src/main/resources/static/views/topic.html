@@ -34,13 +34,15 @@
 						<label for="inputTopicName" class="col-sm-4 control-label">Topic
 							Name</label>
 						<div class="col-sm-8" id="inputTopicName"></div>
-						<input type="hidden" name="topic" value="" id="topic" />
+						<input type="hidden" name="topic" value="" id="topic"
+							ng-model="task.topic" />
 					</div>
 					<div class="form-group">
 						<label for="inputConsumerGroup" class="col-sm-4 control-label">Consumer
 							Group Name</label>
 						<div class="col-sm-8" id="create-consumer"></div>
-						<input type="hidden" name="group" value="" id="group" />
+						<input type="hidden" name="group" value="" id="group"
+							ng-model="task.group" />
 					</div>
 					<div class="form-group">
 						<label for="inputThreshold" class="col-sm-4 control-label">Message
@@ -48,7 +50,7 @@
 						<div class="col-sm-8">
 							<input type="number" min="1" class="form-control"
 								id="inputThreshold" name="threshold" placeholder="Threshold"
-								oninput="onInputNumber(event)" />
+								ng-model="task.threshold" oninput="onInputNumber(event)" />
 						</div>
 					</div>
 					<div class="form-group">
@@ -56,7 +58,7 @@
 							send Diapause</label>
 						<div class="col-sm-8">
 							<input type="number" min="1" class="form-control"
-								id="inputDiapause" name="diapause"
+								id="inputDiapause" name="diapause" ng-model="task.diapause"
 								placeholder="Diapause (Minutes)" oninput="onInputNumber(event)" />
 						</div>
 					</div>
@@ -64,7 +66,7 @@
 						<label for="inputEmail" class="col-sm-4 control-label">MailTo</label>
 						<div class="col-sm-8">
 							<input type="email" class="form-control" id="inputEmail"
-								name="mailTo"
+								ng-model="task.mailTo" name="mailTo"
 								placeholder="You can enter a mail list, split by ;"
 								oninput="onInputEmail(event)" />
 						</div>

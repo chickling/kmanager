@@ -36,15 +36,9 @@ public class AlertController {
 		return response.toString();
 	}
 
-	@RequestMapping(value = "/new", method = RequestMethod.POST)
-	public Set<TaskContent> post(@RequestBody TaskContent taskContent) {
-		TaskManager.saveTaskToFileAndAddToTasks(taskContent);
-		return TaskManager.getTasks();
-	}
-
-	@RequestMapping(value = { "/update" }, method = RequestMethod.POST)
+	@RequestMapping(value = { "/task" }, method = RequestMethod.POST)
 	public Set<TaskContent> put(@RequestBody TaskContent taskContent) {
-		TaskManager.refreshTask(taskContent);
+		TaskManager.saveTaskToFileAndAddToTasks(taskContent);
 		return TaskManager.getTasks();
 	}
 
