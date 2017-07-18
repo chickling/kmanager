@@ -81,7 +81,7 @@ public class TaskHandler implements Runnable {
 			blabla.append("<td style=\"border: 1px solid #ddd;\">" + offsetInfo.getLag() + "</td><tr>");
 		}
 		template.insertTr(blabla.toString());
-		EmailSender.sendEmail(template.getContent(), _task.getMailTo());
+		EmailSender.sendEmail(template.getContent(), _task.getMailTo(), _task.getGroup() + "_" + _task.getTopic());
 	}
 
 }

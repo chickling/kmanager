@@ -44,7 +44,7 @@ import com.chickling.kmonitor.model.OffsetPoints;
  *
  */
 public class ElasticsearchUtil {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchUtil.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchUtil.class);
 	static TransportClient client = null;
 
 	private String indexPrefix;
@@ -146,7 +146,7 @@ public class ElasticsearchUtil {
 					}
 
 				} catch (Exception e) {
-					LOGGER.warn("Ops...GenerateOffsetHistoryDataset went wrong! " + e.getMessage());
+					LOG.warn("Ops...GenerateOffsetHistoryDataset went wrong! " + e.getMessage());
 				}
 				response = client.prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(60000)).execute()
 						.actionGet();
@@ -156,16 +156,16 @@ public class ElasticsearchUtil {
 					result.addAll(future.get());
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
-					LOGGER.error("Interrupted when get GenerateOffsetHistoryDataset in future...", e);
+					LOG.error("Interrupted when get GenerateOffsetHistoryDataset in future...", e);
 				} catch (ExecutionException e) {
 					// TODO Auto-generated catch block
-					LOGGER.error("QAQ when get GenerateOffsetHistoryDataset in future...", e);
+					LOG.error("QAQ when get GenerateOffsetHistoryDataset in future...", e);
 				}
 			}
 			pool.shutdown();
 		} catch (Exception e) {
 			// TODO
-			LOGGER.error("Damn...", e);
+			LOG.error("Damn...", e);
 		}
 		return result;
 	}
@@ -280,21 +280,21 @@ public class ElasticsearchUtil {
 
 			List<Future<List<OffsetPoints>>> futureList = new ArrayList<Future<List<OffsetPoints>>>();
 			while (true) {
-				if (response.getHits().getHits().length == 0) {
+				SearchHit[] searchHits = response.getHits().getHits();
+				if (searchHits.length == 0) {
 					break;
 				}
 				try {
-					SearchHit[] searchHits = response.getHits().getHits();
 					int step = searchHits.length / parallism;
 					Future<List<OffsetPoints>> future = null;
 					for (int i = 0; i < searchHits.length; i = i + step) {
-						int to = i + step < searchHits.length ? i + step : searchHits.length;
+ 						int to = i + step < searchHits.length ? i + step : searchHits.length;
 						SearchHit[] searchHitPart = Arrays.copyOfRange(searchHits, i, to);
 						future = pool.submit(new GenerateOffsetHistoryDataset(searchHitPart));
 						futureList.add(future);
 					}
 				} catch (Exception e) {
-					LOGGER.warn("Ops...GenerateOffsetHistoryDataset went wrong! " + e.getMessage());
+					LOG.warn("Ops...GenerateOffsetHistoryDataset went wrong! " + e.getMessage());
 				}
 
 				response = client.prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(60000)).execute()
@@ -305,16 +305,17 @@ public class ElasticsearchUtil {
 					result.addAll(future.get());
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
-					LOGGER.error("Interrupted when get GenerateOffsetHistoryDataset in future...", e);
+					LOG.error("Interrupted when get GenerateOffsetHistoryDataset in future...", e);
 				} catch (ExecutionException e) {
 					// TODO Auto-generated catch block
-					LOGGER.error("QAQ when get GenerateOffsetHistoryDataset in future...", e);
+					LOG.error("QAQ when get GenerateOffsetHistoryDataset in future...", e);
 				}
 			}
 			pool.shutdown();
 		} catch (Exception e) {
+			pool.shutdown();
 			// TODO
-			LOGGER.error("Damn...", e);
+			LOG.error("Damn...", e);
 		}
 
 		return result;
@@ -339,33 +340,37 @@ public class ElasticsearchUtil {
 		}
 
 		@Override
-		public List<OffsetPoints> call() throws Exception {
+		public List<OffsetPoints> call() {
 			Map<String, Object> source = null;
 			List<OffsetPoints> datasets = new ArrayList<OffsetPoints>();
-			for (SearchHit hit : searchHits) {
-				source = hit.getSource();
-				if (concernedTimestamp != null) {
-					if (!concernedTimestamp.contains(source.get("date"))) {
-						continue;
+			try {
+				for (SearchHit hit : searchHits) {
+					source = hit.getSource();
+					if (concernedTimestamp != null) {
+						if (!concernedTimestamp.contains(source.get("date"))) {
+							continue;
+						}
 					}
-				}
-				Long offset = null;
-				if (source.get("offset") instanceof Integer) {
-					Integer tempOffset = (Integer) source.get("offset");
-					offset = new Long(tempOffset);
-				} else {
-					offset = (Long) source.get("offset");
-				}
-				Long logsize = null;
-				if (source.get("offset") instanceof Integer) {
-					Integer tempLogsize = (Integer) source.get("logSize");
-					logsize = new Long(tempLogsize);
-				} else {
-					logsize = (Long) source.get("logSize");
-				}
+					Long offset = null;
+					if (source.get("offset") instanceof Integer) {
+						Integer tempOffset = (Integer) source.get("offset");
+						offset = new Long(tempOffset);
+					} else {
+						offset = (Long) source.get("offset");
+					}
+					Long logsize = null;
+					if (source.get("offset") instanceof Integer) {
+						Integer tempLogsize = (Integer) source.get("logSize");
+						logsize = new Long(tempLogsize);
+					} else {
+						logsize = (Long) source.get("logSize");
+					}
 
-				datasets.add(new OffsetPoints((Long) source.get("timestamp"), (Integer) source.get("partition"),
-						(String) source.get("owner"), offset, logsize));
+					datasets.add(new OffsetPoints((Long) source.get("timestamp"), (Integer) source.get("partition"),
+							(String) source.get("owner"), offset, logsize));
+				}
+			} catch (Exception e) {
+				LOG.error("GenerateOffsetHistoryDataset error! " + e.getMessage());
 			}
 			return datasets;
 		}

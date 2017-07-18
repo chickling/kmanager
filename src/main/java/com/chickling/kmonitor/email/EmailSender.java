@@ -27,7 +27,7 @@ public class EmailSender {
 		config = _config;
 	}
 
-	public static void sendEmail(String message, String sendTo) {
+	public static void sendEmail(String message, String sendTo, String group_topic) {
 		Properties properties = System.getProperties();
 
 		if (config.getSmtpAuth()) {
@@ -51,7 +51,15 @@ public class EmailSender {
 				mimeMessage.addRecipients(Message.RecipientType.CC, InternetAddress.parse(cc));
 			}
 			mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(sendToArr[0]));
-
+			
+			String[] group_topicArr = group_topic.split("_");
+			String subject = config.getMailSubject();
+			if(subject.contains("{group}")) {
+				subject.replace("{group}", group_topicArr[0]);
+			}
+			if(subject.contains("{topic}")) {
+				subject.replace("{topic}", group_topicArr[1]);
+			}
 			mimeMessage.setSubject(config.getMailSubject());
 			mimeMessage.setSentDate(new Date());
 			mimeMessage.setContent(message, "text/html");
