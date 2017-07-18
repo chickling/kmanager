@@ -71,7 +71,12 @@ public class TaskManager {
 		if (exits(taskContent)) {
 			return;
 		}
-		Map<String, TaskContent> task = new HashMap<String, TaskContent>();
+		Map<String, TaskContent> task = null;
+		if (tasks.containsKey(taskContent.getGroup())) {
+			task = tasks.get(taskContent.getGroup());
+		} else {
+			task = new HashMap<String, TaskContent>();
+		}
 		task.put(taskContent.getTopic(), taskContent);
 		tasks.put(taskContent.getGroup(), task);
 	}
