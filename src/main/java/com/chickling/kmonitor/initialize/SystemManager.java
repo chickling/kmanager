@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.chickling.kmonitor.alert.TaskContent;
 import com.chickling.kmonitor.alert.TaskHandler;
 import com.chickling.kmonitor.alert.TaskManager;
+import com.chickling.kmonitor.alert.WorkerThreadFactory;
 import com.chickling.kmonitor.config.AppConfig;
 import com.chickling.kmonitor.core.OffsetGetter;
 import com.chickling.kmonitor.core.ZKOffsetGetter;
@@ -45,7 +46,7 @@ public class SystemManager {
 	private static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
 
 	private static final ExecutorService kafkaInfoCollectAndSavePool = Executors
-			.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE);
+			.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("KafkaInfo Collector"));
 
 	public static BlockingQueue<KafkaInfo> offsetInfoCacheQueue;
 
@@ -106,7 +107,7 @@ public class SystemManager {
 
 			if (scheduler != null)
 				scheduler.shutdownNow();
-			scheduler = Executors.newScheduledThreadPool(2);
+			scheduler = Executors.newScheduledThreadPool(2, new WorkerThreadFactory("FixedRateSchedule"));
 
 			if (config.getIsAlertEnabled()) {
 				initAlert(config);
@@ -149,7 +150,7 @@ public class SystemManager {
 		if (worker != null) {
 			worker.shutdownNow();
 		}
-		worker = Executors.newFixedThreadPool(corePoolSize);
+		worker = Executors.newFixedThreadPool(corePoolSize, new WorkerThreadFactory("AlertTaskChecker"));
 
 		for (int i = 0; i < corePoolSize; i++) {
 			worker.submit(new TaskHandler());
