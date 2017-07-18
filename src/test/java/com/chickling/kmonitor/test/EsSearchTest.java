@@ -14,8 +14,7 @@ public class EsSearchTest {
 
 	public static void main(String[] args) {
 		ElasticsearchUtil es = new ElasticsearchUtil("10.16.238.82:9300,10.16.238.83:9300,10.16.238.84:9300");
-		es.setIndexAndType("logx_healthcheck_test");
-		List<OffsetPoints> result = es.offsetHistory("kafkaoffset", "testkafka", "EC2_Test");
+		List<OffsetPoints> result = es.offsetHistory("logx_healthcheck_test", "kafkaoffset", "testkafka", "EC2_Test");
 
 		System.out.println(result);
 	}

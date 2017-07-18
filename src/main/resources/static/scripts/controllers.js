@@ -219,6 +219,7 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 					excludeByLastSeen: 2592000,
 					esHosts: "",
 					esIndex: "",
+					docTypeForOffset: "kafkaoffsetinfo",
 					isAlertEnabled: false,
 					smtpServer: "",
 					smtpAuth: false,

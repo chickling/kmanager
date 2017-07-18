@@ -7,6 +7,7 @@ package com.chickling.kmonitor.config;
 public class AppConfig {
 	private String esHosts;
 	private String esIndex;
+	private String docTypeForOffset;
 
 	private Integer dataCollectFrequency = 1;
 
@@ -59,6 +60,14 @@ public class AppConfig {
 
 	public void setEsIndex(String esIndex) {
 		this.esIndex = esIndex;
+	}
+
+	public String getDocTypeForOffset() {
+		return docTypeForOffset;
+	}
+
+	public void setDocTypeForOffset(String docTypeForOffset) {
+		this.docTypeForOffset = docTypeForOffset;
 	}
 
 	public Integer getDataCollectFrequency() {

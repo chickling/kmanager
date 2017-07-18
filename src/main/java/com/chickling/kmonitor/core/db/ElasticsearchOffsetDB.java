@@ -22,12 +22,19 @@ import com.chickling.kmonitor.utils.ElasticsearchUtil;
 public class ElasticsearchOffsetDB implements OffsetDB {
 
 	private ElasticsearchUtil esUtil;
+	private String indexPrefix;
+	private String docType;
 
 	private static final SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	public ElasticsearchOffsetDB(AppConfig config) {
 		esUtil = new ElasticsearchUtil(config.getEsHosts());
-		esUtil.setIndexAndType(config.getEsIndex());
+		setIndexAndType(config.getEsIndex(), config.getDocTypeForOffset());
+	}
+
+	public void setIndexAndType(String index, String docType) {
+		this.indexPrefix = index + "-";
+		this.docType = docType;
 	}
 
 	/*
@@ -58,7 +65,7 @@ public class ElasticsearchOffsetDB implements OffsetDB {
 		for (int i = 0; i < offsetInfoList.size(); i++) {
 			data.put(i + "", generateRecord(cal.getTimeInMillis(), offsetInfoList.get(i)));
 		}
-		esUtil.bulkIndex(data, "kafkOffsetInfo");
+		esUtil.bulkIndex(data, docType, indexPrefix);
 	}
 
 	private JSONObject generateRecord(long timestamp, OffsetInfo offsetInfo) {
@@ -84,14 +91,14 @@ public class ElasticsearchOffsetDB implements OffsetDB {
 	 */
 	@Override
 	public OffsetHistory offsetHistory(String group, String topic) {
-		List<OffsetPoints> offsetPointsList = esUtil.offsetHistory("kafkOffsetInfo", group, topic);
+		List<OffsetPoints> offsetPointsList = esUtil.offsetHistory(indexPrefix, docType, group, topic);
 		CommonUtils.sortByTimestampThenPartition(offsetPointsList);
 		return new OffsetHistory(group, topic, offsetPointsList);
 	}
 
 	@Override
 	public OffsetHistory offsetHistory(OffsetHistoryQueryParams params) {
-		List<OffsetPoints> offsetPointsList = esUtil.scrollsSearcher(params, "kafkOffsetInfo");
+		List<OffsetPoints> offsetPointsList = esUtil.scrollsSearcher(params, docType, indexPrefix);
 		CommonUtils.sortByTimestampThenPartition(offsetPointsList);
 		return new OffsetHistory(params.getGroup(), params.getTopic(), offsetPointsList);
 	}

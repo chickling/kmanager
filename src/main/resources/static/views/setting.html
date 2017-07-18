@@ -44,11 +44,12 @@
 			ng-model="settingForm.esIndex"
 			placeholder="Like logx_healthcheck_kafka, whatever">
 	</div>
-	<!-- <div class="form-group">
+	<div class="form-group">
 		<label for="inputESDocType">Doc type</label> <input type="text"
-			class="form-control" id="inputESDocType" name="exDocType"
-			placeholder="">
-	</div> -->
+			class="form-control" id="inputESDocType" name="docTypeForOffset"
+			ng-model="settingForm.docTypeForOffset"
+			placeholder="Leave it blank, it'll set with [kafkaoffsetinfo]">
+	</div>
 
 	<h3>Alerting</h3>
 	<div class="checkbox">
