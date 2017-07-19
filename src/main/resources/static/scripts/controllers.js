@@ -471,6 +471,7 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 					zkHosts: "",
 					dataCollectFrequency: 1,
 					excludeByLastSeen: 2592000,
+					apiType: "",
 					esHosts: "",
 					esIndex: "",
 					docTypeForOffset: "kafkaoffsetinfo",
@@ -482,6 +483,8 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 					mailSender: "",
 					mailSubject: ""
 			}
+			
+			$scope.apiTypes = ["Java API", "REST API"];
 			offsetinfo.getSetting().success(function(d) {
 				if(d.isSystemReady!=undefined && !d.isSystemReady){
 					$scope.settingForm = settingFormModal;
@@ -528,24 +531,24 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 					});
 			}
 		} ])
-		/*.controller("BrokerCtrl", [ "$scope", "$routeParams", "offsetinfo",
+		.controller("BrokerCtrl", [ "$scope", "$routeParams", "offsetinfo",
 		function($scope, $routeParams, offsetinfo) {
 			$scope.loading = true;
 			$scope.brokerEndpoint = $routeParams.endpoint;
-			var options = {
-				axisY : {
-					type : Chartist.AutoScaleAxis,
-					low : 4318293,
-					high : 4319246,
-					onlyInteger : true
-				}
-			};
-			var data = {
-				labels : [ '02:39:34', '02:40:04', '02:40:34', '02:41:04',
-						'02:41:34', '02:42:04', '02:42:34', '02:43:04', '02:43:34',
-						'02:44:04' ],
-				series : [ [ 4318294, 4318393, 4318488, 4318603, 4318695, 4318808,
-						4318922, 4319032, 4319146, 4319245 ] ]
-			};
-			new Chartist.Line('.ct-chart', data, options);
-		} ])*/;
+//			var options = {
+//				axisY : {
+//					type : Chartist.AutoScaleAxis,
+//					low : 4318293,
+//					high : 4319246,
+//					onlyInteger : true
+//				}
+//			};
+//			var data = {
+//				labels : [ '02:39:34', '02:40:04', '02:40:34', '02:41:04',
+//						'02:41:34', '02:42:04', '02:42:34', '02:43:04', '02:43:34',
+//						'02:44:04' ],
+//				series : [ [ 4318294, 4318393, 4318488, 4318603, 4318695, 4318808,
+//						4318922, 4319032, 4319146, 4319245 ] ]
+//			};
+//			new Chartist.Line('.ct-chart', data, options);
+		} ]);

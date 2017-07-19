@@ -1,10 +1,10 @@
 <div class="page-header">
 	<h1>
-		Details for the topic </strong>{{topic}}</strong>
+		Details for the broker </strong>{{brokerEndpoint}}</strong>
 	</h1>
 </div>
 
-<div class="panel panel-default" ng-show="jmxEnabled">
+<div class="panel panel-default">
 	<div class="panel-heading">
 		<h4>Metrics</h4>
 	</div>
@@ -25,78 +25,49 @@
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
-				<tr><tr>
-			
+			<tr>
+			<tr>
 				<td>Bytes in /sec</td>
 				<td><span class="badge">1.64</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
-			
 			<tr>
-			
 			<tr>
 				<td>Bytes out /sec</td>
 				<td><span class="badge">1.64</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
-			
 			<tr>
-			
 			<tr>
 				<td>Bytes rejected /sec</td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
-			
 			<tr>
-			
 			<tr>
 				<td>Failed fetch request /sec</td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
-			
 			<tr>
-			
 			<tr>
 				<td>Failed produce request /sec</td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
-			
 			<tr>
-		
 		</tbody>
 	</table>
 </div>
 
-<div class="alert alert-info" ng-show="loading">Loading ...</div>
-
-				<div ng-hide="loading">
-					<h2>Active Consumers</h2>
-					<table class="table">
-						<thead>
-							<tr>
-								<th>name</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="c in info.consumers">
-								<td ng-if="c.name == 'Unable to find Active Consumers'">
-									{{c.name}}</td>
-								<td ng-if="c.name != 'Unable to find Active Consumers'"><a
-									href="./#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
-							</tr>
-						</tbody>
-					</table>
-
-					<a class="btn btn-default" href="./#/topic/{{topic}}/consumers"
-						role="button">More details...</a>
-					<hr />
-
-				</div>
+<!-- <div class="panel panel-default">
+	<div class="panel-heading">
+		<h4>Messages count</h4>
+	</div>
+	<div class="ct-chart"></div>
+</div> -->

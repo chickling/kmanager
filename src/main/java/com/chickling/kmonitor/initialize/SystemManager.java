@@ -43,7 +43,7 @@ public class SystemManager {
 
 	private static ExecutorService worker;
 
-	private static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
+	public static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
 
 	private static final ExecutorService kafkaInfoCollectAndSavePool = Executors
 			.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("KafkaInfo Collector"));
@@ -97,7 +97,7 @@ public class SystemManager {
 			if (db != null)
 				db.close();
 			db = new ElasticsearchOffsetDB(config);
-			if (db.check()) {
+			if (!db.check()) {
 				throw new RuntimeException("No elasticsearch node avialable!");
 			}
 			if (og != null)

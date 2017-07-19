@@ -4,61 +4,124 @@
 	</h1>
 </div>
 
+<div class="panel panel-default" ng-show="jmxEnabled">
+	<div class="panel-heading">
+		<h4>Metrics</h4>
+	</div>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Rate</th>
+				<th>Mean</th>
+				<th>1&nbsp;min</th>
+				<th>5&nbsp;min</th>
+				<th>15&nbsp;min</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>Messages in /sec</td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<tr>
+			<tr>
+				<td>Bytes in /sec</td>
+				<td><span class="badge">1.64</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+			<tr>
+			
+			
+			<tr>
+				<td>Bytes out /sec</td>
+				<td><span class="badge">1.64</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+			<tr>
+			<tr>
+				<td>Bytes rejected /sec</td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+			<tr>
+			<tr>
+				<td>Failed fetch request /sec</td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+			<tr>
+			<tr>
+				<td>Failed produce request /sec</td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+				<td><span class="badge">0.00</span></td>
+			<tr>
+		</tbody>
+	</table>
+</div>
+
 <div class="alert alert-info" ng-show="loading">Loading ...</div>
 
-<div ng-hide="loading">
-	<h2>Active Consumers</h2>
+				<div ng-hide="loading">
+					<h2>Active Consumers</h2>
 
-	<table class="table">
-		<thead>
-			<tr>
-				<th>name</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="c in info.consumers.active">
-				<td>{{c.name}}</td>
-			</tr>
-			<tr ng-show="info.consumers.active.length == 0">
-				<td>Unable to find Active Consumers</td>
-			</tr>
-		</tbody>
-	</table>
+					<table class="table">
+						<thead>
+							<tr>
+								<th>name</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="c in info.consumers.active">
+								<td>{{c.name}}</td>
+							</tr>
+							<tr ng-show="info.consumers.active.length == 0">
+								<td>Unable to find Active Consumers</td>
+							</tr>
+						</tbody>
+					</table>
 
-	<h2>Active Consumers Offsets</h2>
-	<div ng-repeat="info in info.consumers.active">
-		<div ng-include="'views/includes/group.inc.html'"></div>
-	</div>
-	<div ng-show="info.consumers.active.length == 0">Unable to find
-		Active Consumers</div>
+					<h2>Active Consumers Offsets</h2>
+					<div ng-repeat="info in info.consumers.active">
+						<div ng-include="'views/includes/group.inc.html'"></div>
+					</div>
+					<div ng-show="info.consumers.active.length == 0">Unable to
+						find Active Consumers</div>
 
-	<hr />
+					<hr />
 
-	<h2>InActive Consumers</h2>
+					<h2>InActive Consumers</h2>
 
-	<table class="table">
-		<thead>
-			<tr>
-				<th>name</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="c in info.consumers.inactive">
-				<td>{{c.name}}</td>
-			</tr>
-			<tr ng-show="info.consumers.inactive.length == 0">
-				<td>Unable to find Inactive Consumers</td>
-			</tr>
-		</tbody>
-	</table>
+					<table class="table">
+						<thead>
+							<tr>
+								<th>name</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="c in info.consumers.inactive">
+								<td>{{c.name}}</td>
+							</tr>
+							<tr ng-show="info.consumers.inactive.length == 0">
+								<td>Unable to find Inactive Consumers</td>
+							</tr>
+						</tbody>
+					</table>
 
-	<h2>Inactive Consumers Offsets</h2>
-	<div ng-repeat="info in info.consumers.inactive">
-		<div ng-include="'views/includes/group.inc.html'"></div>
-	</div>
-	<div ng-show="info.consumers.inactive.length == 0">Unable to find
-		Inactive Consumers</div>
+					<h2>Inactive Consumers Offsets</h2>
+					<div ng-repeat="info in info.consumers.inactive">
+						<div ng-include="'views/includes/group.inc.html'"></div>
+					</div>
+					<div ng-show="info.consumers.inactive.length == 0">Unable to
+						find Inactive Consumers</div>
 
-	<hr />
+					<hr />
 
-</div>
+				</div>

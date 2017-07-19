@@ -13,7 +13,9 @@ import com.chickling.kmonitor.model.OffsetHistoryQueryParams;
 import com.chickling.kmonitor.model.OffsetInfo;
 import com.chickling.kmonitor.model.OffsetPoints;
 import com.chickling.kmonitor.utils.CommonUtils;
-import com.chickling.kmonitor.utils.ElasticsearchUtil;
+import com.chickling.kmonitor.utils.elasticsearch.Ielasticsearch;
+import com.chickling.kmonitor.utils.elasticsearch.javaapi.ElasticsearchJavaUtil;
+import com.chickling.kmonitor.utils.elasticsearch.restapi.ElasticsearchRESTUtil;
 
 /**
  * @author Hulva Luva.H
@@ -21,14 +23,19 @@ import com.chickling.kmonitor.utils.ElasticsearchUtil;
  */
 public class ElasticsearchOffsetDB implements OffsetDB {
 
-	private ElasticsearchUtil esUtil;
+	private Ielasticsearch esUtil;
 	private String indexPrefix;
 	private String docType;
 
 	private static final SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	public ElasticsearchOffsetDB(AppConfig config) {
-		esUtil = new ElasticsearchUtil(config.getEsHosts());
+		if (config.getApiType().equalsIgnoreCase("Java API")) {
+			esUtil = new ElasticsearchJavaUtil(config.getEsHosts());
+		} else {
+			esUtil = new ElasticsearchRESTUtil(config.getEsHosts());
+		}
+
 		setIndexAndType(config.getEsIndex(), config.getDocTypeForOffset());
 	}
 

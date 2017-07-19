@@ -46,10 +46,10 @@ var app = angular.module('offsetapp',
 				templateUrl : "views/setting.html",
 				controller : "SettingCtrl"
 			})
-			/*
-			 * .when("/broker/:endpoint", { templateUrl : "views/broker.html",
-			 * controller : "BrokerCtrl" })
-			 */;
+		    .when("/broker/:endpoint", { 
+		    	templateUrl : "views/broker.html",
+		    	controller : "BrokerCtrl" 
+		    });
 		;
 	}).factory('isSystemReadyInterceptor', ["$location", function($location) {
 		var isSystemReadyInterceptor = {

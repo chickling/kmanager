@@ -5,6 +5,7 @@ package com.chickling.kmonitor.config;
  *
  */
 public class AppConfig {
+	private String apiType;
 	private String esHosts;
 	private String esIndex;
 	private String docTypeForOffset;
@@ -29,6 +30,14 @@ public class AppConfig {
 	private String mailSubject;
 
 	private Long excludeByLastSeen = 2592000L;
+
+	public String getApiType() {
+		return apiType;
+	}
+
+	public void setApiType(String apiType) {
+		this.apiType = apiType;
+	}
 
 	public String getZkHosts() {
 		return zkHosts;

@@ -174,10 +174,10 @@ function load_lag_page(d) {
 				&& parent != "KafkaCluster") {
 			window.location.replace("./#/group/" + name + "/" + parent);
 		}
-//		if (parent != undefined && parent != "ActiveTopics"
-//				&& parent == "KafkaCluster") {
-//			window.location.replace("./#/broker/" + name);
-//		}
+		if (parent != undefined && parent != "ActiveTopics"
+				&& parent == "KafkaCluster") {
+			window.location.replace("./#/broker/" + name);
+		}
 	}
 }
 
