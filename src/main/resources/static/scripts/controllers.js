@@ -128,52 +128,43 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 			});
 			
 			$scope.task = {
-				group : "",
-				topic : "",
+				group : $routeParams.group,
+				topic : $routeParams.topic,
 				diapause : "",
 				threshold : "",
 				mailTo : ""
 			}
+			
+			var isTaskExists = false;
+			offsetinfo.listTasks().success(function(d) {
+				d.forEach(function(t) {
+					if (t.group === $routeParams.group && t.topic === $routeParams.topic) {
+						isTaskExists = true;
+						$scope.task = t;
+					}
+				});
+			});
 			
 			$('#taskModal')
 			.on(
 					'show.bs.modal',
 					function(event) {
 						var button = $(event.relatedTarget);
-						var topic = button.data('topic');
-						var group = button.data('group');
+						var topic = $routeParams.group;
+						var group = $routeParams.topic;
 						var modal = $(this);
-						var isTaskExists = false;
-						offsetinfo.listTasks().success(function(d) {
-							d.forEach(function(task) {
-								if (task.group === group && task.topic === topic) {
-									isTaskExists = true;
-									$scope.task = task;
-									modal.find('.modal-title').text('Task already exists!');
-									modal.find('.modal-body #topic').val(topic);
-									modal.find('.modal-body #group').val(group);
-									modal.find('.modal-body #threshold').val(task.threshold);
-									$('#submitTask').prop('disabled', true);
-									document.getElementById('submitTask').className += " disabled";
-								    $scope.$watch('task', function() {
-								    	console.log($scope.task);
-								    });
-								}
-							});
-						});
-						
+						modal.find('.modal-body #topic').val(topic);
+						modal.find('.modal-body #group').val(group);
 						if(isTaskExists){
+							modal.find('.modal-title').text('Task already exists!');
+							modal.find('.modal-body #inputThreshold').val($scope.task.threshold);
+							modal.find('.modal-body #inputDiapause').val($scope.task.diapause);
+							modal.find('.modal-body #inputEmail').val($scope.task.mailTo);
 							return;
 						}
-						$("#inputTopicName").empty().append(
-								'<p class="form-control">' + topic + '</p>');
-						$('#create-consumer').empty().append(
-								'<p class="form-control">' + group + '</p>');
 						document.getElementById("inputThreshold").style.borderColor = "";
 						document.getElementById("inputEmail").style.borderColor = "";
 						modal.find('.modal-title').text('New Task');
-						modal.find('.modal-body #topic').val(topic);
-						modal.find('.modal-body #group').val(group);
 					});
 
 			$("#submitTask")
@@ -202,16 +193,45 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 						}
 
 						var sendData = formArrToObject(frm.serializeArray());
-						offsetinfo.newAlert('alerting/task', sendData, function(d) {
-							$scope.tasks = d;
-							$('#taskModal').modal('hide');
+						if(inputThreshold === $scope.task.threshold+'' && inputDiapause === $scope.task.diapause+'' && inputEmail === $scope.task.mailTo){
 							swal({
-								title : "Task created!",
-								type : "success",
-								timer : 1000,
-								showConfirmButton : false
+								  title: "Are you sure?",
+								  text: "The task is already exists and you have do no change!",
+								  type: "warning",
+								  showCancelButton: true,
+								  confirmButtonColor: "#DD6B55",
+								  confirmButtonText: "Yes, still submit!",
+								  cancelButtonText: "No, cancel",
+								  closeOnConfirm: false,
+								  closeOnCancel: true
+								},
+								function(isConfirm){
+								  if (!isConfirm) {
+								    return;
+								  }
+								  offsetinfo.newAlert('alerting/task', sendData, function(d) {
+										$scope.tasks = d;
+										$('#taskModal').modal('hide');
+										swal({
+											title : "Task created!",
+											type : "success",
+											timer : 1000,
+											showConfirmButton : false
+										});
+									});
+								});
+						}else{
+							offsetinfo.newAlert('alerting/task', sendData, function(d) {
+								$scope.tasks = d;
+								$('#taskModal').modal('hide');
+								swal({
+									title : "Task created!",
+									type : "success",
+									timer : 1000,
+									showConfirmButton : false
+								});
 							});
-						});
+						}
 					});
 			$scope.offsetHistoryByDateRange = function() {
 				$scope.loading = true;

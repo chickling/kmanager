@@ -130,7 +130,12 @@ public class ElasticsearchUtil {
 					break;
 				}
 				try {
-					int step = searchHits.length / parallism;
+					int step = 1;
+					if (searchHits.length < parallism) {
+						step = 1;
+					} else {
+						step = searchHits.length / parallism;
+					}
 					Future<List<OffsetPoints>> future = null;
 					for (int i = 0; i < searchHits.length; i = i + step) {
 						int to = i + step < searchHits.length ? i + step : searchHits.length;
@@ -279,7 +284,12 @@ public class ElasticsearchUtil {
 					break;
 				}
 				try {
-					int step = searchHits.length / parallism;
+					int step = 1;
+					if (searchHits.length < parallism) {
+						step = 1;
+					} else {
+						step = searchHits.length / parallism;
+					}
 					Future<List<OffsetPoints>> future = null;
 					for (int i = 0; i < searchHits.length; i = i + step) {
 						int to = i + step < searchHits.length ? i + step : searchHits.length;

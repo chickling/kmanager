@@ -31,18 +31,23 @@
 				<form class="form-horizontal" id="taskForm" action="alerting/new"
 					method="post">
 					<div class="form-group">
-						<label for="inputTopicName" class="col-sm-4 control-label">Topic
-							Name</label>
-						<div class="col-sm-8" id="inputTopicName"></div>
-						<input type="hidden" name="topic" value="" id="topic"
-							ng-model="task.topic" />
+						<label for="inputTopicName" class="col-sm-4 control-label">Topic</label>
+						<div class="col-sm-8">
+							<!-- <input type="text" name="topic" value="" id="topic"
+								class="form-control" ng-model="task.topic" /> -->
+							<p class="form-control">{{task.topic}}</p>
+						</div>
+						<input type="hidden" name="topic" value="" id="topic" />
 					</div>
 					<div class="form-group">
 						<label for="inputConsumerGroup" class="col-sm-4 control-label">Consumer
-							Group Name</label>
-						<div class="col-sm-8" id="create-consumer"></div>
-						<input type="hidden" name="group" value="" id="group"
-							ng-model="task.group" />
+							Group</label>
+						<div class="col-sm-8">
+							<!-- <input type="text" name="group" value="" id="group"
+								class="form-control" ng-model="task.group" /> -->
+							<p class="form-control">{{task.group}}</p>
+						</div>
+						<input type="hidden" name="group" value="" id="group" />
 					</div>
 					<div class="form-group">
 						<label for="inputThreshold" class="col-sm-4 control-label">Message
@@ -50,7 +55,7 @@
 						<div class="col-sm-8">
 							<input type="number" min="1" class="form-control"
 								id="inputThreshold" name="threshold" placeholder="Threshold"
-								ng-model="task.threshold" oninput="onInputNumber(event)" />
+								oninput="onInputNumber(event)" />
 						</div>
 					</div>
 					<div class="form-group">
@@ -58,7 +63,7 @@
 							send Diapause</label>
 						<div class="col-sm-8">
 							<input type="number" min="1" class="form-control"
-								id="inputDiapause" name="diapause" ng-model="task.diapause"
+								id="inputDiapause" name="diapause"
 								placeholder="Diapause (Minutes)" oninput="onInputNumber(event)" />
 						</div>
 					</div>
@@ -66,7 +71,7 @@
 						<label for="inputEmail" class="col-sm-4 control-label">MailTo</label>
 						<div class="col-sm-8">
 							<input type="email" class="form-control" id="inputEmail"
-								ng-model="task.mailTo" name="mailTo"
+								name="mailTo"
 								placeholder="You can enter a mail list, split by ;"
 								oninput="onInputEmail(event)" />
 						</div>
