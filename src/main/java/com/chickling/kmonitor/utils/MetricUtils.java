@@ -8,7 +8,7 @@ import java.math.BigDecimal;
  *
  */
 public class MetricUtils {
-	private static char[] UNIT = { 'k', 'm', 'b', 't' };
+	private static char[] UNIT = { 'k', 'm', 'b' };
 
 	public static String rateFormat(Double rate, int interation) {
 		if (rate < 100) {
@@ -28,10 +28,10 @@ public class MetricUtils {
 		}
 	}
 
-	public static String sizeFormat(Long bytes) {
-		int unit = 1000;
+	public static String sizeFormat(Double bytes) {
+		int unit = 1024;
 		if (bytes < unit) {
-			return bytes + " B";
+			return new BigDecimal(bytes).setScale(2, BigDecimal.ROUND_HALF_UP).toString() + " B";
 		} else {
 			int exp = new Double((Math.log(bytes) / Math.log(unit))).intValue();
 			char pre = "kMGTPE".charAt(exp - 1);

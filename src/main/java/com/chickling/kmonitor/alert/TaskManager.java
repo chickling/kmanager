@@ -53,24 +53,7 @@ public class TaskManager {
 		return false;
 	}
 
-	public static void refreshTask(TaskContent taskContent) {
-		String taskFilePath = taskFolder + "/" + taskContent.getGroup() + "-" + taskContent.getTopic() + ".task";
-		try {
-			PrintWriter writer = new PrintWriter(taskFilePath);
-			writer.println(new Gson().toJson(taskContent));
-			writer.close();
-			Map<String, TaskContent> task = new HashMap<String, TaskContent>();
-			task.put(taskContent.getTopic(), taskContent);
-			tasks.put(taskContent.getGroup(), task);
-		} catch (Exception e) {
-			logger.error("refreshTask to file failed!", e);
-		}
-	}
-
 	public static void addTask(TaskContent taskContent) throws JSONException {
-		if (exits(taskContent)) {
-			return;
-		}
 		Map<String, TaskContent> task = null;
 		if (tasks.containsKey(taskContent.getGroup())) {
 			task = tasks.get(taskContent.getGroup());

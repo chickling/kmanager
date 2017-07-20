@@ -5,8 +5,10 @@ package com.chickling.kmonitor.config;
  *
  */
 public class AppConfig {
+	private String apiType;
 	private String esHosts;
 	private String esIndex;
+	private String docTypeForOffset;
 
 	private Integer dataCollectFrequency = 1;
 
@@ -28,6 +30,14 @@ public class AppConfig {
 	private String mailSubject;
 
 	private Long excludeByLastSeen = 2592000L;
+
+	public String getApiType() {
+		return apiType;
+	}
+
+	public void setApiType(String apiType) {
+		this.apiType = apiType;
+	}
 
 	public String getZkHosts() {
 		return zkHosts;
@@ -59,6 +69,14 @@ public class AppConfig {
 
 	public void setEsIndex(String esIndex) {
 		this.esIndex = esIndex;
+	}
+
+	public String getDocTypeForOffset() {
+		return docTypeForOffset;
+	}
+
+	public void setDocTypeForOffset(String docTypeForOffset) {
+		this.docTypeForOffset = docTypeForOffset;
 	}
 
 	public Integer getDataCollectFrequency() {

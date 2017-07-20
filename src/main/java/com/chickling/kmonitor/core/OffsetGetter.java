@@ -178,7 +178,7 @@ public abstract class OffsetGetter {
 		List<Broker> brokers = JavaConversions.seqAsJavaList(ZKUtils.getZKUtilsFromKafka().getAllBrokersInCluster());
 		brokers.forEach(broker -> {
 			List<EndPoint> endPoints = JavaConversions.seqAsJavaList(broker.endPoints().seq());
-			childNodes.add(new Node(endPoints.get(0).host() + ":" + endPoints.get(0).port(), null));
+			childNodes.add(new Node(broker.id() + ":" + endPoints.get(0).host() + ":" + endPoints.get(0).port(), null));
 		});
 		rootNode.setChildren(childNodes);
 		return rootNode;

@@ -1,6 +1,8 @@
 package com.chickling.kmonitor.utils;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -49,5 +51,19 @@ public class CommonUtils {
 			throw new RuntimeException("file is empty! Pls check file: " + filePath);
 		}
 		return contents;
+	}
+
+	public static URI getURI(String urlStr) {
+		URL url = null;
+		URI uri = null;
+		try {
+			url = new URL(urlStr);
+			uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), null);
+		} catch (Exception e) {
+			LOG.error("URL error!");
+			// TODO
+			return null;
+		}
+		return uri;
 	}
 }

@@ -1,4 +1,4 @@
-package com.chickling.kmonitor.utils;
+package com.chickling.kmonitor.utils.elasticsearch.javaapi;
 
 import java.net.InetSocketAddress;
 import java.text.ParseException;
@@ -36,20 +36,21 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.chickling.kmonitor.alert.WorkerThreadFactory;
+import com.chickling.kmonitor.initialize.SystemManager;
 import com.chickling.kmonitor.model.OffsetHistoryQueryParams;
 import com.chickling.kmonitor.model.OffsetPoints;
+import com.chickling.kmonitor.utils.elasticsearch.Ielasticsearch;
 
 /**
  * @author Hulva Luva.H
  *
  */
-public class ElasticsearchUtil {
-	private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchUtil.class);
+public class ElasticsearchJavaUtil implements Ielasticsearch{
+	private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchJavaUtil.class);
 	static TransportClient client = null;
 
-	private String indexPrefix;
-
-	public ElasticsearchUtil(String stringHosts) {
+	public ElasticsearchJavaUtil(String stringHosts) {
 		initClient(stringHosts);
 	}
 
@@ -71,11 +72,7 @@ public class ElasticsearchUtil {
 		}
 	}
 
-	public void setIndexAndType(String index) {
-		this.indexPrefix = index + "-";
-	}
-
-	public void bulkIndex(JSONObject data, String docType) {
+	public void bulkIndex(JSONObject data, String docType, String indexPrefix) {
 		BulkProcessor bulkProcessor = BulkProcessor.builder(client, new BulkProcessor.Listener() {
 			@Override
 			public void beforeBulk(long executionId, BulkRequest request) {
@@ -107,9 +104,9 @@ public class ElasticsearchUtil {
 		}
 	}
 
-	public List<OffsetPoints> scrollsSearcher(OffsetHistoryQueryParams params, String docType) {
-		int parallism = Runtime.getRuntime().availableProcessors();
-		ExecutorService pool = Executors.newFixedThreadPool(parallism);
+	public List<OffsetPoints> scrollsSearcher(OffsetHistoryQueryParams params, String docType, String indexPrefix) {
+		ExecutorService pool = Executors.newFixedThreadPool(SystemManager.DEFAULT_THREAD_POOL_SIZE,
+				new WorkerThreadFactory("OffsetHistoryQuery-JavaAPI"));
 
 		List<OffsetPoints> result = new ArrayList<OffsetPoints>();
 
@@ -131,12 +128,17 @@ public class ElasticsearchUtil {
 
 			List<Future<List<OffsetPoints>>> futureList = new ArrayList<Future<List<OffsetPoints>>>();
 			while (true) {
-				if (response.getHits().getHits().length == 0) {
+				final SearchHit[] searchHits = response.getHits().getHits();
+				if (searchHits.length == 0) {
 					break;
 				}
 				try {
-					SearchHit[] searchHits = response.getHits().getHits();
-					int step = searchHits.length / parallism;
+					int step = 1;
+					if (searchHits.length < SystemManager.DEFAULT_THREAD_POOL_SIZE) {
+						step = 1;
+					} else {
+						step = searchHits.length / SystemManager.DEFAULT_THREAD_POOL_SIZE;
+					}
 					Future<List<OffsetPoints>> future = null;
 					for (int i = 0; i < searchHits.length; i = i + step) {
 						int to = i + step < searchHits.length ? i + step : searchHits.length;
@@ -253,9 +255,9 @@ public class ElasticsearchUtil {
 	// }
 	// }
 
-	public List<OffsetPoints> offsetHistory(String docType, String group, String topic) {
-		int parallism = Runtime.getRuntime().availableProcessors();
-		ExecutorService pool = Executors.newFixedThreadPool(parallism);
+	public List<OffsetPoints> offsetHistory(String indexPrefix, String docType, String group, String topic) {
+		ExecutorService pool = Executors.newFixedThreadPool(SystemManager.DEFAULT_THREAD_POOL_SIZE,
+				new WorkerThreadFactory("OffsetHistoryQuery-JavaAPI"));
 
 		List<OffsetPoints> result = new ArrayList<OffsetPoints>();
 		SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
@@ -285,10 +287,15 @@ public class ElasticsearchUtil {
 					break;
 				}
 				try {
-					int step = searchHits.length / parallism;
+					int step = 1;
+					if (searchHits.length < SystemManager.DEFAULT_THREAD_POOL_SIZE) {
+						step = 1;
+					} else {
+						step = searchHits.length / SystemManager.DEFAULT_THREAD_POOL_SIZE;
+					}
 					Future<List<OffsetPoints>> future = null;
 					for (int i = 0; i < searchHits.length; i = i + step) {
- 						int to = i + step < searchHits.length ? i + step : searchHits.length;
+						int to = i + step < searchHits.length ? i + step : searchHits.length;
 						SearchHit[] searchHitPart = Arrays.copyOfRange(searchHits, i, to);
 						future = pool.submit(new GenerateOffsetHistoryDataset(searchHitPart));
 						futureList.add(future);

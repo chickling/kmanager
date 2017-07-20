@@ -46,10 +46,10 @@ var app = angular.module('offsetapp',
 				templateUrl : "views/setting.html",
 				controller : "SettingCtrl"
 			})
-			/*
-			 * .when("/broker/:endpoint", { templateUrl : "views/broker.html",
-			 * controller : "BrokerCtrl" })
-			 */;
+		    .when("/broker/:endpoint", { 
+		    	templateUrl : "views/broker.html",
+		    	controller : "BrokerCtrl" 
+		    });
 		;
 	}).factory('isSystemReadyInterceptor', ["$location", function($location) {
 		var isSystemReadyInterceptor = {
@@ -146,18 +146,18 @@ angular.module("offsetapp.services", [ "ngResource" ])
 					topic : topic
 				}, processConsumer(cb));
 			},
-			onShowNewAlertModal : function(isInOffsetHistory, cb) {
-				if(isInOffsetHistory){
-					cb(newAlertInOffsetHistory());
-				}else{
-					newAlert(cb);
-				}
+			newAlert : function(_url, requestBody, cb) {
+				$http({
+				    method: 'POST',
+				    url: _url,
+				    headers: {'Content-Type': 'application/json'},
+				    data: requestBody
+				}).success(function (response) {
+					cb(response);
+				});	
 			},
 			listTasks : function(cb) {
 				return $http.get("./alerting/tasks");
-			},
-			onShowAlertTaskDetailModal : function(cb) {
-				return alertTaskDetail(cb);
 			},
 			deleteTask: function(task, cb) {
 				return $http.delete("./alerting/delete/" + task.group + "-" + task.topic)
@@ -202,6 +202,15 @@ angular.module("offsetapp.services", [ "ngResource" ])
 			},
 			getSetting: function() {
 				return $http.get("./setting");
+			},
+			brokerTopicMetricsForBrokers: function() {
+				return $http.get("./metrics/brokerTopicMetrics/brokers");
+			},
+			brokerTopicMetricsForBroker: function(bid) {
+				return $http.get("./metrics/brokerTopicMetrics/broker/" + bid);
+			},
+			brokerTopicMetricsForTopic: function(topic) {
+				return $http.get("./metrics/brokerTopicMetrics/topic/" + topic);
 			}
 		};
 	} ]);
