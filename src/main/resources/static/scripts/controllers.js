@@ -33,8 +33,14 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 				$scope.loading = false;
 			});
 			$scope.loading = true;
-
+			
 			$scope.topic = $routeParams.topic;
+			offsetinfo.brokerTopicMetricsForTopic($scope.topic).success(function(d) {
+				if(d.BytesInPerSec){
+					$scope.jmxEnabled = true;
+				}
+				$scope.brokerTopicMetrics = d;
+			});
 		} ])
 	.controller("TopicConsumersCtrl", [ "$scope", "$interval", "$routeParams", "offsetinfo",
 		function($scope, $interval, $routeParams, offsetinfo) {
@@ -46,11 +52,23 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 
 			$scope.topic = $routeParams.topic;
 			$scope.groupBy = 'topic';
+			offsetinfo.brokerTopicMetricsForTopic($scope.topic).success(function(d) {
+				if(d.BytesInPerSec){
+					$scope.jmxEnabled = true;
+				}
+				$scope.brokerTopicMetrics = d;
+			});
 		} ])
 	.controller("ClusterVizCtrl", [ "$scope", "$interval", "$routeParams", "offsetinfo",
 		function($scope, $interval, $routeParams, offsetinfo) {
 			$scope.loading = true;
 			offsetinfo.loadClusterViz($routeParams.group, function(d) {});
+			offsetinfo.brokerTopicMetricsForBrokers().success(function(d) {
+				if(d.BytesInPerSec){
+					$scope.jmxEnabled = true;
+				}
+				$scope.brokerTopicMetrics = d;
+			});
 		} ])
 	.controller("ActiveTopicsVizCtrl", [ "$scope", "$interval", "$routeParams", "offsetinfo",
 		function($scope, $interval, $routeParams, offsetinfo) {
@@ -121,11 +139,6 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 				});
 			});
 			
-			offsetinfo.isAlertEnabled().success(function(d) {
-				if(!d.isAlertEnabled){
-					$('#newTask').prop('disabled', true);
-				}
-			});
 			
 			$scope.task = {
 				group : $routeParams.group,
@@ -136,13 +149,19 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 			}
 			
 			var isTaskExists = false;
-			offsetinfo.listTasks().success(function(d) {
-				d.forEach(function(t) {
-					if (t.group === $routeParams.group && t.topic === $routeParams.topic) {
-						isTaskExists = true;
-						$scope.task = t;
-					}
-				});
+			offsetinfo.isAlertEnabled().success(function(d) {
+				if(!d.isAlertEnabled){
+					$('#newTask').prop('disabled', true);
+				}else{
+					offsetinfo.listTasks().success(function(d) {
+						d.forEach(function(t) {
+							if (t.group === $routeParams.group && t.topic === $routeParams.topic) {
+								isTaskExists = true;
+								$scope.task = t;
+							}
+						});
+					});
+				}
 			});
 			
 			$('#taskModal')
@@ -535,6 +554,12 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 		function($scope, $routeParams, offsetinfo) {
 			$scope.loading = true;
 			$scope.brokerEndpoint = $routeParams.endpoint;
+			offsetinfo.brokerTopicMetricsForBroker($scope.brokerEndpoint.split(":", 1)[0]).success(function(d) {
+				if(d.BytesInPerSec){
+					$scope.jmxEnabled = true;
+				}
+				$scope.brokerTopicMetrics = d;
+			});
 //			var options = {
 //				axisY : {
 //					type : Chartist.AutoScaleAxis,

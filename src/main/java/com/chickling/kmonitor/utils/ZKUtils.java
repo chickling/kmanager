@@ -175,7 +175,8 @@ public class ZKUtils {
 				JSONObject jsonObj = new JSONObject(brokerInfo);
 				if (jsonObj.has("host")) {
 					if (jsonObj.has("jmx_port")) {
-						kafkaHosts.add(jsonObj.get("host").toString() + ":" + jsonObj.get("jmx_port").toString());
+						kafkaHosts.add(
+								id + ":" + jsonObj.get("host").toString() + ":" + jsonObj.get("jmx_port").toString());
 					}
 				}
 			} catch (Exception e) {

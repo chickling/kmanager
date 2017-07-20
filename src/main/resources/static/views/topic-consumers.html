@@ -19,52 +19,56 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr>
+			<!-- <tr>
 				<td>Messages in /sec</td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
 				<td><span class="badge">0.00</span></td>
-				<tr>
+			<tr> -->
 			<tr>
-				<td>Bytes in /sec</td>
-				<td><span class="badge">1.64</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-			<tr>
-			
-			
-			<tr>
-				<td>Bytes out /sec</td>
-				<td><span class="badge">1.64</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
+				<td>Bytes in</td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.meanRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.oneMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fiveMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fifteenMinuteRate}}</span></td>
 			<tr>
 			<tr>
-				<td>Bytes rejected /sec</td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
+				<td>Bytes out</td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.meanRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.oneMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fiveMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fifteenMinuteRate}}</span></td>
 			<tr>
 			<tr>
-				<td>Failed fetch request /sec</td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
+				<td>Bytes rejected</td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.meanRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.oneMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fiveMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fifteenMinuteRate}}</span></td>
 			<tr>
 			<tr>
-				<td>Failed produce request /sec</td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
+				<td>Failed fetch request</td>
+				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.meanRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.oneMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fiveMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fifteenMinuteRate}}</span></td>
+			<tr>
+			<tr>
+				<td>Failed produce request</td>
+				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.meanRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.oneMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fiveMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fifteenMinuteRate}}</span></td>
 			<tr>
 		</tbody>
 	</table>
+</div>
+
+<div class="alert alert-info" role="alert" ng-hide="jmxEnabled">
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  <span class="sr-only">Info:</span>
+  JMX is not avialable
 </div>
 
 <div class="alert alert-info" ng-show="loading">Loading ...</div>

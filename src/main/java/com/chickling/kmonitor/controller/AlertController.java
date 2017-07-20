@@ -1,5 +1,6 @@
 package com.chickling.kmonitor.controller;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -26,7 +27,10 @@ public class AlertController {
 
 	@RequestMapping(value = "/tasks", method = RequestMethod.GET)
 	public Set<TaskContent> get() {
-		return TaskManager.getTasks();
+		if(SystemManager.getConfig().getIsAlertEnabled()) {
+			return TaskManager.getTasks();
+		}
+		return new HashSet<TaskContent>();
 	}
 
 	@RequestMapping(value = "/isAlertEnabled", method = RequestMethod.GET)

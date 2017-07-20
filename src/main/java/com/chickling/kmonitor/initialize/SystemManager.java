@@ -104,7 +104,7 @@ public class SystemManager {
 				og.close();
 			og = new ZKOffsetGetter(config);
 			// TODO how cheack og is avialable?
-
+			
 			if (scheduler != null)
 				scheduler.shutdownNow();
 			scheduler = Executors.newScheduledThreadPool(2, new WorkerThreadFactory("FixedRateSchedule"));

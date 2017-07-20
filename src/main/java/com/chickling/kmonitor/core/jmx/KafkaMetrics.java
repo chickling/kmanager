@@ -79,13 +79,13 @@ public class KafkaMetrics {
 		return getBrokerTopicMetrics(mbsc, "MessagesInPerSec", topicName);
 	}
 
-	public MeterMetric getBrokerTopicMetrics(MBeanServerConnection mbsc, String metricName,
+	private MeterMetric getBrokerTopicMetrics(MBeanServerConnection mbsc, String metricName,
 			Optional<String> topicName) {
 		return getMeterMetric(mbsc, getObjectName(metricName, topicName));
 	}
 
 	private MeterMetric getMeterMetric(MBeanServerConnection mbsc, ObjectName objectName) {
-		String[] attributes = { "Count", "FifteenMinuteRate", "FiveMinuteRate", "OneMinuteRate", "MeanRate" };
+		String[] attributes = { "Count", "MeanRate", "OneMinuteRate", "FiveMinuteRate", "FifteenMinuteRate" };
 		AttributeList attributeList = null;
 		try {
 			attributeList = mbsc.getAttributes(objectName, attributes);

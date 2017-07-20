@@ -17,8 +17,8 @@ public class MeterMetric {
 		super();
 	}
 
-	public MeterMetric(Long count, Double fifteenMinuteRate, Double fiveMinuteRate, Double oneMinuteRate,
-			Double meanRate) {
+	public MeterMetric(Long count, Double meanRate, Double oneMinuteRate, Double fiveMinuteRate,
+			Double fifteenMinuteRate) {
 		super();
 		this.count = count;
 		this.fifteenMinuteRate = fifteenMinuteRate;

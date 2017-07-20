@@ -202,6 +202,15 @@ angular.module("offsetapp.services", [ "ngResource" ])
 			},
 			getSetting: function() {
 				return $http.get("./setting");
+			},
+			brokerTopicMetricsForBrokers: function() {
+				return $http.get("./metrics/brokerTopicMetrics/brokers");
+			},
+			brokerTopicMetricsForBroker: function(bid) {
+				return $http.get("./metrics/brokerTopicMetrics/broker/" + bid);
+			},
+			brokerTopicMetricsForTopic: function(topic) {
+				return $http.get("./metrics/brokerTopicMetrics/topic/" + topic);
 			}
 		};
 	} ]);
