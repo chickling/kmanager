@@ -55,7 +55,7 @@ public class ElasticsearchJavaUtil implements Ielasticsearch{
 	}
 
 	public boolean check() {
-		return client.connectedNodes().isEmpty();
+		return !client.connectedNodes().isEmpty();
 	}
 
 	private void initClient(String stringHosts) {
