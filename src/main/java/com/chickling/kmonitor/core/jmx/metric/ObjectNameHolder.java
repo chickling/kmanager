@@ -11,6 +11,12 @@ public class ObjectNameHolder {
 	private String metric;
 	private String type;
 	private String name;
+	/**
+	 * <code>
+	 * kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec,topic=test ->  extra<"topic=test", null>
+	 * kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec,topic=test,partition=p1 -> extra<"topic=test", <"partition=p1", null>>
+	 * </code>
+	 */
 	private Map<String, Object> extra;
 
 	public ObjectNameHolder() {

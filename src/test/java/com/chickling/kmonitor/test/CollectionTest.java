@@ -20,17 +20,19 @@ public class CollectionTest {
 	 */
 	public static void main(String[] args) {
 		Set<ObjectNameHolder> objectNames = new HashSet<ObjectNameHolder>();
-		ObjectNameHolder onh = new ObjectNameHolder("metric", "type", "name", new HashMap<String, String>());
+		ObjectNameHolder onh = new ObjectNameHolder("metric", "type", "name", new HashMap<String, Object>());
 		objectNames.add(onh);
 		System.out.println(
-				objectNames.contains(new ObjectNameHolder("metric", "type", "name", new HashMap<String, String>())));
-		Map<String, String> ops = new HashMap<String, String>();
+				objectNames.contains(new ObjectNameHolder("metric", "type", "name", new HashMap<String, Object>())));
+		Map<String, Object> ops = new HashMap<String, Object>();
 		ops.put("Hello", "World");
 		ObjectNameHolder onh1 = new ObjectNameHolder("metric", "type", "name", ops);
 		System.out.println(objectNames.contains(onh1));
 		System.out.println(onh1.equals(onh));
 		ObjectNameHolder onh2 = new ObjectNameHolder("metric", "type", "name", null);
 		System.out.println(onh2.equals(onh));
+		ObjectNameHolder onh3 = new ObjectNameHolder("metric", "type", null, null);
+		System.out.println(onh2.equals(onh3));
 	}
 
 }

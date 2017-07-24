@@ -44,7 +44,7 @@ public class KafkaJMX {
 			JMXServiceURL url = new JMXServiceURL(urlStr);
 			// authenticate
 			Map<String, Object> env = new HashMap<String, Object>();
-			String[] credentials = { jmxUser.get(), jmxPasswd.get() };
+			String[] credentials = { jmxUser.orElse(""), jmxPasswd.orElse("") };
 			env.put(JMXConnector.CREDENTIALS, credentials);
 
 			if (jmxSSL) { // com.sun.management.jmxremote.registry.ssl=true

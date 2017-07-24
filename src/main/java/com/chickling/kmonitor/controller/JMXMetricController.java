@@ -95,12 +95,10 @@ public class JMXMetricController {
 											.getFailedProduceRequestsPerSec(mBeanServerConnection, Optional.empty()));
 								}
 							}
-
 						});
 			}
 		} catch (Exception e) {
 			LOG.error("Get jmxHosts error!" + e.getMessage());
-
 		}
 		JSONObject response = new JSONObject();
 		Set<String> keys = result.keySet();
