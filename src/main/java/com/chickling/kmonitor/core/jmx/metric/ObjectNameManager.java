@@ -85,9 +85,8 @@ public class ObjectNameManager {
                     } else if ("name".equalsIgnoreCase(tempArr[0])) {
                       objectNameHolder.setName(tempArr[1]);
                     } else {
-                      String key =
-                          objectNameHolder.getName() == null ? metric_other[0] + objectNameHolder.getType() + objectNameHolder.getName()
-                              : metric_other[0] + objectNameHolder.getType();
+                      String key = objectNameHolder.getName() == null ? metric_other[0] + objectNameHolder.getType()
+                          : metric_other[0] + objectNameHolder.getType() + objectNameHolder.getName();
 
                       if (objectNames.containsKey(key)) {
                         ObjectNameHolder objectNameHolderOld = objectNames.get(key);

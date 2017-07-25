@@ -33,208 +33,204 @@ import com.chickling.kmonitor.utils.ZKUtils;
  *
  */
 public class JMXTest {
-	private static Logger LOG = LoggerFactory.getLogger(JMXTest.class);
+  private static Logger LOG = LoggerFactory.getLogger(JMXTest.class);
 
-	private static boolean excludeInternalTopic = true; // like __consumer_offsets
-	private static Map<String, ObjectNameHolder> objectNames = new HashMap<String, ObjectNameHolder>();
+  private static boolean excludeInternalTopic = true; // like __consumer_offsets
+  private static Map<String, ObjectNameHolder> objectNames = new HashMap<String, ObjectNameHolder>();
 
-	public static void main(String[] args) {
+  public static void main(String[] args) {
 
-		KafkaJMX kafkaJMX = new KafkaJMX();
-		// objectName_Metrics(kafkaJMX);
-		// objectNames(kafkaJMX);
+    KafkaJMX kafkaJMX = new KafkaJMX();
+    // objectName_Metrics(kafkaJMX);
+    // objectNames(kafkaJMX);
 
-		ZKUtils.init("10.16.238.101:8181,10.16.238.102:8181,10.16.238.103:8181", 30000, 30000);
-		initObjectNames(kafkaJMX);
-	}
+    ZKUtils.init("10.16.238.101:8181,10.16.238.102:8181,10.16.238.103:8181", 30000, 30000);
+    initObjectNames(kafkaJMX);
+  }
 
-	private static void initObjectNames(KafkaJMX kafkaJMX) {
-		try {
-			if (kafkaJMX == null) {
-				kafkaJMX = new KafkaJMX();
-			}
-			List<String> jmxHosts = ZKUtils.getKafkaJMXHostsFromZookeeper();
-			for (String jmxHost : jmxHosts) {
-				String[] jmxArr = jmxHost.split(":");
-				if ("-1".equals(jmxArr[2])) {
-					continue;
-				}
-				kafkaJMX.doWithConnection(jmxArr[1], Integer.parseInt(jmxArr[2]), Optional.of(""), Optional.of(""),
-						false, new JMXExecutor() {
+  private static void initObjectNames(KafkaJMX kafkaJMX) {
+    try {
+      if (kafkaJMX == null) {
+        kafkaJMX = new KafkaJMX();
+      }
+      List<String> jmxHosts = ZKUtils.getKafkaJMXHostsFromZookeeper();
+      for (String jmxHost : jmxHosts) {
+        String[] jmxArr = jmxHost.split(":");
+        if ("-1".equals(jmxArr[2])) {
+          continue;
+        }
+        kafkaJMX.doWithConnection(jmxArr[1], Integer.parseInt(jmxArr[2]), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
-							@Override
-							public void doWithConnection(MBeanServerConnection mbsc) {
-								try {
-									Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
-									ObjectNameHolder objectNameHolder = null;
-									ObjectNameHolder objectNameHolderOld = null;
-									for (ObjectInstance bean : beans) {
-										objectNameHolder = new ObjectNameHolder();
-										String objectName = bean.getObjectName().toString();
-										if (excludeInternalTopic && objectName.contains("__consumer_offsets")) {
-											continue;
-										}
-										String[] metric_other = objectName.split(":");
-										objectNameHolder.setMetric(metric_other[0]);
-										String[] type_name_other = metric_other[1].split(",");
-										Map<String, String> temp = new HashMap<String, String>();
-										String currentSort = "";
-										for (int i = 0; i < type_name_other.length; i++) {
-											String[] tempArr = type_name_other[i].split("=");
-											if ("type".equalsIgnoreCase(tempArr[0])) {
-												objectNameHolder.setType(tempArr[1]);
-											} else if ("name".equalsIgnoreCase(tempArr[0])) {
-												objectNameHolder.setName(tempArr[1]);
-											} else {
-												currentSort += i == type_name_other.length - 1 ? tempArr[0]
-														: tempArr[0] + ",";
-												temp.put(tempArr[0], tempArr[1]);
-											}
-										}
-										String key = objectNameHolder.getName() == null
-												? metric_other[0] + objectNameHolder.getType()
-														+ objectNameHolder.getName()
-												: metric_other[0] + objectNameHolder.getType();
+          @Override
+          public void doWithConnection(MBeanServerConnection mbsc) {
+            try {
+              Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+              ObjectNameHolder objectNameHolder = null;
+              ObjectNameHolder objectNameHolderOld = null;
+              for (ObjectInstance bean : beans) {
+                objectNameHolder = new ObjectNameHolder();
+                String objectName = bean.getObjectName().toString();
+                if (excludeInternalTopic && objectName.contains("__consumer_offsets")) {
+                  continue;
+                }
+                String[] metric_other = objectName.split(":");
+                objectNameHolder.setMetric(metric_other[0]);
+                String[] type_name_other = metric_other[1].split(",");
+                Map<String, String> temp = new HashMap<String, String>();
+                String currentSort = "";
+                for (int i = 0; i < type_name_other.length; i++) {
+                  String[] tempArr = type_name_other[i].split("=");
+                  if ("type".equalsIgnoreCase(tempArr[0])) {
+                    objectNameHolder.setType(tempArr[1]);
+                  } else if ("name".equalsIgnoreCase(tempArr[0])) {
+                    objectNameHolder.setName(tempArr[1]);
+                  } else {
+                    currentSort += i == type_name_other.length - 1 ? tempArr[0] : tempArr[0] + ",";
+                    temp.put(tempArr[0], tempArr[1]);
+                  }
+                }
+                String key = objectNameHolder.getName() == null ? metric_other[0] + objectNameHolder.getType() + objectNameHolder.getName()
+                    : metric_other[0] + objectNameHolder.getType();
 
-										if (objectNames.containsKey(key)) {
-											objectNameHolderOld = objectNames.get(key);
-											final Map<String, Object> extras = objectNameHolderOld.getExtra();
+                if (objectNames.containsKey(key)) {
+                  objectNameHolderOld = objectNames.get(key);
+                  final Map<String, Object> extras = objectNameHolderOld.getExtra();
 
-											if (extras.isEmpty()) {
-												continue;
-											}
-											String sort = (String) extras.get("sort");
-											if (sort.equals(currentSort)) {
-												temp.forEach((k, v) -> {
-													@SuppressWarnings("unchecked")
-													Set<String> somthing = (Set<String>) extras.get(k);
-													somthing.add(v);
-												});
-											} else {
-												extras.put("sort", currentSort);
-												temp.forEach((k, v) -> {
-													Set<String> somthing = new HashSet<String>();
-													somthing.add(v);
-													extras.put(k, somthing);
-												});
-											}
-										} else {
-											Map<String, Object> extras = new HashMap<String, Object>();
-											extras.put("sort", currentSort);
-											temp.forEach((k, v) -> {
-												Set<String> somthing = new HashSet<String>();
-												somthing.add(v);
-												extras.put(k, somthing);
-											});
-											objectNameHolder.setExtra(extras);
-											objectNames.put(key, objectNameHolder);
-										}
-									}
-								} catch (Exception e) {
-									LOG.error("Ops~", e);
-								}
-							}
-						});
-				objectNames.forEach((k, v) -> {
-					LOG.info(k + " -> " + v);
-				});
-			}
-		} catch (Exception e) {
+                  if (extras.isEmpty()) {
+                    continue;
+                  }
+                  String sort = (String) extras.get("sort");
+                  if (sort.equals(currentSort)) {
+                    temp.forEach((k, v) -> {
+                      @SuppressWarnings("unchecked")
+                      Set<String> somthing = (Set<String>) extras.get(k);
+                      somthing.add(v);
+                    });
+                  } else {
+                    extras.put("sort", currentSort);
+                    temp.forEach((k, v) -> {
+                      Set<String> somthing = new HashSet<String>();
+                      somthing.add(v);
+                      extras.put(k, somthing);
+                    });
+                  }
+                } else {
+                  Map<String, Object> extras = new HashMap<String, Object>();
+                  extras.put("sort", currentSort);
+                  temp.forEach((k, v) -> {
+                    Set<String> somthing = new HashSet<String>();
+                    somthing.add(v);
+                    extras.put(k, somthing);
+                  });
+                  objectNameHolder.setExtra(extras);
+                  objectNames.put(key, objectNameHolder);
+                }
+              }
+            } catch (Exception e) {
+              LOG.error("Ops~", e);
+            }
+          }
+        });
+        objectNames.forEach((k, v) -> {
+          LOG.info(k + " -> " + v);
+        });
+      }
+    } catch (Exception e) {
 
-		}
-	}
+    }
+  }
 
-	private static void objectNames(KafkaJMX kafkaJMX) {
-		kafkaJMX.doWithConnection("10.16.238.94", 8888, Optional.of(""), Optional.of(""), false, new JMXExecutor() {
+  public static void objectNames(KafkaJMX kafkaJMX) {
+    kafkaJMX.doWithConnection("10.16.238.94", 8888, Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
-			@Override
-			public void doWithConnection(MBeanServerConnection mbsc) {
-				// KafkaMetrics kafkaMetrics = new KafkaMetrics();
-				try (FileWriter fw = new FileWriter("objectNames.json", true);
-						BufferedWriter bw = new BufferedWriter(fw);
-						PrintWriter out = new PrintWriter(bw)) {
-					Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
-					JSONArray objectName = new JSONArray();
-					for (ObjectInstance bean : beans) {
-						if (excludeInternalTopic && bean.getObjectName().toString().contains("__consumer_offsets")) {
-							continue;
-						}
-						System.out.println("ObjectName: " + bean.getObjectName());
-						objectName.put(bean.getObjectName().toString());
-						MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
-						System.out.println("\tMBeanInfo: " + mbeanInfo);
-						MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
-						String[] attributeArr = new String[attributes.length];
-						for (int i = 0; i < attributes.length; i++) {
-							attributeArr[i] = attributes[i].getName();
-						}
-						AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
-						List<Attribute> attributeList1 = attributeList.asList();
+      @Override
+      public void doWithConnection(MBeanServerConnection mbsc) {
+        // KafkaMetrics kafkaMetrics = new KafkaMetrics();
+        try (FileWriter fw = new FileWriter("objectNames.json", true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw)) {
+          Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+          JSONArray objectName = new JSONArray();
+          for (ObjectInstance bean : beans) {
+            if (excludeInternalTopic && bean.getObjectName().toString().contains("__consumer_offsets")) {
+              continue;
+            }
+            System.out.println("ObjectName: " + bean.getObjectName());
+            objectName.put(bean.getObjectName().toString());
+            MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
+            System.out.println("\tMBeanInfo: " + mbeanInfo);
+            MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
+            String[] attributeArr = new String[attributes.length];
+            for (int i = 0; i < attributes.length; i++) {
+              attributeArr[i] = attributes[i].getName();
+            }
+            AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
+            List<Attribute> attributeList1 = attributeList.asList();
 
-						for (Attribute attr : attributeList1) {
-							System.out.println("\t\tName: " + attr.getName() + " Value: " + attr.getValue());
-						}
-					}
-					out.println(objectName.toString());
-				} catch (Exception e) {
+            for (Attribute attr : attributeList1) {
+              System.out.println("\t\tName: " + attr.getName() + " Value: " + attr.getValue());
+            }
+          }
+          out.println(objectName.toString());
+        } catch (Exception e) {
 
-				}
-			}
-		});
+        }
+      }
+    });
 
-	}
+  }
 
-	private static void objectName_Metrics(KafkaJMX kafkaJMX) {
-		kafkaJMX.doWithConnection("10.16.238.94", 8888, Optional.of(""), Optional.of(""), false, new JMXExecutor() {
+  public static void objectName_Metrics(KafkaJMX kafkaJMX) {
+    kafkaJMX.doWithConnection("10.16.238.94", 8888, Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
-			@Override
-			public void doWithConnection(MBeanServerConnection mbsc) {
-				// KafkaMetrics kafkaMetrics = new KafkaMetrics();
-				try (FileWriter fw = new FileWriter("metrics.json", true);
-						BufferedWriter bw = new BufferedWriter(fw);
-						PrintWriter out = new PrintWriter(bw)) {
-					Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+      @Override
+      public void doWithConnection(MBeanServerConnection mbsc) {
+        // KafkaMetrics kafkaMetrics = new KafkaMetrics();
+        try (FileWriter fw = new FileWriter("metrics.json", true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw)) {
+          Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
 
-					JSONArray objectNameMetrics = new JSONArray();
-					JSONObject objectName = null;
-					for (ObjectInstance bean : beans) {
-						objectName = new JSONObject();
-						String objectNameStr = bean.getObjectName().toString();
-						if (excludeInternalTopic && objectNameStr.contains("__consumer_offsets")) {
-							continue;
-						}
-						System.out.println("ObjectName: " + objectNameStr);
-						String[] metric_other = objectNameStr.split(":");
-						objectName.put("metric", metric_other[0]);
-						String[] type_name_other = metric_other[1].split(",");
-						String[] temp;
-						for (int i = 0; i < type_name_other.length; i++) {
-							temp = type_name_other[i].split("=");
-							objectName.put(temp[0], temp[1]);
-						}
-						objectName.put("objectName", bean.getObjectName().toString());
-						MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
-						System.out.println("\tMBeanInfo: " + mbeanInfo);
-						MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
-						String[] attributeArr = new String[attributes.length];
-						for (int i = 0; i < attributes.length; i++) {
-							attributeArr[i] = attributes[i].getName();
-						}
-						AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
-						List<Attribute> attributeList1 = attributeList.asList();
+          JSONArray objectNameMetrics = new JSONArray();
+          JSONObject objectName = null;
+          for (ObjectInstance bean : beans) {
+            objectName = new JSONObject();
+            String objectNameStr = bean.getObjectName().toString();
+            if (excludeInternalTopic && objectNameStr.contains("__consumer_offsets")) {
+              continue;
+            }
+            System.out.println("ObjectName: " + objectNameStr);
+            String[] metric_other = objectNameStr.split(":");
+            objectName.put("metric", metric_other[0]);
+            String[] type_name_other = metric_other[1].split(",");
+            String[] temp;
+            for (int i = 0; i < type_name_other.length; i++) {
+              temp = type_name_other[i].split("=");
+              objectName.put(temp[0], temp[1]);
+            }
+            objectName.put("objectName", bean.getObjectName().toString());
+            MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
+            System.out.println("\tMBeanInfo: " + mbeanInfo);
+            MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
+            String[] attributeArr = new String[attributes.length];
+            for (int i = 0; i < attributes.length; i++) {
+              attributeArr[i] = attributes[i].getName();
+            }
+            AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
+            List<Attribute> attributeList1 = attributeList.asList();
 
-						for (Attribute attr : attributeList1) {
-							objectName.put(attr.getName(), attr.getValue());
-							System.out.println("\t\tName: " + attr.getName() + " Value: " + attr.getValue());
-						}
-						objectNameMetrics.put(objectName);
-					}
-					out.println(objectNameMetrics.toString());
-				} catch (Exception e) {
+            for (Attribute attr : attributeList1) {
+              objectName.put(attr.getName(), attr.getValue());
+              System.out.println("\t\tName: " + attr.getName() + " Value: " + attr.getValue());
+            }
+            objectNameMetrics.put(objectName);
+          }
+          out.println(objectNameMetrics.toString());
+        } catch (Exception e) {
 
-				}
-			}
-		});
-	}
+        }
+      }
+    });
+  }
 
 }
