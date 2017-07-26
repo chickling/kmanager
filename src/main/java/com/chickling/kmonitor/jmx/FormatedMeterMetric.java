@@ -1,4 +1,4 @@
-package com.chickling.kmonitor.core.jmx;
+package com.chickling.kmonitor.jmx;
 
 import com.chickling.kmonitor.utils.MetricUtils;
 

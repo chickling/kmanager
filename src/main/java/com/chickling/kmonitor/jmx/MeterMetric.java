@@ -1,4 +1,4 @@
-package com.chickling.kmonitor.core.jmx;
+package com.chickling.kmonitor.jmx;
 
 /**
  * @author Hulva Luva.H

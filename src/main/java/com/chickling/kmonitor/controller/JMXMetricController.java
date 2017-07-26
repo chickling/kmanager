@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.chickling.kmonitor.core.jmx.FormatedMeterMetric;
-import com.chickling.kmonitor.core.jmx.JMXExecutor;
-import com.chickling.kmonitor.core.jmx.KafkaJMX;
-import com.chickling.kmonitor.core.jmx.KafkaMetrics;
-import com.chickling.kmonitor.core.jmx.MeterMetric;
+import com.chickling.kmonitor.jmx.FormatedMeterMetric;
+import com.chickling.kmonitor.jmx.JMXExecutor;
+import com.chickling.kmonitor.jmx.KafkaJMX;
+import com.chickling.kmonitor.jmx.KafkaMetrics;
+import com.chickling.kmonitor.jmx.MeterMetric;
 import com.chickling.kmonitor.utils.ZKUtils;
 
 /**

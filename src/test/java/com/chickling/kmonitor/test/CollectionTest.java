@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.chickling.kmonitor.core.jmx.metric.ObjectNameHolder;
+import com.chickling.kmonitor.jmx.ObjectNameHolder;
 
 /**
  * @author Hulva Luva.H from ECBD

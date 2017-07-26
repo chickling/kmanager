@@ -4,8 +4,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import com.chickling.kmonitor.core.jmx.metric.ObjectNameHolder;
-import com.chickling.kmonitor.core.jmx.metric.ObjectNameManager;
+import com.chickling.kmonitor.jmx.ObjectNameHolder;
+import com.chickling.kmonitor.jmx.ObjectNameManager;
 import com.chickling.kmonitor.utils.ZKUtils;
 
 /**

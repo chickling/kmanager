@@ -20,8 +20,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.chickling.kmonitor.core.jmx.JMXExecutor;
-import com.chickling.kmonitor.core.jmx.KafkaJMX;
+import com.chickling.kmonitor.jmx.JMXExecutor;
+import com.chickling.kmonitor.jmx.KafkaJMX;
 import com.chickling.kmonitor.utils.ZKUtils;
 import com.chickling.kmonitor.utils.elasticsearch.javaapi.ElasticsearchJavaUtil;
 
@@ -112,7 +112,7 @@ public class SaveJMXMetricsToES {
                         objectName.put(attr.getName(), attr.getValue());
                       }
                     }
-//                    es.indexDoc(objectName, indexPrefix + indexSufix, docType);
+                    // es.indexDoc(objectName, indexPrefix + indexSufix, docType);
                   }
                 } catch (Exception e) {
                   LOG.error("Ops~" + objectName, e);
@@ -120,7 +120,7 @@ public class SaveJMXMetricsToES {
               }
             });
           }
-//          es.bulkIndex().awaitClose(10 * 6000, TimeUnit.SECONDS);
+          // es.bulkIndex().awaitClose(10 * 6000, TimeUnit.SECONDS);
         } catch (Exception e) {
           LOG.warn("Ops..." + e.getMessage());
         }

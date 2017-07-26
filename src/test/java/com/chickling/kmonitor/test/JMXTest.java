@@ -22,9 +22,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.chickling.kmonitor.core.jmx.JMXExecutor;
-import com.chickling.kmonitor.core.jmx.KafkaJMX;
-import com.chickling.kmonitor.core.jmx.metric.ObjectNameHolder;
+import com.chickling.kmonitor.jmx.JMXExecutor;
+import com.chickling.kmonitor.jmx.KafkaJMX;
+import com.chickling.kmonitor.jmx.ObjectNameHolder;
 import com.chickling.kmonitor.utils.ZKUtils;
 
 /**

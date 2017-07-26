@@ -1,4 +1,4 @@
-package com.chickling.kmonitor.core.jmx.metric;
+package com.chickling.kmonitor.jmx;
 
 import java.util.Map;
 

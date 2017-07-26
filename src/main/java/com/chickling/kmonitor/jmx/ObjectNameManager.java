@@ -1,4 +1,4 @@
-package com.chickling.kmonitor.core.jmx.metric;
+package com.chickling.kmonitor.jmx;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,8 +13,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.chickling.kmonitor.core.jmx.JMXExecutor;
-import com.chickling.kmonitor.core.jmx.KafkaJMX;
 import com.chickling.kmonitor.utils.ZKUtils;
 
 /**
