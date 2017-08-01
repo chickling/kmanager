@@ -19,43 +19,43 @@
 			</tr>
 		</thead>
 		<tbody>
-			<!-- <tr>
-				<td>Messages in /sec</td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-			<tr> -->
 			<tr>
-				<td>Bytes in</td>
+				<td>Messages in /sec</td>
+				<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.meanRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.oneMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.fiveMinuteRate}}</span></td>
+				<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.fifteenMinuteRate}}</span></td>
+			<tr>
+			<tr>
+				<td>Bytes in /sec</td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.meanRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.oneMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fiveMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fifteenMinuteRate}}</span></td>
 			<tr>
 			<tr>
-				<td>Bytes out</td>
+				<td>Bytes out /sec</td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.meanRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.oneMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fiveMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fifteenMinuteRate}}</span></td>
 			<tr>
 			<tr>
-				<td>Bytes rejected</td>
+				<td>Bytes rejected /sec</td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.meanRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.oneMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fiveMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fifteenMinuteRate}}</span></td>
 			<tr>
 			<tr>
-				<td>Failed fetch request</td>
+				<td>Failed fetch request /sec</td>
 				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.meanRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.oneMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fiveMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fifteenMinuteRate}}</span></td>
 			<tr>
 			<tr>
-				<td>Failed produce request</td>
+				<td>Failed produce request /sec</td>
 				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.meanRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.oneMinuteRate}}</span></td>
 				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fiveMinuteRate}}</span></td>
@@ -66,66 +66,65 @@
 </div>
 
 <div class="alert alert-info" role="alert" ng-hide="jmxEnabled">
-  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  <span class="sr-only">Info:</span>
-  JMX is not avialable
+	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	<span class="sr-only">Info:</span> JMX is not avialable
 </div>
 
 <div class="alert alert-info" ng-show="loading">Loading ...</div>
 
-				<div ng-hide="loading">
-					<h2>Active Consumers</h2>
+<div ng-hide="loading">
+	<h2>Active Consumers</h2>
 
-					<table class="table">
-						<thead>
-							<tr>
-								<th>name</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="c in info.consumers.active">
-								<td>{{c.name}}</td>
-							</tr>
-							<tr ng-show="info.consumers.active.length == 0">
-								<td>Unable to find Active Consumers</td>
-							</tr>
-						</tbody>
-					</table>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>name</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="c in info.consumers.active">
+				<td>{{c.name}}</td>
+			</tr>
+			<tr ng-show="info.consumers.active.length == 0">
+				<td>Unable to find Active Consumers</td>
+			</tr>
+		</tbody>
+	</table>
 
-					<h2>Active Consumers Offsets</h2>
-					<div ng-repeat="info in info.consumers.active">
-						<div ng-include="'views/includes/group.inc.html'"></div>
-					</div>
-					<div ng-show="info.consumers.active.length == 0">Unable to
-						find Active Consumers</div>
+	<h2>Active Consumers Offsets</h2>
+	<div ng-repeat="info in info.consumers.active">
+		<div ng-include="'views/includes/group.inc.html'"></div>
+	</div>
+	<div ng-show="info.consumers.active.length == 0">Unable to find
+		Active Consumers</div>
 
-					<hr />
+	<hr />
 
-					<h2>InActive Consumers</h2>
+	<h2>InActive Consumers</h2>
 
-					<table class="table">
-						<thead>
-							<tr>
-								<th>name</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="c in info.consumers.inactive">
-								<td>{{c.name}}</td>
-							</tr>
-							<tr ng-show="info.consumers.inactive.length == 0">
-								<td>Unable to find Inactive Consumers</td>
-							</tr>
-						</tbody>
-					</table>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>name</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="c in info.consumers.inactive">
+				<td>{{c.name}}</td>
+			</tr>
+			<tr ng-show="info.consumers.inactive.length == 0">
+				<td>Unable to find Inactive Consumers</td>
+			</tr>
+		</tbody>
+	</table>
 
-					<h2>Inactive Consumers Offsets</h2>
-					<div ng-repeat="info in info.consumers.inactive">
-						<div ng-include="'views/includes/group.inc.html'"></div>
-					</div>
-					<div ng-show="info.consumers.inactive.length == 0">Unable to
-						find Inactive Consumers</div>
+	<h2>Inactive Consumers Offsets</h2>
+	<div ng-repeat="info in info.consumers.inactive">
+		<div ng-include="'views/includes/group.inc.html'"></div>
+	</div>
+	<div ng-show="info.consumers.inactive.length == 0">Unable to find
+		Inactive Consumers</div>
 
-					<hr />
+	<hr />
 
-				</div>
+</div>

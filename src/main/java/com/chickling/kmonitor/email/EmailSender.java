@@ -19,56 +19,56 @@ import com.chickling.kmonitor.config.AppConfig;
  *
  */
 public class EmailSender {
-	private static Logger LOG = LoggerFactory.getLogger(EmailSender.class);
+  private static Logger LOG = LoggerFactory.getLogger(EmailSender.class);
 
-	private static AppConfig config;
+  private static AppConfig config;
 
-	public static void setConfig(AppConfig _config) {
-		config = _config;
-	}
+  public static void setConfig(AppConfig _config) {
+    config = _config;
+  }
 
-	public static void sendEmail(String message, String sendTo, String group_topic) {
-		Properties properties = System.getProperties();
+  public static void sendEmail(String message, String sendTo, String group_topic) {
+    Properties properties = System.getProperties();
 
-		if (config.getSmtpAuth()) {
-			properties.setProperty("mail.user", config.getSmtpUser());
-			properties.setProperty("mail.password", config.getSmtpPasswd());
-		}
-		properties.setProperty("mail.smtp.host", config.getSmtpServer());
+    if (config.getSmtpAuth()) {
+      properties.setProperty("mail.user", config.getSmtpUser());
+      properties.setProperty("mail.password", config.getSmtpPasswd());
+    }
+    properties.setProperty("mail.smtp.host", config.getSmtpServer());
 
-		Session session = Session.getDefaultInstance(properties);
+    Session session = Session.getDefaultInstance(properties);
 
-		MimeMessage mimeMessage = new MimeMessage(session);
+    MimeMessage mimeMessage = new MimeMessage(session);
 
-		try {
-			String[] sendToArr = sendTo.split(";");
-			mimeMessage.setFrom(new InternetAddress(config.getMailSender()));
-			if (sendToArr.length > 1) {
-				String cc = "";
-				for (int i = 1; i < sendToArr.length; i++) {
-					cc += i == sendToArr.length - 1 ? sendToArr[i] : sendToArr[i] + ",";
-				}
-				mimeMessage.addRecipients(Message.RecipientType.CC, InternetAddress.parse(cc));
-			}
-			mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(sendToArr[0]));
-			
-			String[] group_topicArr = group_topic.split("_");
-			String subject = config.getMailSubject();
-			if(subject.contains("{group}")) {
-				subject.replace("{group}", group_topicArr[0]);
-			}
-			if(subject.contains("{topic}")) {
-				subject.replace("{topic}", group_topicArr[1]);
-			}
-			mimeMessage.setSubject(config.getMailSubject());
-			mimeMessage.setSentDate(new Date());
-			mimeMessage.setContent(message, "text/html");
+    try {
+      String[] sendToArr = sendTo.split(";");
+      mimeMessage.setFrom(new InternetAddress(config.getMailSender()));
+      if (sendToArr.length > 1) {
+        String cc = "";
+        for (int i = 1; i < sendToArr.length; i++) {
+          cc += i == sendToArr.length - 1 ? sendToArr[i] : sendToArr[i] + ",";
+        }
+        mimeMessage.addRecipients(Message.RecipientType.CC, InternetAddress.parse(cc));
+      }
+      mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(sendToArr[0]));
 
-			Transport.send(mimeMessage);
-		} catch (
+      String[] group_topicArr = group_topic.split("_");
+      String subject = config.getMailSubject();
+      if (subject.contains("{group}")) {
+        subject = subject.replace("{group}", group_topicArr[0]);
+      }
+      if (subject.contains("{topic}")) {
+        subject = subject.replace("{topic}", group_topicArr[1]);
+      }
+      mimeMessage.setSubject(subject);
+      mimeMessage.setSentDate(new Date());
+      mimeMessage.setContent(message, "text/html");
 
-		Exception e) {
-			LOG.error("sendEmail faild!", e);
-		}
-	}
+      Transport.send(mimeMessage);
+    } catch (
+
+    Exception e) {
+      LOG.error("sendEmail faild!", e);
+    }
+  }
 }
