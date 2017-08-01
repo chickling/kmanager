@@ -1,8 +1,6 @@
 package com.chickling.kmonitor.jmx;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.management.Attribute;
@@ -29,9 +27,9 @@ public class KafkaMetrics {
   public static final String RUNTIME = "java.lang:type=Runtime";
 
   // kafka.cluster
-  public static final String IN_SYNC_REPLICAS_COUNT = "kafka.cluster:type=Partition,name=InSyncReplicasCount,topic={t},partition={p}";
-  public static final String REPLICAS_COUNT = "kafka.cluster:type=Partition,name=ReplicasCount,topic={t},partition={p}";
-  public static final String UNDER_REPLICATED = "kafka.cluster:type=Partition,name=UnderReplicated,topic={t},partition={p}";
+  public static final String IN_SYNC_REPLICAS_COUNT = "kafka.cluster:type=Partition,name=InSyncReplicasCount,topic={},partition={}";
+  public static final String REPLICAS_COUNT = "kafka.cluster:type=Partition,name=ReplicasCount,topic={},partition={}";
+  public static final String UNDER_REPLICATED = "kafka.cluster:type=Partition,name=UnderReplicated,topic={},partition={}";
 
   // kafka.controller
   public static final String LEADER_ELECTION_RATE_AND_TIME_MS = "kafka.controller:type=ControllerStats,name=LeaderElectionRateAndTimeMs";
@@ -41,10 +39,10 @@ public class KafkaMetrics {
   public static final String PREFERED_REPLICA_IMBALANCE = "kafka.controller:type=KafkaController,name=PreferredReplicaImbalanceCount";
 
   // kafka.log
-  public static final String LOG_END_OFFSET = "kafka.log:type=Log,name=LogEndOffset,topic={t},partition={p}";
-  public static final String LOG_START_OFFSET = "kafka.log:type=Log,name=LogStartOffset,topic={t},partition={p}";
-  public static final String LOG_SEGMENTS_NUM = "kafka.log:type=Log,name=NumLogSegments,topic={t},partition={p}";
-  public static final String LOG_SIZE = "kafka.log:type=Log,name=Size,topic={t},partition={p}";
+  public static final String LOG_END_OFFSET = "kafka.log:type=Log,name=LogEndOffset,topic={},partition={}";
+  public static final String LOG_START_OFFSET = "kafka.log:type=Log,name=LogStartOffset,topic={},partition={}";
+  public static final String LOG_SEGMENTS_NUM = "kafka.log:type=Log,name=NumLogSegments,topic={},partition={}";
+  public static final String LOG_SIZE = "kafka.log:type=Log,name=Size,topic={},partition={}";
   public static final String CLEANER_RECOPY_PERCENT = "kafka.log:type=LogCleaner,name=cleaner-recopy-percent";
   public static final String MAX_BUFFER_UTILIZATION_PERCENT = "kafka.log:type=LogCleaner,name=max-buffer-utilization-percent";
   public static final String MAX_CLEAN_TIME_SECS = "kafka.log:type=LogCleaner,name=max-clean-time-secs";
@@ -52,11 +50,12 @@ public class KafkaMetrics {
   public static final String TIME_SINCE_LAST_RUN_CLEANER_MS = "kafka.log:type=LogCleanerManager,name=time-since-last-run-ms";
 
   // kafka.network
-  public static final String PROCESSOR_IDLEPERCENT = "kafka.network:type=Processor,name=IdlePercent,networkProcessor={pid}";
+  public static final String PROCESSOR_IDLEPERCENT = "kafka.network:type=Processor,name=IdlePercent,networkProcessor={}";
   public static final String REQUEST_QUEUE_SIZE = "kafka.network:type=RequestChannel,name=RequestQueueSize";
   public static final String RESPONSE_QUEUE_SIZE = "kafka.network:type=RequestChannel,name=ResponseQueueSize";
-  public static final String RESPONSE_QUEUE_SIZE_OF_PROCESSOR = "kafka.network:type=RequestChannel,name=ResponseQueueSize,processor={pid}";
+  public static final String RESPONSE_QUEUE_SIZE_OF_PROCESSOR = "kafka.network:type=RequestChannel,name=ResponseQueueSize,processor={}";
 
+  public static final String REQUEST_METRICS = "kafka.network:type=RequestMetrics,name={},request= {}";
   public static final String REQUEST_METRICS_NAMES[] = {"LocalTimeMs", "RemoteTimeMs", "RequestQueueTimeMs", "RequestQueueTimeMs",
       "RequestsPerSec", "ResponseQueueTimeMs", "ResponseSendTimeMs", "ThrottleTimeMs", "TotalTimeMs"};
   public static final String REQUEST_METRICS_REQUESTS[] =
@@ -68,20 +67,20 @@ public class KafkaMetrics {
 
   // kafka.server
   public static final String BROKER_BYTES_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec";
-  public static final String TOPIC_BYTES_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec,topic={t}";
+  public static final String TOPIC_BYTES_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec,topic={}";
   public static final String BROKER_BYTES_OUT_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec";
-  public static final String TOPIC_BYTES_OUT_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec,topic={t}";
+  public static final String TOPIC_BYTES_OUT_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec,topic={}";
   public static final String BROKER_BYTES_REJECTERD_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesRejectedPerSec";
-  public static final String TOPIC_BYTES_REJECTERD_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesRejectedPerSec,topic={t}";
+  public static final String TOPIC_BYTES_REJECTERD_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesRejectedPerSec,topic={}";
   public static final String BROKER_FAILED_FETCH_REQUESTS_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=FailedFetchRequestsPerSec";
   public static final String TOPIC_FAILED_FETCH_REQUESTS_PER_SEC =
-      "kafka.server:type=BrokerTopicMetrics,name=FailedFetchRequestsPerSec,topic={t}";
+      "kafka.server:type=BrokerTopicMetrics,name=FailedFetchRequestsPerSec,topic={}";
   public static final String BROKER_FAILED_PRODUCE_REQUESTS_PER_SEC =
       "kafka.server:type=BrokerTopicMetrics,name=FailedProduceRequestsPerSec";
   public static final String TOPIC_FAILED_PRODUCE_REQUESTS_PER_SEC =
-      "kafka.server:type=BrokerTopicMetrics,name=FailedProduceRequestsPerSec,topic={t}";
+      "kafka.server:type=BrokerTopicMetrics,name=FailedProduceRequestsPerSec,topic={}";
   public static final String BROKER_MESSAGES_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec";
-  public static final String TOPIC_MESSAGES_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec,topic={t}";
+  public static final String TOPIC_MESSAGES_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec,topic={}";
   public static final String TOTAL_FETCH_REQUESTS_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=TotalFetchRequestsPerSec";
   public static final String TOTAL_PRODUCE_REQUESTS_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=TotalProduceRequestsPerSec";
 
@@ -110,23 +109,46 @@ public class KafkaMetrics {
   public static final String DELAYED_OPERATIONS_TOPIC_PURGATORY_SIZE =
       "kafka.server:type=DelayedOperationPurgatory,name=PurgatorySize,delayedOperation=topic";
 
-  public static final String DELAY_QUEUE_SIZE = "kafka.server:type=Fetch";
+  public static final String FETCH_DELAY_QUEUE_SIZE = "kafka.server:type=Fetch";
+  public static final String PRODUCE_DELAY_QUEUE_SIZE = "kafka.server:type=Produce";
 
-  public static final String CONSUMER_LAG =
-      "kafka.server:type=FetcherLagMetrics,name=ConsumerLag,clientId={ReplicaFetcherThread},topic={t},partition={p}";
+  public static final String CONSUMER_LAG = "kafka.server:type=FetcherLagMetrics,name=ConsumerLag,clientId={},topic={},partition={}";
 
   public static final String FETCHER_STATS_BYTES_PER_SEC =
-      "kafka.server:type=FetcherStats,name=BytesPerSec,clientId={ReplicaFetcherThread},brokerHost={host},brokerPort={port}";
+      "kafka.server:type=FetcherStats,name=BytesPerSec,clientId={},brokerHost={},brokerPort={}";
   public static final String FETCHER_STATS_REQUESTS_PER_SEC =
-      "kafka.server:type=FetcherStats,name=RequestsPerSec,clientId={ReplicaFetcherThread},brokerHost={host},brokerPort={port}";
-  
-  public static final String REQUEST_HANDLER_AVG_IDLE_PERCENT = "kafka.server:type=KafkaRequestHandlerPool,name=RequestHandlerAvgIdlePercent";
-  
+      "kafka.server:type=FetcherStats,name=RequestsPerSec,clientId={},brokerHost={},brokerPort={}";
+
+  public static final String REQUEST_HANDLER_AVG_IDLE_PERCENT =
+      "kafka.server:type=KafkaRequestHandlerPool,name=RequestHandlerAvgIdlePercent";
+
   public static final String BROKER_STATE = "kafka.server:type=KafkaServer,name=BrokerState";
   public static final String CLUSTER_ID = "kafka.server:type=KafkaServer,name=ClusterId";
-  
+
   public static final String LEADER_REPLICATION = "kafka.server:type=LeaderReplication";
-  
+
+  public static final String REPLICA_MAX_LAG = "kafka.server:type=ReplicaFetcherManager,name=MaxLag,clientId=Replica";
+  public static final String REPLICA_MIN_FETCH_RATE = "kafka.server:type=ReplicaFetcherManager,name=MinFetchRate,clientId=Replica";
+  public static final String REPLICA_ISR_EXPANDS_PER_SEC = "kafka.server:type=ReplicaManager,name=IsrExpandsPerSec";
+  public static final String REPLICA_ISR_SHRINKS_PER_SEC = "kafka.server:type=ReplicaManager,name=IsrShrinksPerSec";
+  public static final String REPLICA_LEADER_COUNT = "kafka.server:type=ReplicaManager,name=LeaderCount";
+  public static final String REPLICA_PARTITION_COUNT = "kafka.server:type=ReplicaManager,name=PartitionCount";
+  public static final String REPLICA_UNDERREPLICATED_PARTITIONS = "kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions";
+
+  // kafka.server:type=SessionExpireListener
+  public static final String ZK_AUTHFAILURES_PER_SEC = "kafka.server:type=SessionExpireListener,name=ZooKeeperAuthFailuresPerSec";
+  public static final String ZK_DISCONNECTS_PER_SEC = "kafka.server:type=SessionExpireListener,name=ZooKeeperDisconnectsPerSec";
+  public static final String ZK_EXPIRES_PER_SEC = "kafka.server:type=SessionExpireListener,name=ZooKeeperExpiresPerSec";
+  public static final String ZK_RO_CONNECTS_PER_SEC = "kafka.server:type=SessionExpireListener,name=ZooKeeperReadOnlyConnectsPerSec";
+  public static final String ZK_SASL_AUTHS_PER_SEC = "kafka.server:type=SessionExpireListener,name=ZooKeeperSaslAuthenticationsPerSec";
+  public static final String ZK_SYNC_CONNECTIONS_PER_SEC = "kafka.server:type=SessionExpireListener,name=ZooKeeperSyncConnectsPerSec";
+
+  // app-info
+  public static final String APP_INFO = "kafka.server:type=app-info,id=0";
+
+  public static final String REPLICA_FETCHER_METRICS = "kafka.server:type=replica-fetcher-metrics,broker-id={},fetcher-id={}";
+  public static final String SOCKET_SERVER_METRICS = "kafka.server:type=socket-server-metrics,networkProcessor={}";
+
 
   public MeterMetric getBytesInPerSec(MBeanServerConnection mbsc, Optional<String> topicName) {
     return getBrokerTopicMetrics(mbsc, "BytesInPerSec", topicName);

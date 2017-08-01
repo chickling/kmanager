@@ -169,8 +169,8 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 					'show.bs.modal',
 					function(event) {
 						var button = $(event.relatedTarget);
-						var topic = $routeParams.group;
-						var group = $routeParams.topic;
+						var group = $routeParams.group;
+						var topic = $routeParams.topic;
 						var modal = $(this);
 						modal.find('.modal-body #topic').val(topic);
 						modal.find('.modal-body #group').val(group);
@@ -356,7 +356,7 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 								
 								offsetinfo.newAlert('alerting/task', sendData, function(d) {
 									$scope.tasks = d;
-									$('#taskModal').modal('hide');
+									$('#taskDetailModal').modal('hide');
 									swal({
 										title : "Task updated!",
 										type : "success",
@@ -560,6 +560,14 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 				}
 				$scope.brokerTopicMetrics = d;
 			});
+			
+//			Morris.Donut({
+//				  element: 'donut-physicalMemory',
+//				  data: [
+//				    {label: "FreePhysicalMemorySize", value: 12},
+//				    {label: "UsedPhysicalMemorySize", value: 88}
+//				  ]
+//				});
 //			var options = {
 //				axisY : {
 //					type : Chartist.AutoScaleAxis,

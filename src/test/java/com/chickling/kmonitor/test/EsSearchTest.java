@@ -1,9 +1,11 @@
 package com.chickling.kmonitor.test;
 
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import com.chickling.kmonitor.model.OffsetPoints;
-import com.chickling.kmonitor.utils.elasticsearch.javaapi.ElasticsearchJavaUtil;
+import org.json.JSONObject;
+
+import com.chickling.kmonitor.utils.elasticsearch.restapi.ElasticsearchRESTUtil;
 
 /**
  * 
@@ -12,11 +14,25 @@ import com.chickling.kmonitor.utils.elasticsearch.javaapi.ElasticsearchJavaUtil;
  */
 public class EsSearchTest {
 
-	public static void main(String[] args) {
-		ElasticsearchJavaUtil es = new ElasticsearchJavaUtil("10.16.238.82:9300,10.16.238.83:9300,10.16.238.84:9300");
-		List<OffsetPoints> result = es.offsetHistory("logx_healthcheck_test", "kafkaoffset", "testkafka", "EC2_Test");
-
-		System.out.println(result);
-	}
+  public static void main(String[] args) {
+    // ElasticsearchJavaUtil es = new
+    // ElasticsearchJavaUtil("10.16.238.82:9300,10.16.238.83:9300,10.16.238.84:9300");
+    // List<OffsetPoints> result = es.offsetHistory("logx_healthcheck_test", "kafkaoffset", "testkafka",
+    // "EC2_Test");
+    //
+    // System.out.println(result);
+    ElasticsearchRESTUtil esUtil = new ElasticsearchRESTUtil("10.16.238.92:9200");
+    JSONObject root = new JSONObject();
+    JSONObject doc = null;
+    SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    for (int i = 0; i < 1000; i++) {
+      doc = new JSONObject();
+      doc.put("hell", Math.random() * 1000);
+      doc.put("world", Math.random() * 1000);
+      doc.put("date", sFormat.format(new Date()));
+      root.put(i + "", doc);
+    }
+    esUtil.bulkIndex(root, "test", "test");
+  }
 
 }

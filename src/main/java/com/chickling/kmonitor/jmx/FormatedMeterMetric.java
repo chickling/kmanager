@@ -9,70 +9,74 @@ import com.chickling.kmonitor.utils.MetricUtils;
  *
  */
 public class FormatedMeterMetric {
-	private Long count;
-	private String meanRate;
-	private String oneMinuteRate;
-	private String fiveMinuteRate;
-	private String fifteenMinuteRate;
+  private Long count;
+  private String meanRate;
+  private String oneMinuteRate;
+  private String fiveMinuteRate;
+  private String fifteenMinuteRate;
 
-	public FormatedMeterMetric() {
-		super();
-	}
+  public FormatedMeterMetric() {
+    super();
+  }
 
-	public FormatedMeterMetric(MeterMetric metric) {
-		this(metric.getCount(), MetricUtils.sizeFormat(metric.getMeanRate()),
-				MetricUtils.sizeFormat(metric.getOneMinuteRate()), MetricUtils.sizeFormat(metric.getFiveMinuteRate()),
-				MetricUtils.sizeFormat(metric.getFifteenMinuteRate()));
-	}
+  public FormatedMeterMetric(MeterMetric metric) {
+    this(metric.getCount(), MetricUtils.sizeFormat(metric.getMeanRate()), MetricUtils.sizeFormat(metric.getOneMinuteRate()),
+        MetricUtils.sizeFormat(metric.getFiveMinuteRate()), MetricUtils.sizeFormat(metric.getFifteenMinuteRate()));
+  }
 
-	public FormatedMeterMetric(Long count, String meanRate, String oneMinuteRate, String fiveMinuteRate,
-			String fifteenMinuteRate) {
-		super();
-		this.count = count;
-		this.meanRate = meanRate;
-		this.oneMinuteRate = oneMinuteRate;
-		this.fiveMinuteRate = fiveMinuteRate;
-		this.fifteenMinuteRate = fifteenMinuteRate;
-	}
+  public FormatedMeterMetric(MeterMetric metric, int interation) {
+    this(metric.getCount(), MetricUtils.rateFormat(metric.getMeanRate(), interation),
+        MetricUtils.rateFormat(metric.getOneMinuteRate(), interation), MetricUtils.rateFormat(metric.getFiveMinuteRate(), interation),
+        MetricUtils.rateFormat(metric.getFifteenMinuteRate(), interation));
+  }
 
-	public Long getCount() {
-		return count;
-	}
+  public FormatedMeterMetric(Long count, String meanRate, String oneMinuteRate, String fiveMinuteRate, String fifteenMinuteRate) {
+    super();
+    this.count = count;
+    this.meanRate = meanRate;
+    this.oneMinuteRate = oneMinuteRate;
+    this.fiveMinuteRate = fiveMinuteRate;
+    this.fifteenMinuteRate = fifteenMinuteRate;
+  }
 
-	public void setCount(Long count) {
-		this.count = count;
-	}
+  public Long getCount() {
+    return count;
+  }
 
-	public String getFifteenMinuteRate() {
-		return fifteenMinuteRate;
-	}
+  public void setCount(Long count) {
+    this.count = count;
+  }
 
-	public void setFifteenMinuteRate(String fifteenMinuteRate) {
-		this.fifteenMinuteRate = fifteenMinuteRate;
-	}
+  public String getFifteenMinuteRate() {
+    return fifteenMinuteRate;
+  }
 
-	public String getFiveMinuteRate() {
-		return fiveMinuteRate;
-	}
+  public void setFifteenMinuteRate(String fifteenMinuteRate) {
+    this.fifteenMinuteRate = fifteenMinuteRate;
+  }
 
-	public void setFiveMinuteRate(String fiveMinuteRate) {
-		this.fiveMinuteRate = fiveMinuteRate;
-	}
+  public String getFiveMinuteRate() {
+    return fiveMinuteRate;
+  }
 
-	public String getOneMinuteRate() {
-		return oneMinuteRate;
-	}
+  public void setFiveMinuteRate(String fiveMinuteRate) {
+    this.fiveMinuteRate = fiveMinuteRate;
+  }
 
-	public void setOneMinuteRate(String oneMinuteRate) {
-		this.oneMinuteRate = oneMinuteRate;
-	}
+  public String getOneMinuteRate() {
+    return oneMinuteRate;
+  }
 
-	public String getMeanRate() {
-		return meanRate;
-	}
+  public void setOneMinuteRate(String oneMinuteRate) {
+    this.oneMinuteRate = oneMinuteRate;
+  }
 
-	public void setMeanRate(String meanRate) {
-		this.meanRate = meanRate;
-	}
+  public String getMeanRate() {
+    return meanRate;
+  }
+
+  public void setMeanRate(String meanRate) {
+    this.meanRate = meanRate;
+  }
 
 }

@@ -5,69 +5,155 @@
 <div class="alert alert-info" ng-show="loading">Loading ...</div>
 <div id="dataviz-container"></div>
 
-<div class="panel panel-default" ng-show="jmxEnabled">
-	<div class="panel-heading">
-		<h4>Metrics</h4>
+<div ng-show="jmxEnabled">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4>Metrics</h4>
+		</div>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Rate</th>
+					<th>Mean</th>
+					<th>1&nbsp;min</th>
+					<th>5&nbsp;min</th>
+					<th>15&nbsp;min</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>Messages in /sec</td>
+					<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.meanRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.oneMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.fiveMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.fifteenMinuteRate}}</span></td>
+				<tr>
+				<tr>
+					<td>Bytes in /sec</td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.meanRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.oneMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fiveMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fifteenMinuteRate}}</span></td>
+				<tr>
+				<tr>
+					<td>Bytes out /sec</td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.meanRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.oneMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fiveMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fifteenMinuteRate}}</span></td>
+				<tr>
+				<tr>
+					<td>Bytes rejected /sec</td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.meanRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.oneMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fiveMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fifteenMinuteRate}}</span></td>
+				<tr>
+				<tr>
+					<td>Failed fetch request /sec</td>
+					<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.meanRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.oneMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fiveMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fifteenMinuteRate}}</span></td>
+				<tr>
+				<tr>
+					<td>Failed produce request /sec</td>
+					<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.meanRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.oneMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fiveMinuteRate}}</span></td>
+					<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fifteenMinuteRate}}</span></td>
+				<tr>
+			</tbody>
+		</table>
 	</div>
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Rate</th>
-				<th>Mean</th>
-				<th>1&nbsp;min</th>
-				<th>5&nbsp;min</th>
-				<th>15&nbsp;min</th>
-			</tr>
-		</thead>
-		<tbody>
-			<!-- <tr>
-				<td>Messages in /sec</td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-				<td><span class="badge">0.00</span></td>
-			<tr> -->
-			<tr>
-				<td>Bytes in</td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.meanRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.oneMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fiveMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fifteenMinuteRate}}</span></td>
-			<tr>
-			<tr>
-				<td>Bytes out</td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.meanRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.oneMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fiveMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fifteenMinuteRate}}</span></td>
-			<tr>
-			<tr>
-				<td>Bytes rejected</td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.meanRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.oneMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fiveMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fifteenMinuteRate}}</span></td>
-			<tr>
-			<tr>
-				<td>Failed fetch request</td>
-				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.meanRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.oneMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fiveMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fifteenMinuteRate}}</span></td>
-			<tr>
-			<tr>
-				<td>Failed produce request</td>
-				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.meanRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.oneMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fiveMinuteRate}}</span></td>
-				<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fifteenMinuteRate}}</span></td>
-			<tr>
-		</tbody>
-	</table>
-</div>
+<!-- 	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4>System Info</h4>
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-sm-3 control-label">Broker</label>
+				<div class="col-sm-8">
+					<p>10.16.238.101</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">Name</label>
+				<div class="col-sm-8">
+					<p>Linux</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">Arch</label>
+				<div class="col-sm-8">
+					<p>amd</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">Version</label>
+				<div class="col-sm-8">
+					<p>3.10.0-514.26.2.el7.x86_64</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">AvailableProcessors</label>
+				<div class="col-sm-8">
+					<p>1</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">CommittedVirtualMemorySize</label>
+				<div class="col-sm-8">
+					<p>4,944,248,832</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">FreePhysicalMemorySize</label>
+				<div class="col-sm-8">
+					<p>4,561,178,624</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">TotalSwapSpaceSize</label>
+				<div class="col-sm-8">
+					<p>8,203,460,608</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">FreeSwapSpaceSize</label>
+				<div class="col-sm-8">
+					<p>8,455,712,768</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">TotalSwapSpaceSize</label>
+				<div class="col-sm-8">
+					<p>8,455,712,768</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">ProcessCpuLoad</label>
+				<div class="col-sm-8">
+					<p>0.147</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">SystemCpuLoad</label>
+				<div class="col-sm-8">
+					<p>0.16</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">SystemLoadAverage</label>
+				<div class="col-sm-8">
+					<p>0.14</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div> -->
 
 <div class="alert alert-info" role="alert" ng-hide="jmxEnabled">
-  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  <span class="sr-only">Info:</span>
-  JMX is not avialable
+	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	<span class="sr-only">Info:</span> JMX is not avialable
 </div>
