@@ -151,7 +151,6 @@ public class JMXMetricController {
       }
     } catch (Exception e) {
       LOG.error("Get jmxHosts error!" + e.getMessage());
-
     }
     return response.toString();
   }

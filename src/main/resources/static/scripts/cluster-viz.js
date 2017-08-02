@@ -16,6 +16,9 @@ var diagonal = d3.svg.diagonal().projection(function(d) {
 
 var svg;
 
+var seriesOptions = [],
+seriesCounter = 0;
+
 function loadViz(load_to_id, data_path) {
 	svg = d3.select(load_to_id).append("svg").attr("width",
 			width + margin.right + margin.left).attr("height",
@@ -41,6 +44,108 @@ function loadViz(load_to_id, data_path) {
 		$(".alert-info").hide("slow");
 	});
 	d3.select(self.frameElement).style("height", "800px");
+	
+	/**
+	 * Create the chart when all data is loaded
+	 * 
+	 * @returns {undefined}
+	 */
+	function createChart() {
+
+	    Highcharts.stockChart('metrics', {
+
+	        rangeSelector: {
+	            selected: 4
+	        },
+
+	        yAxis: {
+	            labels: {
+	                formatter: function () {
+	                    return (this.value > 0 ? ' + ' : '') + this.value + '%';
+	                }
+	            },
+	            plotLines: [{
+	                value: 0,
+	                width: 2,
+	                color: 'silver'
+	            }]
+	        },
+
+	        plotOptions: {
+	            series: {
+	                compare: 'value', // 'value', 'percent'
+	                showInNavigator: true
+	            }
+	        },
+
+	        tooltip: {
+	            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change})<br/>'
+	        },
+
+	        series: seriesOptions
+	    });
+	}
+	
+// broker
+// :
+// "10.16.238.104"
+// count
+// :
+// 17284985
+// date
+// :
+// "2017-08-02T15:16:41.978+0800"
+// fifteenMinuteRate
+// :
+// "0.00 B"
+// fiveMinuteRate
+// :
+// "0.00 B"
+// meanRate
+// :
+// "29.38 B"
+// metric
+// :
+// "BytesOutPerSec"
+// oneMinuteRate
+// :
+// "0.00 B"
+// timestamp
+// :
+// 1501658201978
+
+
+    $.getJSON('http://10.16.238.82:9200/logx_healthcheck_test-*/jmxMetrics/_search?q=metric:BytesOutPerSec',    function (data) {
+    	var hits = data.hits.hits;
+    	let brokerHitsMap = new Map();
+    	$.each(hits, function (i, hit){
+    		var source = hit._source;
+    		var brokerHits = brokerHitsMap.get(source.broker);
+    		if(brokerHits == undefined){
+    			brokerHitsMap.set(source.broker, [[source.timestamp, source.count]]);
+    		}else{
+    			brokerHits.push([source.timestamp, source.count]);
+    		}
+    	});
+    	
+    	for (let [broker, hits] of brokerHitsMap) {
+    		hits.sort(function(a, b) {
+    			return a[0] - b[0];
+    		});
+    		seriesOptions[seriesCounter] = {
+				name: broker,
+				data: hits
+    		};
+    		seriesCounter += 1;
+    	}
+    	
+
+        // As we're loading the data asynchronously, we don't know what
+		// order it will arrive. So
+        // we keep a counter and create the chart when all the data is
+		// loaded.
+            createChart();
+    });
 }
 
 function update(source) {
