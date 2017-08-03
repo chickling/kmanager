@@ -62,13 +62,16 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 	.controller("ClusterVizCtrl", [ "$scope", "$interval", "$routeParams", "offsetinfo",
 		function($scope, $interval, $routeParams, offsetinfo) {
 			$scope.loading = true;
-			offsetinfo.loadClusterViz($routeParams.group, function(d) {});
+			let esUrl;
 			offsetinfo.brokerTopicMetricsForBrokers().success(function(d) {
 				if(d.BytesInPerSec){
 					$scope.jmxEnabled = true;
+					esUrl = d.esUrl;
 				}
 				$scope.brokerTopicMetrics = d;
+				offsetinfo.loadClusterViz(esUrl, $routeParams.group, function(d) {});
 			});
+			offsetinfo.loadClusterViz(esUrl, $routeParams.group, function(d) {});
 		} ])
 	.controller("ActiveTopicsVizCtrl", [ "$scope", "$interval", "$routeParams", "offsetinfo",
 		function($scope, $interval, $routeParams, offsetinfo) {

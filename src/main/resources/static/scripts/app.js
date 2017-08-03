@@ -128,8 +128,8 @@ angular.module("offsetapp.services", [ "ngResource" ])
 					topic : topic
 				}, processMultipleConsumers(cb));
 			},
-			loadClusterViz : function(group, cb) {
-				cb(loadViz("#dataviz-container", "./clusterlist"))
+			loadClusterViz : function(esUrl, group, cb) {
+				cb(loadViz(esUrl, "#dataviz-container", "./clusterlist"))
 			},
 			loadTopicConsumerViz : function(group, cb) {
 				cb(loadViz("#dataviz-container", "./activetopics"))

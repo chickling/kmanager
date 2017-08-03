@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.chickling.kmonitor.initialize.SystemManager;
 import com.chickling.kmonitor.jmx.FormatedMeterMetric;
 import com.chickling.kmonitor.jmx.JMXExecutor;
 import com.chickling.kmonitor.jmx.KafkaJMX;
@@ -107,6 +108,7 @@ public class JMXMetricController {
         response.put(key, new JSONObject(new FormatedMeterMetric(result.get(key))));
       }
     }
+    response.put("esUrl", SystemManager.getConfig().getEsHosts().split(":")[0] + ":9200");
     return response.toString();
   }
 
