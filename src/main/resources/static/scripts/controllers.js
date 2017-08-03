@@ -69,9 +69,9 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 					esUrl = d.esUrl;
 				}
 				$scope.brokerTopicMetrics = d;
-				offsetinfo.loadClusterViz(esUrl, $routeParams.group, function(d) {});
+				offsetinfo.loadMessagesInChart(esUrl, function(d) {});
 			});
-			offsetinfo.loadClusterViz(esUrl, $routeParams.group, function(d) {});
+			offsetinfo.loadClusterViz($routeParams.group, function(d) {});
 		} ])
 	.controller("ActiveTopicsVizCtrl", [ "$scope", "$interval", "$routeParams", "offsetinfo",
 		function($scope, $interval, $routeParams, offsetinfo) {

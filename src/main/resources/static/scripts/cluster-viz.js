@@ -23,7 +23,7 @@ Highcharts.setOptions({
 });
 
 
-function loadViz(esUrl, load_to_id, data_path) {
+function loadViz(load_to_id, data_path) {
 	svg = d3.select(load_to_id).append("svg").attr("width",
 			width + margin.right + margin.left).attr("height",
 			height + margin.top + margin.bottom).attr("style",
@@ -48,9 +48,6 @@ function loadViz(esUrl, load_to_id, data_path) {
 		$(".alert-info").hide("slow");
 	});
 	d3.select(self.frameElement).style("height", "800px");
-	if(!(esUrl == undefined)) {
-		intervalHighchart(esUrl);
-	}
 }
 
 function intervalHighchart(esUrl) {
