@@ -131,14 +131,14 @@ angular.module("offsetapp.services", [ "ngResource" ])
 			loadClusterViz : function(group, cb) {
 				cb(loadViz("#dataviz-container", "./clusterlist"))
 			},
-			loadMetricVizChart: function(metric) {
+			loadMetricVizChart: function(metric, title) {
 				$http({
 				    method: 'POST',
 				    url: './metrics/metricviz',
 				    headers: {'Content-Type': 'application/json'},
 				    data: metric
 				}).success(function (response) {
-					intervalHighchart(response);
+					intervalHighchart(response, title);
 				});
 			}, 
 			loadTopicConsumerViz : function(group, cb) {

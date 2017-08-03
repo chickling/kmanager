@@ -49,31 +49,35 @@ function loadViz(load_to_id, data_path) {
 	d3.select(self.frameElement).style("height", "800px");
 }
 
-function intervalHighchart(result) {
-	var seriesOptions = [];
-	var hits = result.hits.hits;
-	let brokerHitsMap = new Map();
-	$.each(hits, function (i, hit){
-		var source = hit._source;
-		var brokerHits = brokerHitsMap.get(source.broker);
-		if(brokerHits == undefined){
-			brokerHitsMap.set(source.broker, [[source.timestamp, source.count]]);
-		}else{
-			brokerHits.push([source.timestamp, source.count]);
-		}
-	});
-	let i=0
-	for (let [broker, hits] of brokerHitsMap) {
-		hits.sort(function(a, b) {
-			return a[0] - b[0];
+function intervalHighchart(result, title) {
+	try{
+		var seriesOptions = [];
+		var hits = result.hits.hits;
+		let brokerHitsMap = new Map();
+		$.each(hits, function (i, hit){
+			var source = hit._source;
+			var brokerHits = brokerHitsMap.get(source.broker);
+			if(brokerHits == undefined){
+				brokerHitsMap.set(source.broker, [[source.timestamp, source.count]]);
+			}else{
+				brokerHits.push([source.timestamp, source.count]);
+			}
 		});
-		seriesOptions[i] = {
-			name: broker,
-			data: hits
-		};
-		i++;
+		let i=0
+		for (let [broker, hits] of brokerHitsMap) {
+			hits.sort(function(a, b) {
+				return a[0] - b[0];
+			});
+			seriesOptions[i] = {
+				name: broker,
+				data: hits
+			};
+			i++;
+		}
+	    createChart(seriesOptions, title);
+	}catch (err) {
+		console.log("Your browser version is too too low ~");
 	}
-    createChart(seriesOptions);
 }
 
 /**
@@ -81,11 +85,11 @@ function intervalHighchart(result) {
  * 
  * @returns {undefined}
  */
-function createChart(_seriesOptions) {
+function createChart(_seriesOptions, title) {
 
     Highcharts.stockChart('metrics', {
     	title: {
-    		text: 'Message count (last 8 hours)'
+    		text: title
     	},
 
         rangeSelector: {

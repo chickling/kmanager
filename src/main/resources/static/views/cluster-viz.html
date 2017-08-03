@@ -66,7 +66,7 @@
 			</tbody>
 		</table>
 	</div>
-<!-- 	<div class="panel panel-default">
+	<!-- 	<div class="panel panel-default">
 		<div class="panel-heading">
 			<h4>System Info</h4>
 		</div>
@@ -153,8 +153,22 @@
 	</div>
 </div> -->
 
-
-<div id="metrics" style="height: 400px; min-width: 340px"></div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4>Choose one to show its change in 8 hours</h4>
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label for="timerange_select">Metric:</label> <select
+					class="form-control" id="metric_select"
+					ng-model="currentMetric" ng-change="onMetricChanged()"
+					ng-options="metric.code as metric.value for metric in metrics">
+				</select>
+			</div>
+			<div id="metrics" style="height: 400px; min-width: 340px"></div>
+		</div>
+	</div>
+</div>
 
 <div class="alert alert-info" role="alert" ng-hide="jmxEnabled">
 	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
