@@ -108,7 +108,7 @@ public class JMXMetricController {
         response.put(key, new JSONObject(new FormatedMeterMetric(result.get(key))));
       }
     }
-    response.put("esUrl", SystemManager.getConfig().getEsHosts().split(":")[0] + ":9200");
+    response.put("esUrl", SystemManager.getConfig().getEsHosts().split(":")[0] + ":9200/" + SystemManager.getConfig().getEsIndex() + "-*");
     return response.toString();
   }
 

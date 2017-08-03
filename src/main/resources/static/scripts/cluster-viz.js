@@ -75,7 +75,7 @@ function intervalHighchart(esUrl) {
 		    }
 		};
 	
-	$.post('http://'+ esUrl +'/logx_healthcheck_test-*/jmxMetrics/_search', JSON.stringify(postBody), function(data) {
+	$.post('http://'+ esUrl +'/jmxMetrics/_search', JSON.stringify(postBody), function(data) {
 		var seriesOptions = [];
     	var hits = data.hits.hits;
     	let brokerHitsMap = new Map();
