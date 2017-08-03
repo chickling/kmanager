@@ -60,6 +60,8 @@ public class SystemManager {
   private static final ExecutorService kafkaInfoCollectAndSavePool =
       Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("KafkaInfo Collector"));
 
+  public static final String JMX_METRIC_ES_DOC_TYPE = "jmxMetrics";
+
   public static BlockingQueue<KafkaInfo> offsetInfoCacheQueue;
 
   public static OffsetDB<Ielasticsearch> db = null;
@@ -187,7 +189,7 @@ public class SystemManager {
                 }
               });
             }
-            db.getDB().bulkIndex(data, "jmxMetrics", config.getEsIndex() + "-");
+            db.getDB().bulkIndex(data, JMX_METRIC_ES_DOC_TYPE, config.getEsIndex() + "-");
           } catch (Exception e) {
             LOG.warn("Ops..." + e.getMessage());
           }

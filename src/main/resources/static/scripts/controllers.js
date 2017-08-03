@@ -69,7 +69,8 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 					esUrl = d.esUrl;
 				}
 				$scope.brokerTopicMetrics = d;
-				offsetinfo.loadMessagesInChart(esUrl, function(d) {});
+				
+				offsetinfo.loadMetricVizChart("MessagesInPerSec");
 			});
 			offsetinfo.loadClusterViz($routeParams.group, function(d) {});
 		} ])

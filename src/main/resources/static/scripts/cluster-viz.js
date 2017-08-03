@@ -22,7 +22,6 @@ Highcharts.setOptions({
     }
 });
 
-
 function loadViz(load_to_id, data_path) {
 	svg = d3.select(load_to_id).append("svg").attr("width",
 			width + margin.right + margin.left).attr("height",
@@ -50,57 +49,31 @@ function loadViz(load_to_id, data_path) {
 	d3.select(self.frameElement).style("height", "800px");
 }
 
-function intervalHighchart(esUrl) {
-	setTimeout(intervalHighchart, 60000);
-	var postBody = {
-			"size": 2000,
-		    "sort": [
-		        { "timestamp": {"order" : "desc"}},
-		        "broker"
-		    ],
-		    "query": {
-		    	"bool": { 
-		    	      "must": [
-		    	    	  {"match": { "metric": "MessagesInPerSec" }}  
-		    	      ],
-		    	      "filter": [ 
-		    	    	  {"range": {
-		  		            "timestamp": {
-		  		                "gte": new Date().getTime() - 480*60000,
-		  		                "lte": new Date().getTime()
-		  		            }
-		  		        }} 
-		    	      ]
-		    	    }
-		    }
-		};
-	
-	$.post('http://'+ esUrl +'/jmxMetrics/_search', JSON.stringify(postBody), function(data) {
-		var seriesOptions = [];
-    	var hits = data.hits.hits;
-    	let brokerHitsMap = new Map();
-    	$.each(hits, function (i, hit){
-    		var source = hit._source;
-    		var brokerHits = brokerHitsMap.get(source.broker);
-    		if(brokerHits == undefined){
-    			brokerHitsMap.set(source.broker, [[source.timestamp, source.count]]);
-    		}else{
-    			brokerHits.push([source.timestamp, source.count]);
-    		}
-    	});
-    	let i=0
-    	for (let [broker, hits] of brokerHitsMap) {
-    		hits.sort(function(a, b) {
-    			return a[0] - b[0];
-    		});
-    		seriesOptions[i] = {
-				name: broker,
-				data: hits
-    		};
-    		i++;
-    	}
-        createChart(seriesOptions);
+function intervalHighchart(result) {
+	var seriesOptions = [];
+	var hits = result.hits.hits;
+	let brokerHitsMap = new Map();
+	$.each(hits, function (i, hit){
+		var source = hit._source;
+		var brokerHits = brokerHitsMap.get(source.broker);
+		if(brokerHits == undefined){
+			brokerHitsMap.set(source.broker, [[source.timestamp, source.count]]);
+		}else{
+			brokerHits.push([source.timestamp, source.count]);
+		}
 	});
+	let i=0
+	for (let [broker, hits] of brokerHitsMap) {
+		hits.sort(function(a, b) {
+			return a[0] - b[0];
+		});
+		seriesOptions[i] = {
+			name: broker,
+			data: hits
+		};
+		i++;
+	}
+    createChart(seriesOptions);
 }
 
 /**

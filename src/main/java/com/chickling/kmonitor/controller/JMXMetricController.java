@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +24,7 @@ import com.chickling.kmonitor.jmx.KafkaJMX;
 import com.chickling.kmonitor.jmx.KafkaMetrics;
 import com.chickling.kmonitor.jmx.MeterMetric;
 import com.chickling.kmonitor.utils.ZKUtils;
+import com.chickling.kmonitor.utils.elasticsearch.restapi.ElasticsearchRESTUtil;
 
 /**
  * 
@@ -230,5 +232,10 @@ public class JMXMetricController {
       }
     }
     return response.toString();
+  }
+
+  @RequestMapping(value = "/metricviz", method = RequestMethod.POST)
+  public String getMetricVizData(@RequestBody String metric) {
+    return ElasticsearchRESTUtil.metricVizDataSearch(metric);
   }
 }

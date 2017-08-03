@@ -361,4 +361,21 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
 
   }
 
+  public static String metricVizDataSearch(String metric) {
+    String searchResult = "";
+    try {
+      String indexNameSearch = SystemManager.getConfig().getEsIndex() + "-*";
+      ResponseEntity<String> response = REST.exchange(
+          "http://" + SystemManager.getConfig().getEsHosts().split(":")[0] + ":9200/" + indexNameSearch + "/"
+              + SystemManager.JMX_METRIC_ES_DOC_TYPE + "/_search",
+          HttpMethod.POST, new HttpEntity<String>(ScrollSearchTemplate.getMetricVizSearchBody(metric), headers), String.class);
+
+      searchResult = response.getBody();
+    } catch (Exception e) {
+      // TODO
+      LOG.error("Damn...", e);
+    }
+    return searchResult;
+  }
+
 }
