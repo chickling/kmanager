@@ -64,9 +64,9 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 			$scope.loading = true;
 			
 			$scope.metrics = [
-				{code: "MessagesInPerSec", value: "MessagesInPerSec"},
-				{code: "BytesInPerSec", value: "BytesInPerSec"},
-				{code: "BytesOutPerSec", value: "BytesOutPerSec"}
+				{code: "MessagesInPerSec", value: "MessagesIn"},
+				{code: "BytesInPerSec", value: "BytesIn"},
+				{code: "BytesOutPerSec", value: "BytesOut"}
 			];
 			$scope.currentMetric = "MessagesInPerSec";
 			let esUrl;
