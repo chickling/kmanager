@@ -40,6 +40,7 @@ body {
 }
 
 .footer {
+	padding-top: 16px;
 	position: absolute;
 	bottom: 0;
 	width: 100%;

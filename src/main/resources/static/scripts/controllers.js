@@ -62,13 +62,32 @@ angular.module('offsetapp.controllers', [ "offsetapp.services" ])
 	.controller("ClusterVizCtrl", [ "$scope", "$interval", "$routeParams", "offsetinfo",
 		function($scope, $interval, $routeParams, offsetinfo) {
 			$scope.loading = true;
-			offsetinfo.loadClusterViz($routeParams.group, function(d) {});
+			
+			$scope.metrics = [
+				{code: "MessagesInPerSec", value: "MessagesIn"},
+				{code: "BytesInPerSec", value: "BytesIn"},
+				{code: "BytesOutPerSec", value: "BytesOut"}
+			];
+			$scope.currentMetric = "MessagesInPerSec";
+			let esUrl;
 			offsetinfo.brokerTopicMetricsForBrokers().success(function(d) {
 				if(d.BytesInPerSec){
 					$scope.jmxEnabled = true;
+					esUrl = d.esUrl;
 				}
 				$scope.brokerTopicMetrics = d;
+				
+				offsetinfo.loadMetricVizChart($scope.currentMetric, "Messages");
 			});
+			offsetinfo.loadClusterViz($routeParams.group, function(d) {});
+			
+			$scope.onMetricChanged = function() {
+				if ($scope.currentMetric == "MessagesInPerSec") {
+					offsetinfo.loadMetricVizChart($scope.currentMetric, "Messages");
+				} else {
+					offsetinfo.loadMetricVizChart($scope.currentMetric, "Bytes");
+				}
+			} 
 		} ])
 	.controller("ActiveTopicsVizCtrl", [ "$scope", "$interval", "$routeParams", "offsetinfo",
 		function($scope, $interval, $routeParams, offsetinfo) {

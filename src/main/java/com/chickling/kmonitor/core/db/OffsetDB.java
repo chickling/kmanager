@@ -11,16 +11,18 @@ import com.chickling.kmonitor.model.OffsetInfo;
  * @author Hulva Luva.H
  *
  */
-public interface OffsetDB {
-	void insert(long timestamp, OffsetInfo offsetInfo);
+public interface OffsetDB<T> {
+  T getDB();
 
-	void batchInsert(List<OffsetInfo> offsetInfoList);
+  void insert(long timestamp, OffsetInfo offsetInfo);
 
-	OffsetHistory offsetHistory(String group, String topic);
+  void batchInsert(List<OffsetInfo> offsetInfoList);
 
-	OffsetHistory offsetHistory(OffsetHistoryQueryParams params);
-	
-	void close();
-	
-	boolean check();
+  OffsetHistory offsetHistory(String group, String topic);
+
+  OffsetHistory offsetHistory(OffsetHistoryQueryParams params);
+
+  void close();
+
+  boolean check();
 }

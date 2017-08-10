@@ -16,6 +16,12 @@ var diagonal = d3.svg.diagonal().projection(function(d) {
 
 var svg;
 
+Highcharts.setOptions({
+    global: {
+        useUTC: false
+    }
+});
+
 function loadViz(load_to_id, data_path) {
 	svg = d3.select(load_to_id).append("svg").attr("width",
 			width + margin.right + margin.left).attr("height",
@@ -41,6 +47,82 @@ function loadViz(load_to_id, data_path) {
 		$(".alert-info").hide("slow");
 	});
 	d3.select(self.frameElement).style("height", "800px");
+}
+
+function intervalHighchart(result, title) {
+	try{
+		var seriesOptions = [];
+		var hits = result.hits.hits;
+		let brokerHitsMap = new Map();
+		$.each(hits, function (i, hit){
+			var source = hit._source;
+			var brokerHits = brokerHitsMap.get(source.broker);
+			if(brokerHits == undefined){
+				brokerHitsMap.set(source.broker, [[source.timestamp, source.count]]);
+			}else{
+				brokerHits.push([source.timestamp, source.count]);
+			}
+		});
+		let i=0
+		for (let [broker, hits] of brokerHitsMap) {
+			hits.sort(function(a, b) {
+				return a[0] - b[0];
+			});
+			seriesOptions[i] = {
+				name: broker,
+				data: hits
+			};
+			i++;
+		}
+	    createChart(seriesOptions, title);
+	}catch (err) {
+		console.log("Your browser version is too too low ~");
+	}
+}
+
+/**
+ * Create the chart when all data is loaded
+ * 
+ * @returns {undefined}
+ */
+function createChart(_seriesOptions, title) {
+
+    Highcharts.stockChart('metrics', {
+    	title: {
+    		text: title
+    	},
+
+        rangeSelector: {
+            selected: 4,
+            enabled: false
+        },
+
+        yAxis: {
+            labels: {
+                formatter: function () {
+                    return this.value + '%';
+                }
+            },
+            plotLines: [{
+                value: 0,
+                width: 2,
+                color: 'silver'
+            }]
+        },
+
+        plotOptions: {
+            series: {
+            	compare: 'percent',
+            	showInNavigator: true
+            }
+        },
+
+        tooltip: {
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>'
+        },
+
+        series: _seriesOptions
+    });
 }
 
 function update(source) {

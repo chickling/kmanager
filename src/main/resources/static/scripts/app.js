@@ -111,7 +111,7 @@ angular.module("offsetapp.services", [ "ngResource" ])
 			}).value();
 			return groups;
 		}
-
+		
 		return {
 			getGroup : function(group, cb) {
 				return $resource("./group/:group").get({
@@ -131,6 +131,16 @@ angular.module("offsetapp.services", [ "ngResource" ])
 			loadClusterViz : function(group, cb) {
 				cb(loadViz("#dataviz-container", "./clusterlist"))
 			},
+			loadMetricVizChart: function(metric, title) {
+				$http({
+				    method: 'POST',
+				    url: './metrics/metricviz',
+				    headers: {'Content-Type': 'application/json'},
+				    data: metric
+				}).success(function (response) {
+					intervalHighchart(response, title);
+				});
+			}, 
 			loadTopicConsumerViz : function(group, cb) {
 				cb(loadViz("#dataviz-container", "./activetopics"))
 			},
