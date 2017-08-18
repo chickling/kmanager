@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Kmanager chart -Chickling</title>
+    <script src="https://cdn.jsdelivr.net/lodash/4/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+    <script src="https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js"></script>
+    <link href="https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <script>
+        function objectWithKeySorted(object) {
+            var result = {};
+            _.forEach(Object.keys(object).sort(), function (key) {
+                result[key] = object[key];
+            });
+            return result;
+        }
+        var interval;
+        var dayRange;
+        var colors = d3.scale.category20();
+        var results = {};
+        d3.json("http://localhost:8099/stats/trend", function (d) {
+            _.forOwn(d, function (val, key) {
+                var tempArr = key.split('|');
+                if (tempArr[1].indexOf('e3kafka') >= 0) { // test
+                    results[tempArr[0]] = results[tempArr[0]] || [];
+                    results[tempArr[0]].push({
+                        key: tempArr[1],
+                        values: val
+                    });
+                }
+            });
+            results = objectWithKeySorted(results);
+            var i = 0;
+            _.forOwn(results, function (val, key) {
+                if (i === 0 && val.length) {
+                    interval = (val[val.length - 1].timestamp - val[val.length - 2].timestamp) / 1000;
+                    dayRange = parseInt((val[val.length - 1].timestamp - val[0].timestamp) / 1000 / 60 / 60 / 24);
+                }
+                i++;
+                d3.select("body")
+                    .append('div')
+                    .append("svg")
+                    .attr('id', 'chart-' + key)
+                    .attr("width", "100%")
+                    .attr("height", "250px");
+
+                buildChart('#chart-' + key, key, _.sortBy(results[key], 'key'));
+            });
+            if (i === 0) {
+                var key = 'empty';
+                d3.select("body")
+                    .append('div')
+                    .append("svg")
+                    .attr('id', 'chart-' + key)
+                    .attr("width", "100%")
+                    .attr("height", "250px");
+
+                buildChart('#chart-' + key, 'topic', []);
+            }
+        });
+        function buildChart(target, metric, data) {
+            var chart;
+            nv.addGraph(function () {
+                chart = nv.models.stackedAreaChart()
+                    .useInteractiveGuideline(true)
+                    .x(function (d) { return d[0] })
+                    .y(function (d) { return d[1] })
+                    .controlLabels({ stacked: "Stacked" })
+                    .duration(300);
+
+                chart.xAxis.tickFormat(function (dx) {
+                    if (dayRange > 1) {
+                        return d3.time.format('%m/%d %H:%M')(new Date(dx));
+                    }
+                    return d3.time.format('%H:%M')(new Date(dx));
+                });
+
+                chart.interactiveLayer.tooltip.headerFormatter(function (d) {
+                    return d;
+                });
+                chart.yAxis.tickFormat(function (d) {
+                    if (d === 0) {
+                        return '';
+                    }
+                    if (metric.indexOf('bytes') >= 0) {
+                        var mb = Math.round(d / 1024 / 1024);
+                        if (mb < 1024) {
+                            return d3.format(',.2r')(Math.round(mb)) + ' MB';
+                        }
+                        return d3.format(',.2r')(Math.round(mb / 1024)) + ' GB';
+                    }
+                    return d3.format('.2s')(d);
+                });
+                chart.legend.vers('furious');
+
+                d3.select(target)
+                    .datum(data)
+                    .transition().duration(1000)
+                    .call(chart)
+                    .each('start', function () {
+                        setTimeout(function () {
+                            d3.selectAll(target + ' *').each(function () {
+                                if (this.__transition__)
+                                    this.__transition__.duration = 1;
+                            })
+                        }, 0)
+                    });
+                var svg2 = d3.select(target) //I try to add title as text
+                var width = parseInt(svg2.style("width"));
+                var height = parseInt(svg2.style("height"));
+                var g = svg2.append('g');
+                g.append("text")
+                    .attr("x", width / 2)
+                    .attr("y", height)
+                    .attr('text-anchor', 'middle')
+                    .attr("font-family", "Arial")
+                    .attr("font-size", "14px")
+                    .attr('alignment-baseline', 'ideographic')
+                    .attr("fill", "black")
+                    .text('Topic: ' + (metric || '') + '  (data interval: ' + interval/60 + ' mins)');
+                g.append("text")
+                    .attr("x", width - 50)
+                    .attr("y", height)
+                    .attr('text-anchor', 'middle')
+                    .attr("font-family", "Arial")
+                    .attr("font-size", "10px")
+                    .attr('alignment-baseline', 'ideographic')
+                    .attr("fill", "gray")
+                    .attr("fill-opacity", "0.3")
+                    .text('@Chickling.Kmanager');
+                nv.utils.windowResize(chart.update);
+                return chart;
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,87 +1,126 @@
-var app = angular.module('offsetapp',
-	[ "offsetapp.controllers", "offsetapp.directives", "ngRoute" ],
-	function($routeProvider) {
+var app = angular.module('kmanager',
+	["kmanager.controllers", "kmanager.directives", "ngRoute"],
+	function ($routeProvider) {
 		$routeProvider
 			.when("/", {
-				templateUrl : "views/cluster-viz.html",
-				controller : "ClusterVizCtrl"
+				templateUrl: "views/cluster-viz.html",
+				controller: "ClusterVizCtrl"
 			})
 			.when("/groups", {
-				templateUrl : "views/grouplist.html",
-				controller : "GroupListCtrl"
+				templateUrl: "views/grouplist.html",
+				controller: "GroupListCtrl"
 			})
 			.when("/group/:group", {
-				templateUrl : "views/group.html",
-				controller : "GroupCtrl"
+				templateUrl: "views/group.html",
+				controller: "GroupCtrl"
 			})
 			.when("/group/:group/:topic", {
-				templateUrl : "views/topic.html",
-				controller : "TopicCtrl"
+				templateUrl: "views/topic.html",
+				controller: "TopicCtrl"
 			})
 			.when("/clusterviz", {
-				templateUrl : "views/cluster-viz.html",
-				controller : "ClusterVizCtrl"
+				templateUrl: "views/cluster-viz.html",
+				controller: "ClusterVizCtrl"
 			})
 			.when("/activetopicsviz", {
-				templateUrl : "views/activetopics-viz.html",
-				controller : "ActiveTopicsVizCtrl"
+				templateUrl: "views/activetopics-viz.html",
+				controller: "ActiveTopicsVizCtrl"
 			})
 			.when("/topics", {
-				templateUrl : "views/topiclist.html",
-				controller : "TopicListCtrl"
+				templateUrl: "views/topiclist.html",
+				controller: "TopicListCtrl"
 			})
 			.when("/topicdetail/:topic", {
-				templateUrl : "views/topic-detail.html",
-				controller : "TopicDetailCtrl"
-			})
-			.when("/topic/:topic/consumers", {
-				templateUrl : "views/topic-consumers.html",
-				controller : "TopicConsumersCtrl"
+				templateUrl: "views/topic-consumers.html",
+				controller: "TopicConsumersCtrl"
 			})
 			.when("/alerts", {
-				templateUrl : "views/alerts.html",
-				controller : "AlertTaskListCtrl"
+				templateUrl: "views/alerts.html",
+				controller: "AlertTaskListCtrl"
 			})
 			.when("/setting", {
-				templateUrl : "views/setting.html",
-				controller : "SettingCtrl"
+				templateUrl: "views/setting.html",
+				controller: "SettingCtrl"
 			})
-		    .when("/broker/:endpoint", { 
-		    	templateUrl : "views/broker.html",
-		    	controller : "BrokerCtrl" 
-		    });
+			.when("/broker/:endpoint", {
+				templateUrl: "views/broker.html",
+				controller: "BrokerCtrl"
+			});
 		;
-	}).factory('isSystemReadyInterceptor', ["$location", function($location) {
+	}).factory('isSystemReadyInterceptor', ["$location", function ($location) {
 		var isSystemReadyInterceptor = {
-			// request: function(config) {
-			// },
-			response: function(response) {
-				if(response.data.isSystemReady!=undefined && !response.data.isSystemReady){
+			response: function (response) {
+				if (response.data.isSystemReady != undefined && !response.data.isSystemReady) {
 					$location.path("/setting");
 				}
 				return response;
 			}
 		}
 		return isSystemReadyInterceptor;
-	}]).config(['$httpProvider', function($httpProvider) {
+	}]).config(['$httpProvider', function ($httpProvider) {
 		$httpProvider.interceptors.push('isSystemReadyInterceptor');
 	}]);
 
-angular.module("offsetapp.services", [ "ngResource" ])
-	.factory("offsetinfo", [ "$resource", "$http", function($resource, $http) {
+app.filter('size', function () {
+	var toFixed = function(x){
+		if(x<1){
+			var res = x.toFixed(2);
+			if(res == '0.00'){
+				return '0';
+			}
+		}
+		if(x<100){
+			return x.toFixed(1);
+		}
+		return x.toFixed(0);
+	};
+	return function (x) {
+		var val = parseFloat(x);
+
+		if (val < 1) {
+			return toFixed(val);
+		}
+		if(val<1000){
+			return toFixed(val) + 'B'
+		}
+		val /= 1024;
+		if (val < 10) {
+			return toFixed(val) + 'K';
+		}
+		if (val < 1000) {
+			return toFixed(val) + 'K';
+		}
+		val /= 1024;
+
+		if (val < 10) {
+			return toFixed(val) + 'M';
+		}
+		if (val < 1000) {
+			return toFixed(val) + 'M';
+		}
+		val /= 1024;
+
+		if (val < 10) {
+			return toFixed(val) + 'G';
+		}
+		return toFixed(val) + 'G';
+	};
+})
+angular.module("kmanager.services", ["ngResource"])
+	.factory("offsetinfo", ["$resource", "$http", function ($resource, $http) {
 		function processConsumer(cb) {
-			return function(data) {
+			return function (data) {
 				data.offsets = groupPartitions(data.offsets);
 				cb(data);
 			}
 		}
 
 		function processMultipleConsumers(cb) {
-			return function(data) {
-				_(data.consumers.active).forEach(function(consumer) {
+			return function (data) {
+				_(data.consumers.active).forEach(function (consumer) {
 					consumer.offsets = groupPartitions(consumer.offsets);
 				});
-				_(data.consumers.inactive).forEach(function(consumer) {
+				_(data.consumers.inactive).forEach(function (consumer) {
 					consumer.offsets = groupPartitions(consumer.offsets);
 				});
 				cb(data);
@@ -89,138 +128,126 @@ angular.module("offsetapp.services", [ "ngResource" ])
 		}
 
 		function groupPartitions(data) {
-			var groups = _(data).groupBy(function(p) {
+			var groups = _(data).groupBy(function (p) {
 				var t = p.timestamp;
 				if (!t)
 					t = 0;
 				return p.group + p.topic + t.toString();
 			});
-			groups = groups.values().map(function(partitions) {
+			groups = groups.values().map(function (partitions) {
 				return {
-					group : partitions[0].group,
-					topic : partitions[0].topic,
-					partitions : partitions,
-					logSize : _(partitions).pluck("logSize").reduce(function(sum, num) {
+					group: partitions[0].group,
+					topic: partitions[0].topic,
+					partitions: partitions,
+					logSize: _(partitions).pluck("logSize").reduce(function (sum, num) {
 						return sum + num;
 					}),
-					offset : _(partitions).pluck("offset").reduce(function(sum, num) {
+					offset: _(partitions).pluck("offset").reduce(function (sum, num) {
 						return sum + num;
 					}),
-					timestamp : partitions[0].timestamp
+					timestamp: partitions[0].timestamp
 				};
 			}).value();
 			return groups;
 		}
-		
+
 		return {
-			getGroup : function(group, cb) {
-				return $resource("./group/:group").get({
-					group : group
+			getGroup: function (group, cb) {
+				return $resource("http://localhost:8099/group/:group").get({
+					group: group
 				}, processConsumer(cb));
 			},
-			topicDetail : function(topic, cb) {
-				return $resource("./topicdetails/:topic").get({
-					topic : topic
+			topicDetail: function (topic, cb) {
+				return $resource("http://localhost:8099/topicdetails/:topic").get({
+					topic: topic
 				}, cb);
 			},
-			topicConsumers : function(topic, cb) {
-				return $resource("./topic/:topic/consumers").get({
-					topic : topic
+			topicConsumers: function (topic, cb) {
+				return $resource("http://localhost:8099/topic/:topic/consumers").get({
+					topic: topic
 				}, processMultipleConsumers(cb));
 			},
-			loadClusterViz : function(group, cb) {
-				cb(loadViz("#dataviz-container", "./clusterlist"))
+			loadTopicConsumerViz: function (group, cb) {
+				cb(loadViz("#dataviz-container", "http://localhost:8099/activetopics"))
 			},
-			loadMetricVizChart: function(metric, title) {
-				$http({
-				    method: 'POST',
-				    url: './metrics/metricviz',
-				    headers: {'Content-Type': 'application/json'},
-				    data: metric
-				}).success(function (response) {
-					intervalHighchart(response, title);
-				});
-			}, 
-			loadTopicConsumerViz : function(group, cb) {
-				cb(loadViz("#dataviz-container", "./activetopics"))
+			listGroup: function () {
+				return $http.get("http://localhost:8099/group");
 			},
-			listGroup : function() {
-				return $http.get("./group");
+			cluster: function () {
+				return $http.get("http://localhost:8099/cluster");
 			},
-			listTopics : function() {
-				return $http.get("./topiclist");
+			listTopics: function () {
+				return $http.get("http://localhost:8099/topiclist");
 			},
-			getTopic : function(group, topic, cb) {
-				return $resource("./group/:group/:topic").get({
-					group : group,
-					topic : topic
+			getTopic: function (group, topic, cb) {
+				return $resource("http://localhost:8099/group/:group/:topic").get({
+					group: group,
+					topic: topic
 				}, processConsumer(cb));
 			},
-			newAlert : function(_url, requestBody, cb) {
+			newAlert: function (_url, requestBody, cb) {
 				$http({
-				    method: 'POST',
-				    url: _url,
-				    headers: {'Content-Type': 'application/json'},
-				    data: requestBody
+					method: 'POST',
+					url: _url,
+					headers: { 'Content-Type': 'application/json' },
+					data: requestBody
 				}).success(function (response) {
 					cb(response);
-				});	
+				});
 			},
-			listTasks : function(cb) {
-				return $http.get("./alerting/tasks");
+			listTasks: function (cb) {
+				return $http.get("http://localhost:8099/alerting/tasks");
 			},
-			deleteTask: function(task, cb) {
-				return $http.delete("./alerting/delete/" + task.group + "-" + task.topic)
-				   .then(
-					       function(response){
-					    	   cb(response);
-					       }, 
-					       function(response){
-					         // failure call back
-					       }
-					    );
+			deleteTask: function (task, cb) {
+				return $http.delete("http://localhost:8099/alerting/delete/" + task.group + "-" + task.topic)
+					.then(
+					function (response) {
+						cb(response);
+					},
+					function (response) {
+						// failure call back
+					}
+					);
 			},
-			queryOffsetHistoryWithOptions: function(requestBody, cb) {
+			queryOffsetHistoryWithOptions: function (requestBody, cb) {
 				$http({
-				    method: 'POST',
-				    url: "./query",
-				    headers: {'Content-Type': 'application/json'},
-				    data: requestBody
+					method: 'POST',
+					url: "http://localhost:8099/query",
+					headers: { 'Content-Type': 'application/json' },
+					data: requestBody
 				}).success(function (response) {
 					response.offsets = groupPartitions(response.offsets);
 					cb(response);
 				});
 			},
-			formatdate: function(date) {
+			formatdate: function (date) {
 				return date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2) + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
 			},
-			getActiveGroups: function(topic) {
-				return $http.get("./activeconsumers/" + topic);
+			getActiveGroups: function (topic) {
+				return $http.get("http://localhost:8099/activeconsumers/" + topic);
 			},
-			isAlertEnabled: function(){
-				return $http.get("./alerting/isAlertEnabled");
+			isAlertEnabled: function () {
+				return $http.get("http://localhost:8099/alerting/isAlertEnabled");
 			},
-			postSetting: function(requestBody, cb) {
+			postSetting: function (requestBody, cb) {
 				$http({
-				    method: 'POST',
-				    url: "./setting",
-				    headers: {'Content-Type': 'application/json'},
-				    data: requestBody
+					method: 'POST',
+					url: "http://localhost:8099/setting",
+					headers: { 'Content-Type': 'application/json' },
+					data: requestBody
 				}).success(function (response) {
 					cb(response);
 				});
 			},
-			getSetting: function() {
-				return $http.get("./setting");
+			getSetting: function () {
+				return $http.get("http://localhost:8099/setting");
 			},
-			brokerTopicMetricsForBrokers: function() {
-				return $http.get("./metrics/brokerTopicMetrics/brokers");
+			stats: function (bid) {
+				var url = bid ? `http://localhost:8099/stats/broker/${bid}` : `http://localhost:8099/stats/brokers`;
+				return $http.get(url);
 			},
-			brokerTopicMetricsForBroker: function(bid) {
-				return $http.get("./metrics/brokerTopicMetrics/broker/" + bid);
-			},
-			brokerTopicMetricsForTopic: function(topic) {
-				return $http.get("./metrics/brokerTopicMetrics/topic/" + topic);
+			statsByTopic: function (topic) {
+				return $http.get("http://localhost:8099/stats/topic/" + topic);
 			}
 		};
-	} ]);
+	}]);

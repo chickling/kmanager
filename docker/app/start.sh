@@ -14,4 +14,4 @@ do
 	esac
 done
 
-java $jvmopt -jar KMonitor.jar $option
+java $jvmopt -jar ChilklingKManager.jar $option

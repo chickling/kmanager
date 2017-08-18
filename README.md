@@ -1,4 +1,7 @@
-# KMonitor
+# KManager
+
+[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+[![GitHub release](https://img.shields.io/github/release/chickling/kmanager.svg)](https://github.com/chickling/kmanager/wiki/Downloads)
 
 Tool for monitor kafka customer consumer based information, include near realtime offset/lag monitor.
 
@@ -47,11 +50,11 @@ or download the official latest version jar file through `release` tab.
 
 Then, you can use below command to run:
 
-`java -jar ChicklingKmonitor.jar`
+`java -jar ChicklingKManager.jar`
 
 Or, give it a different port rather than default(8099):
 
-`java -jar ChicklingKmonitor.jar --server.port=8080`
+`java -jar ChicklingKManager.jar --server.port=8080`
 
 Extra setting will be set within setting page:
 
