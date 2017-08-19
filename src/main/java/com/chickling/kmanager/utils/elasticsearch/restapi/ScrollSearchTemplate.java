@@ -104,8 +104,7 @@ public class ScrollSearchTemplate {
         + ",\"offset\":{\"sum_bucket\":{\"buckets_path\": \"data>offset\"}}"
         + ",\"lag\":{\"sum_bucket\":{\"buckets_path\": \"data>lag\"}}}}}}}}}"
         + ",\"query\": {\"filtered\": {\"query\": {\"query_string\": {\"analyze_wildcard\": true,\"query\": \"*\"}}"
-        + ",\"filter\": {\"bool\": {\"must\": ["
-        + "{\"query\": {\"match\": {\"_type\": {\"query\": \"kafkaoffset-e3\",\"type\": \"phrase\"}}}}, ";
+        + ",\"filter\": {\"bool\": {\"must\": [";
     if (group != null && group.length() > 0) {
       query += "{\"query\": {\"match\": {\"group\": {\"query\": \"" + group + "\",\"type\": \"phrase\"}}}},";
     }
@@ -129,9 +128,8 @@ public class ScrollSearchTemplate {
         + "              \"aggs\": {" + "                \"offset\": {" + "                  \"max\": {"
         + "                    \"field\": \"count\"" + "                  }" + "                }" + "              }"
         + "            }" + "          }" + "        }" + "      }" + "    }" + "  }," + "  \"query\": {"
-        + "    \"filtered\": {" + "      \"query\": {" + "        \"query_string\": {"
-        + "          \"analyze_wildcard\": true," + "          \"query\": \"_type:jmxMetrics\"" + "        }"
-        + "      }," + "      \"filter\": {" + "        \"bool\": {" + "          \"must\": [{"
+        + "    \"filtered\": {" 
+        + "      \"filter\": {" + "        \"bool\": {" + "          \"must\": [{"
         + "            \"range\": {" + "              \"timestamp\": {" + "                \"gte\":"
         + assistEntity.getStart().getTime() + "," + "                \"lte\": " + assistEntity.getEnd().getTime() + ","
         + "                \"format\": \"epoch_millis\"" + "              }" + "            }" + "          }],"

@@ -28,20 +28,19 @@
         d3.json("http://localhost:8099/stats/trend", function (d) {
             _.forOwn(d, function (val, key) {
                 var tempArr = key.split('|');
-                if (tempArr[1].indexOf('e3kafka') >= 0) { // test
-                    results[tempArr[0]] = results[tempArr[0]] || [];
-                    results[tempArr[0]].push({
-                        key: tempArr[1],
-                        values: val
-                    });
-                }
+                results[tempArr[0]] = results[tempArr[0]] || [];
+                results[tempArr[0]].push({
+                    key: tempArr[1],
+                    values: val
+                });
             });
             results = objectWithKeySorted(results);
             var i = 0;
             _.forOwn(results, function (val, key) {
                 if (i === 0 && val.length) {
-                    interval = (val[val.length - 1].timestamp - val[val.length - 2].timestamp) / 1000;
-                    dayRange = parseInt((val[val.length - 1].timestamp - val[0].timestamp) / 1000 / 60 / 60 / 24);
+                    var val2 = val[0].values;
+                    interval = (val2[val2.length - 1][0] - val2[val2.length - 2][0]) / 1000;
+                    dayRange = parseInt((val2[val2.length - 1][0] - val2[0][0]) / 1000 / 60 / 60 / 24);
                 }
                 i++;
                 d3.select("body")
@@ -124,7 +123,7 @@
                     .attr("font-size", "14px")
                     .attr('alignment-baseline', 'ideographic')
                     .attr("fill", "black")
-                    .text('Topic: ' + (metric || '') + '  (data interval: ' + interval/60 + ' mins)');
+                    .text((metric || '') + '  (data interval: ' + interval / 60 + ' mins)');
                 g.append("text")
                     .attr("x", width - 50)
                     .attr("y", height)

@@ -389,7 +389,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
       String[] esHost = SystemManager.getConfig().getEsHosts().split("[,;]")[0].split(":");
 
       String url = "http://" + esHost[0] + ":" + esHost[1] + "/" + String.join(",", indexes) + "/"
-          + SystemManager.getElasticSearchJmxType() + "/_search?ignore_unavailable=true&allow_no_indices=true";
+          + SystemManager.getElasticSearchOffsetType() + "/_search?ignore_unavailable=true&allow_no_indices=true";
 
       ResponseEntity<String> response = REST.exchange(url, HttpMethod.POST,
           new HttpEntity<String>(ScrollSearchTemplate.getOffset(group, topic, assistEntity), headers), String.class);
