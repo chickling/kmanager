@@ -65,6 +65,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 			$scope.topic = $routeParams.topic;
 			$scope.date = now;
 			$scope.data = [];
+			$scope.isAlertEnabled = false;
 
 			$scope.task = {
 				group: $routeParams.group,
@@ -79,6 +80,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 				if (!d.isAlertEnabled) {
 					$('#newTask').prop('disabled', true);
 				} else {
+					$scope.isAlertEnabled = true;
 					offsetinfo.listTasks().success(function (d) {
 						d.forEach(function (t) {
 							if (t.group === $routeParams.group && t.topic === $routeParams.topic) {

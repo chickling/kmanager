@@ -12,27 +12,6 @@
 </div>
 
 <div ng-hide="loading">
-  <h2>Brokers</h2>
-
-  <table class="table">
-  <thead>
-      <tr>
-    <th>id</th>
-    <th>host</th>
-    <th>port</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr ng-repeat="b in info.brokers">
-    <td>{{b.bid}}</td>
-    <td>{{b.host}}</td>
-    <td>{{b.port}}</td>
-      </tr>
-  </tbody>
-  </table>
-
-  <hr/>
-
   <h2>Consumer Offsets</h2>
   <div ng-include="'views/includes/group.inc.html'">
   </div>

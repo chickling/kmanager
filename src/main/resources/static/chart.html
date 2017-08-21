@@ -6,13 +6,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Kmanager chart -Chickling</title>
-    <script src="https://cdn.jsdelivr.net/lodash/4/lodash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
-    <script src="https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js"></script>
-    <link href="https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="./scripts/js/lodash.min.js"></script>
+    <script src="./scripts/js/d3.min.js" charset="utf-8"></script>
+    <script src="./scripts/js/nv.d3.min.js"></script>
+    <link href="./css/nv.d3.css" rel="stylesheet" type="text/css">
+
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./css/font-awesome.min.css">
+    <script src="./scripts/js/jquery-1.11.3.min.js"></script>
+    <script src="./scripts/js/bootstrap.min.js"></script>
+    <script src="./scripts/js/moment.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/daterangepicker.css" />
+
+    <script src="./scripts/js/daterangepicker.js"></script>
 </head>
 
 <body>
+    <div class="container-fluid">
+        <div class="col-md-8 col-xs-12">
+        </div>
+        <div class="col-md-4 col-xs-12">
+            <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                <span></span> <b class="caret"></b>
+            </div>
+        </div>
+    </div>
+
     <script>
         function objectWithKeySorted(object) {
             var result = {};
@@ -25,45 +45,47 @@
         var dayRange;
         var colors = d3.scale.category20();
         var results = {};
-        d3.json("http://localhost:8099/stats/trend", function (d) {
-            _.forOwn(d, function (val, key) {
-                var tempArr = key.split('|');
-                results[tempArr[0]] = results[tempArr[0]] || [];
-                results[tempArr[0]].push({
-                    key: tempArr[1],
-                    values: val
+        function renderChart(start, end) {
+            d3.json("http://localhost:8099/stats/trend"+ '?start=' + start + '&end=' + end, function (d) {
+                _.forOwn(d, function (val, key) {
+                    var tempArr = key.split('|');
+                    results[tempArr[0]] = results[tempArr[0]] || [];
+                    results[tempArr[0]].push({
+                        key: tempArr[1],
+                        values: val
+                    });
                 });
-            });
-            results = objectWithKeySorted(results);
-            var i = 0;
-            _.forOwn(results, function (val, key) {
-                if (i === 0 && val.length) {
-                    var val2 = val[0].values;
-                    interval = (val2[val2.length - 1][0] - val2[val2.length - 2][0]) / 1000;
-                    dayRange = parseInt((val2[val2.length - 1][0] - val2[0][0]) / 1000 / 60 / 60 / 24);
+                results = objectWithKeySorted(results);
+                var i = 0;
+                _.forOwn(results, function (val, key) {
+                    if (i === 0 && val.length) {
+                        var val2 = val[0].values;
+                        interval = (val2[val2.length - 1][0] - val2[val2.length - 2][0]) / 1000;
+                        dayRange = parseInt((val2[val2.length - 1][0] - val2[0][0]) / 1000 / 60 / 60 / 24);
+                    }
+                    i++;
+                    d3.select("body")
+                        .append('div')
+                        .append("svg")
+                        .attr('id', 'chart-' + key)
+                        .attr("width", "100%")
+                        .attr("height", "250px");
+
+                    buildChart('#chart-' + key, key, _.sortBy(results[key], 'key'));
+                });
+                if (i === 0) {
+                    var key = 'empty';
+                    d3.select("body")
+                        .append('div')
+                        .append("svg")
+                        .attr('id', 'chart-' + key)
+                        .attr("width", "100%")
+                        .attr("height", "250px");
+
+                    buildChart('#chart-' + key, 'topic', []);
                 }
-                i++;
-                d3.select("body")
-                    .append('div')
-                    .append("svg")
-                    .attr('id', 'chart-' + key)
-                    .attr("width", "100%")
-                    .attr("height", "250px");
-
-                buildChart('#chart-' + key, key, _.sortBy(results[key], 'key'));
             });
-            if (i === 0) {
-                var key = 'empty';
-                d3.select("body")
-                    .append('div')
-                    .append("svg")
-                    .attr('id', 'chart-' + key)
-                    .attr("width", "100%")
-                    .attr("height", "250px");
-
-                buildChart('#chart-' + key, 'topic', []);
-            }
-        });
+        }
         function buildChart(target, metric, data) {
             var chart;
             nv.addGraph(function () {
@@ -75,6 +97,7 @@
                     .duration(300);
 
                 chart.xAxis.tickFormat(function (dx) {
+                    return d3.time.format('%m/%d %H:%M')(new Date(dx));
                     if (dayRange > 1) {
                         return d3.time.format('%m/%d %H:%M')(new Date(dx));
                     }
@@ -115,6 +138,10 @@
                 var width = parseInt(svg2.style("width"));
                 var height = parseInt(svg2.style("height"));
                 var g = svg2.append('g');
+                var text = (metric || '');
+                if(interval){
+                    text += '  (data interval: ' + interval / 60 + ' mins)';
+                }
                 g.append("text")
                     .attr("x", width / 2)
                     .attr("y", height)
@@ -123,7 +150,7 @@
                     .attr("font-size", "14px")
                     .attr('alignment-baseline', 'ideographic')
                     .attr("fill", "black")
-                    .text((metric || '') + '  (data interval: ' + interval / 60 + ' mins)');
+                    .text(text);
                 g.append("text")
                     .attr("x", width - 50)
                     .attr("y", height)
@@ -138,6 +165,32 @@
                 return chart;
             });
         }
+        $(function () {
+
+            var start = moment().subtract(1, 'days');
+            var end = moment();
+
+            function cb(start, end) {
+                $('svg').remove();
+                results = {};
+                renderChart(start.format('MM/DD/YYYY'), end.format('MM/DD/YYYY'));
+                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            }
+
+            $('#reportrange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Last 3 Days': [moment().subtract(3, 'days'), moment()],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()]
+                }
+            }, cb);
+
+            cb(start, end);
+
+        });
     </script>
 </body>
 

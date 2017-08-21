@@ -48,29 +48,20 @@ public class GroupController {
 		return kafkaInfo;
 	}
 
-	@RequestMapping(value="/2/{group}/{topic}", method = RequestMethod.GET)
-	public Map<String, List<OffsetStat>> getOffsetStats(@PathVariable String group, @PathVariable String topic
-		, @RequestParam(value="start", defaultValue="") String start
-		, @RequestParam(value="end", defaultValue="") String end){
-		
+	@RequestMapping(value = "/{group}/{topic}", method = RequestMethod.GET)
+	public Map<String, List<OffsetStat>> getOffsetStats(@PathVariable String group, @PathVariable String topic,
+			@RequestParam(value = "start", defaultValue = "") String start,
+			@RequestParam(value = "end", defaultValue = "") String end) {
+
 		return ElasticsearchRESTUtil.offset(group, topic, start, end);
 	}
-	@RequestMapping(value="/2/{group}/", method = RequestMethod.GET)
-	public Map<String, List<OffsetStat>> getOffsetStats2(@PathVariable String group
-		, @RequestParam(value="start", defaultValue="") String start
-		, @RequestParam(value="end", defaultValue="") String end){
-		
+
+	@RequestMapping(value = "/2/{group}/", method = RequestMethod.GET)
+	public Map<String, List<OffsetStat>> getOffsetStats2(@PathVariable String group,
+			@RequestParam(value = "start", defaultValue = "") String start,
+			@RequestParam(value = "end", defaultValue = "") String end) {
+
 		return ElasticsearchRESTUtil.offset(group, null, start, end);
-	}
-	@RequestMapping(value = "/{group}/{topic}", method = RequestMethod.GET)
-	public OffsetHistory getGroupTopicOffsetHistory(@PathVariable String group, @PathVariable String topic) {
-		OffsetHistory offsetHistory = null;
-		try {
-			offsetHistory = SystemManager.db.offsetHistory(group, topic);
-		} catch (Exception e) {
-			LOG.warn("offsetHistory Ops~" + e.getMessage());
-		}
-		return offsetHistory;
 	}
 
 }

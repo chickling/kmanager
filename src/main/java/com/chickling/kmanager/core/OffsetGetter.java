@@ -158,7 +158,8 @@ public abstract class OffsetGetter {
 			}
 
 		});
-		return new KafkaInfo(group, brokerInfo(), offsetInfos);
+//		return new KafkaInfo(group, brokerInfo(), offsetInfos);
+		return new KafkaInfo(group, null, offsetInfos);
 	}
 
 	public List<String> getTopics() {

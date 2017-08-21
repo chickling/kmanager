@@ -4,7 +4,7 @@
 	<li><a href="./#/groups">Groups</a></li>
 	<li><a href="#/group/{{group}}">{{group}}</a></li>
 	<li class="active"><a href="./#/topicdetail/{{topic}}">{{topic}}</a></li>
-	<li class="pull-right"><button type="button"
+	<li class="pull-right" ng-if="isAlertEnabled"><button type="button"
 			class="btn btn-primary btn-sm" data-toggle="modal"
 			data-target="#taskModal" data-topic="{{topic}}"
 			data-group="{{group}}" id="newTask">Add alerting</button></li>

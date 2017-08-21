@@ -1,5 +1,6 @@
 <h1>Kafka Cluster</h1>
-<div class="panel panel-default">
+<div class="container">
+<div class="panel panel-default col-md-7">
 	<div class="panel-heading">
 		<h4>Brokers</h4>
 	</div>
@@ -31,7 +32,7 @@
 	</div>
 </div>
 
-<div class="panel panel-default" ng-show="stats.summary">
+<div class="panel panel-default col-md-5" ng-show="stats.summary">
 		<div class="panel-heading">
 			<h4>Cluster Metrics</h4>
 		</div>
@@ -58,11 +59,10 @@
 		</table>
 	</div>
 </div>
+</div>
+<h3>Cluster Data Trend</h3>
 <div class="panel panel-default">
-	<div class="panel-heading">
-		<h4>Cluster Data Trend <small>each incremental data point is 30 mins. </small></h4>
-	</div>
 	<div class="panel-body">
-		<iframe src="./chart.html" style="width: 100%;height:770px;border:0;"></iframe>
+		<iframe src="./chart.html" style="width: 100%;height:790px;border:0;"></iframe>
 	</div>
 </div>

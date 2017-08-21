@@ -104,7 +104,7 @@
             "size": 5991,
             "mimeType": "text/html",
             "compression": 0,
-            "text": "<!DOCTYPE html>\r\n<html lang=\"en\">\r\n\r\n<head>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\r\n    <title>Kmanager chart -Chickling</title>\r\n    <script src=\"https://cdn.jsdelivr.net/lodash/4/lodash.min.js\"></script>\r\n    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js\" charset=\"utf-8\"></script>\r\n    <script src=\"https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js\"></script>\r\n    <link href=\"https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.css\" rel=\"stylesheet\" type=\"text/css\">\r\n</head>\r\n\r\n<body>\r\n    <script>\r\n        function objectWithKeySorted(object) {\r\n            var result = {};\r\n            _.forEach(Object.keys(object).sort(), function (key) {\r\n                result[key] = object[key];\r\n            });\r\n            return result;\r\n        }\r\n        var interval;\r\n        var dayRange;\r\n        var colors = d3.scale.category20();\r\n        var results = {};\r\n        d3.json(\"http://localhost:8099/stats/trend\", function (d) {\r\n            _.forOwn(d, function (val, key) {\r\n                var tempArr = key.split('|');\r\n                results[tempArr[0]] = results[tempArr[0]] || [];\r\n                results[tempArr[0]].push({\r\n                    key: tempArr[1],\r\n                    values: val\r\n                });\r\n            });\r\n            results = objectWithKeySorted(results);\r\n            var i = 0;\r\n            _.forOwn(results, function (val, key) {\r\n                if (i === 0 && val.length) {\r\n                    var val2 = val[0].values;\r\n                    interval = (val2[val2.length - 1][0] - val2[val2.length - 2][0]) / 1000;\r\n                    dayRange = parseInt((val2[val2.length - 1][0] - val2[0][0]) / 1000 / 60 / 60 / 24);\r\n                }\r\n                i++;\r\n                d3.select(\"body\")\r\n                    .append('div')\r\n                    .append(\"svg\")\r\n                    .attr('id', 'chart-' + key)\r\n                    .attr(\"width\", \"100%\")\r\n                    .attr(\"height\", \"250px\");\r\n\r\n                buildChart('#chart-' + key, key, _.sortBy(results[key], 'key'));\r\n            });\r\n            if (i === 0) {\r\n                var key = 'empty';\r\n                d3.select(\"body\")\r\n                    .append('div')\r\n                    .append(\"svg\")\r\n                    .attr('id', 'chart-' + key)\r\n                    .attr(\"width\", \"100%\")\r\n                    .attr(\"height\", \"250px\");\r\n\r\n                buildChart('#chart-' + key, 'topic', []);\r\n            }\r\n        });\r\n        function buildChart(target, metric, data) {\r\n            var chart;\r\n            nv.addGraph(function () {\r\n                chart = nv.models.stackedAreaChart()\r\n                    .useInteractiveGuideline(true)\r\n                    .x(function (d) { return d[0] })\r\n                    .y(function (d) { return d[1] })\r\n                    .controlLabels({ stacked: \"Stacked\" })\r\n                    .duration(300);\r\n\r\n                chart.xAxis.tickFormat(function (dx) {\r\n                    if (dayRange > 1) {\r\n                        return d3.time.format('%m/%d %H:%M')(new Date(dx));\r\n                    }\r\n                    return d3.time.format('%H:%M')(new Date(dx));\r\n                });\r\n\r\n                chart.interactiveLayer.tooltip.headerFormatter(function (d) {\r\n                    return d;\r\n                });\r\n                chart.yAxis.tickFormat(function (d) {\r\n                    if (d === 0) {\r\n                        return '';\r\n                    }\r\n                    if (metric.indexOf('bytes') >= 0) {\r\n                        var mb = Math.round(d / 1024 / 1024);\r\n                        if (mb < 1024) {\r\n                            return d3.format(',.2r')(Math.round(mb)) + ' MB';\r\n                        }\r\n                        return d3.format(',.2r')(Math.round(mb / 1024)) + ' GB';\r\n                    }\r\n                    return d3.format('.2s')(d);\r\n                });\r\n                chart.legend.vers('furious');\r\n\r\n                d3.select(target)\r\n                    .datum(data)\r\n                    .transition().duration(1000)\r\n                    .call(chart)\r\n                    .each('start', function () {\r\n                        setTimeout(function () {\r\n                            d3.selectAll(target + ' *').each(function () {\r\n                                if (this.__transition__)\r\n                                    this.__transition__.duration = 1;\r\n                            })\r\n                        }, 0)\r\n                    });\r\n                var svg2 = d3.select(target) //I try to add title as text\r\n                var width = parseInt(svg2.style(\"width\"));\r\n                var height = parseInt(svg2.style(\"height\"));\r\n                var g = svg2.append('g');\r\n                g.append(\"text\")\r\n                    .attr(\"x\", width / 2)\r\n                    .attr(\"y\", height)\r\n                    .attr('text-anchor', 'middle')\r\n                    .attr(\"font-family\", \"Arial\")\r\n                    .attr(\"font-size\", \"14px\")\r\n                    .attr('alignment-baseline', 'ideographic')\r\n                    .attr(\"fill\", \"black\")\r\n                    .text((metric || '') + '  (data interval: ' + interval / 60 + ' mins)');\r\n                g.append(\"text\")\r\n                    .attr(\"x\", width - 50)\r\n                    .attr(\"y\", height)\r\n                    .attr('text-anchor', 'middle')\r\n                    .attr(\"font-family\", \"Arial\")\r\n                    .attr(\"font-size\", \"10px\")\r\n                    .attr('alignment-baseline', 'ideographic')\r\n                    .attr(\"fill\", \"gray\")\r\n                    .attr(\"fill-opacity\", \"0.3\")\r\n                    .text('@Chickling.Kmanager');\r\n                nv.utils.windowResize(chart.update);\r\n                return chart;\r\n            });\r\n        }\r\n    </script>\r\n</body>\r\n\r\n</html>"
+            "text": "<!DOCTYPE html>\r\n<html lang=\"en\">\r\n\r\n<head>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\r\n    <title>Kmanager chart -Chickling</title>\r\n    <script src=\"https://cdn.jsdelivr.net/lodash/4/lodash.min.js\"></script>\r\n    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js\" charset=\"utf-8\"></script>\r\n    <script src=\"https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js\"></script>\r\n    <link href=\"https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.css\" rel=\"stylesheet\" type=\"text/css\">\r\n</head>\r\n\r\n<body>\r\n    <script>\r\n        function objectWithKeySorted(object) {\r\n            var result = {};\r\n            _.forEach(Object.keys(object).sort(), function (key) {\r\n                result[key] = object[key];\r\n            });\r\n            return result;\r\n        }\r\n        var interval;\r\n        var dayRange;\r\n        var colors = d3.scale.category20();\r\n        var results = {};\r\n        d3.json(\"http://mockuphost/stats/trend\", function (d) {\r\n            _.forOwn(d, function (val, key) {\r\n                var tempArr = key.split('|');\r\n                results[tempArr[0]] = results[tempArr[0]] || [];\r\n                results[tempArr[0]].push({\r\n                    key: tempArr[1],\r\n                    values: val\r\n                });\r\n            });\r\n            results = objectWithKeySorted(results);\r\n            var i = 0;\r\n            _.forOwn(results, function (val, key) {\r\n                if (i === 0 && val.length) {\r\n                    var val2 = val[0].values;\r\n                    interval = (val2[val2.length - 1][0] - val2[val2.length - 2][0]) / 1000;\r\n                    dayRange = parseInt((val2[val2.length - 1][0] - val2[0][0]) / 1000 / 60 / 60 / 24);\r\n                }\r\n                i++;\r\n                d3.select(\"body\")\r\n                    .append('div')\r\n                    .append(\"svg\")\r\n                    .attr('id', 'chart-' + key)\r\n                    .attr(\"width\", \"100%\")\r\n                    .attr(\"height\", \"250px\");\r\n\r\n                buildChart('#chart-' + key, key, _.sortBy(results[key], 'key'));\r\n            });\r\n            if (i === 0) {\r\n                var key = 'empty';\r\n                d3.select(\"body\")\r\n                    .append('div')\r\n                    .append(\"svg\")\r\n                    .attr('id', 'chart-' + key)\r\n                    .attr(\"width\", \"100%\")\r\n                    .attr(\"height\", \"250px\");\r\n\r\n                buildChart('#chart-' + key, 'topic', []);\r\n            }\r\n        });\r\n        function buildChart(target, metric, data) {\r\n            var chart;\r\n            nv.addGraph(function () {\r\n                chart = nv.models.stackedAreaChart()\r\n                    .useInteractiveGuideline(true)\r\n                    .x(function (d) { return d[0] })\r\n                    .y(function (d) { return d[1] })\r\n                    .controlLabels({ stacked: \"Stacked\" })\r\n                    .duration(300);\r\n\r\n                chart.xAxis.tickFormat(function (dx) {\r\n                    if (dayRange > 1) {\r\n                        return d3.time.format('%m/%d %H:%M')(new Date(dx));\r\n                    }\r\n                    return d3.time.format('%H:%M')(new Date(dx));\r\n                });\r\n\r\n                chart.interactiveLayer.tooltip.headerFormatter(function (d) {\r\n                    return d;\r\n                });\r\n                chart.yAxis.tickFormat(function (d) {\r\n                    if (d === 0) {\r\n                        return '';\r\n                    }\r\n                    if (metric.indexOf('bytes') >= 0) {\r\n                        var mb = Math.round(d / 1024 / 1024);\r\n                        if (mb < 1024) {\r\n                            return d3.format(',.2r')(Math.round(mb)) + ' MB';\r\n                        }\r\n                        return d3.format(',.2r')(Math.round(mb / 1024)) + ' GB';\r\n                    }\r\n                    return d3.format('.2s')(d);\r\n                });\r\n                chart.legend.vers('furious');\r\n\r\n                d3.select(target)\r\n                    .datum(data)\r\n                    .transition().duration(1000)\r\n                    .call(chart)\r\n                    .each('start', function () {\r\n                        setTimeout(function () {\r\n                            d3.selectAll(target + ' *').each(function () {\r\n                                if (this.__transition__)\r\n                                    this.__transition__.duration = 1;\r\n                            })\r\n                        }, 0)\r\n                    });\r\n                var svg2 = d3.select(target) //I try to add title as text\r\n                var width = parseInt(svg2.style(\"width\"));\r\n                var height = parseInt(svg2.style(\"height\"));\r\n                var g = svg2.append('g');\r\n                g.append(\"text\")\r\n                    .attr(\"x\", width / 2)\r\n                    .attr(\"y\", height)\r\n                    .attr('text-anchor', 'middle')\r\n                    .attr(\"font-family\", \"Arial\")\r\n                    .attr(\"font-size\", \"14px\")\r\n                    .attr('alignment-baseline', 'ideographic')\r\n                    .attr(\"fill\", \"black\")\r\n                    .text((metric || '') + '  (data interval: ' + interval / 60 + ' mins)');\r\n                g.append(\"text\")\r\n                    .attr(\"x\", width - 50)\r\n                    .attr(\"y\", height)\r\n                    .attr('text-anchor', 'middle')\r\n                    .attr(\"font-family\", \"Arial\")\r\n                    .attr(\"font-size\", \"10px\")\r\n                    .attr('alignment-baseline', 'ideographic')\r\n                    .attr(\"fill\", \"gray\")\r\n                    .attr(\"fill-opacity\", \"0.3\")\r\n                    .text('@Chickling.Kmanager');\r\n                nv.utils.windowResize(chart.update);\r\n                return chart;\r\n            });\r\n        }\r\n    </script>\r\n</body>\r\n\r\n</html>"
           },
           "redirectURL": "",
           "headersSize": 331,
@@ -129,7 +129,7 @@
         "time": 1311.0379999998258,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/stats/brokers",
+          "url": "http://mockuphost/stats/brokers",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -238,7 +238,7 @@
         "time": 239.72800000046846,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/cluster",
+          "url": "http://mockuphost/cluster",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -987,7 +987,7 @@
         "time": 107.25899999670219,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/stats/trend",
+          "url": "http://mockuphost/stats/trend",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -1096,7 +1096,7 @@
         "time": 72.72900000680238,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/group",
+          "url": "http://mockuphost/group",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -1201,120 +1201,11 @@
         "connection": "341937"
       },
       {
-        "startedDateTime": "2017-08-19T00:25:38.466Z",
-        "time": 185.00399999902584,
-        "request": {
-          "method": "GET",
-          "url": "http://localhost:8099/group/CommonKeyword",
-          "httpVersion": "HTTP/1.1",
-          "headers": [
-            {
-              "name": "Pragma",
-              "value": "no-cache"
-            },
-            {
-              "name": "Origin",
-              "value": "http://localhost:9199"
-            },
-            {
-              "name": "Accept-Encoding",
-              "value": "gzip, deflate, br"
-            },
-            {
-              "name": "Host",
-              "value": "localhost:8099"
-            },
-            {
-              "name": "Accept-Language",
-              "value": "en-US,en;q=0.8"
-            },
-            {
-              "name": "User-Agent",
-              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36"
-            },
-            {
-              "name": "Accept",
-              "value": "application/json, text/plain, */*"
-            },
-            {
-              "name": "Referer",
-              "value": "http://localhost:9199/"
-            },
-            {
-              "name": "Connection",
-              "value": "keep-alive"
-            },
-            {
-              "name": "Cache-Control",
-              "value": "no-cache"
-            }
-          ],
-          "queryString": [],
-          "cookies": [],
-          "headersSize": 431,
-          "bodySize": 0
-        },
-        "response": {
-          "status": 200,
-          "statusText": "",
-          "httpVersion": "HTTP/1.1",
-          "headers": [
-            {
-              "name": "Access-Control-Allow-Origin",
-              "value": "http://localhost:9199"
-            },
-            {
-              "name": "Date",
-              "value": "Sat, 19 Aug 2017 00:25:38 GMT"
-            },
-            {
-              "name": "Access-Control-Allow-Credentials",
-              "value": "true"
-            },
-            {
-              "name": "Vary",
-              "value": "Origin"
-            },
-            {
-              "name": "Transfer-Encoding",
-              "value": "chunked"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json;charset=UTF-8"
-            }
-          ],
-          "cookies": [],
-          "content": {
-            "size": 969,
-            "mimeType": "application/json",
-            "compression": -13,
-            "text": "{\"brokers\":[{\"bid\":0,\"host\":\"e3kafka01.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":1,\"host\":\"e3kafka02.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":2,\"host\":\"e3kafka03.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":3,\"host\":\"e3kafka04.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":4,\"host\":\"e3kafka05.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":5,\"host\":\"e3kafka06.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":6,\"host\":\"e3kafka07.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":7,\"host\":\"e3kafka08.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":8,\"host\":\"e3kafka09.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0},{\"bid\":9,\"host\":\"e3kafka10.mercury.corp\",\"port\":9092,\"jmxPort\":0,\"timestamp\":0,\"version\":0}],\"offsets\":[],\"name\":\"CommonKeyword\"}"
-          },
-          "redirectURL": "",
-          "headersSize": 233,
-          "bodySize": 982,
-          "_transferSize": 1215
-        },
-        "cache": {},
-        "timings": {
-          "blocked": 7.67999999516178,
-          "dns": -1,
-          "connect": -1,
-          "send": 23.978000011993622,
-          "wait": 152.7339999884136,
-          "receive": 0.612000003456842,
-          "ssl": -1
-        },
-        "serverIPAddress": "[::1]",
-        "connection": "341937"
-      },
-      {
         "startedDateTime": "2017-08-19T00:25:41.490Z",
         "time": 71.79899999755435,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/group",
+          "url": "http://mockuphost/group",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -1423,7 +1314,7 @@
         "time": 929.2349999886937,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/group/EC_HotItem_Sync_Inventory",
+          "url": "http://mockuphost/group/EC_HotItem_Sync_Inventory",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -1532,7 +1423,7 @@
         "time": 37.9220000031637,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/alerting/isAlertEnabled",
+          "url": "http://mockuphost/alerting/isAlertEnabled",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -1742,7 +1633,7 @@
             "size": 9590,
             "mimeType": "text/html",
             "compression": 0,
-            "text": "<!DOCTYPE html>\r\n<html lang=\"en\">\r\n\r\n<head>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\r\n    <title>Kmanager chart -Chickling</title>\r\n    <script src=\"https://cdn.jsdelivr.net/lodash/4/lodash.min.js\"></script>\r\n    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js\" charset=\"utf-8\"></script>\r\n    <script src=\"https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js\"></script>\r\n    <link href=\"https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.css\" rel=\"stylesheet\" type=\"text/css\">\r\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css\" />\r\n    <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css\">\r\n    <script src=\"https://code.jquery.com/jquery-1.11.3.min.js\"></script>\r\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js\"></script>\r\n    <script src=\"http://www.daterangepicker.com/moment.min.js\"></script>\r\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.daterangepicker.com/daterangepicker.css\" />\r\n\r\n    <script src=\"http://www.daterangepicker.com/daterangepicker.js\"></script>\r\n    <style>\r\n        .tooltipLegend {\r\n            height: 15px;\r\n            width: 15px;\r\n        }\r\n\r\n        span.tooltipLegend {\r\n            margin: 0 5px;\r\n            vertical-align: middle;\r\n        }\r\n    </style>\r\n</head>\r\n\r\n<body>\r\n    <div class=\"container-fluid\">\r\n        <div class=\"col-md-8 col-xs-12\">\r\n        </div>\r\n        <div class=\"col-md-4 col-xs-12\">\r\n            <div id=\"reportrange\" class=\"pull-right\" style=\"background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%\">\r\n                <i class=\"glyphicon glyphicon-calendar fa fa-calendar\"></i>&nbsp;\r\n                <span></span> <b class=\"caret\"></b>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n\r\n\r\n    <script type=\"text/javascript\">\r\n        function getParameterByName(name, url) {\r\n            if (!url) url = window.location.href;\r\n            name = name.replace(/[\\[\\]]/g, \"\\\\$&\");\r\n            var regex = new RegExp(\"[?&]\" + name + \"(=([^&#]*)|&|#|$)\"),\r\n                res = regex.exec(url);\r\n            if (!res) return null;\r\n            if (!res[2]) return '';\r\n            return decodeURIComponent(res[2].replace(/\\+/g, \" \"));\r\n        }\r\n        var group = getParameterByName('group') || '';\r\n        var topic = getParameterByName('topic') || '';\r\n        function objectWithKeySorted(object) {\r\n            var result = {};\r\n            _.forEach(Object.keys(object).sort(), function (key) {\r\n                result[key] = object[key];\r\n            });\r\n            return result;\r\n        }\r\n        var interval = 0;\r\n        var dayRange = 0;\r\n        var colors = { lag: 'red', message: '#ccf' }\r\n        var results = window.results = {};\r\n        function convertData(data) {\r\n            var messages = {\r\n                key: 'Message',\r\n                bar: true,\r\n                color: colors.message,\r\n                values: []\r\n            };\r\n            var lags = {\r\n                key: 'Lag',\r\n                color: colors.lag,\r\n                values: []\r\n            };\r\n            data.forEach(function (item) {\r\n                messages.values.push([item.timestamp, item.offset]);\r\n                lags.values.push([item.timestamp, item.lag]);\r\n            });\r\n            window.test = [lags, messages];\r\n            return [lags, messages];\r\n        }\r\n        function getDataLabel(dx) {\r\n            if (dayRange > 1) {\r\n                return d3.time.format('%m/%d %H:%M')(new Date(dx));\r\n            }\r\n            return d3.time.format('%H:%M')(new Date(dx));\r\n        }\r\n        function buildChart(target, metric, data) {\r\n            nv.addGraph(function () {\r\n                var chart = nv.models.linePlusBarChart()\r\n                    .margin({ top: 30, right: 50, bottom: 50, left: 50 })\r\n                    .focusEnable(false)\r\n                    .x(function (d, i) { return i })\r\n                    .y(function (d, i) { return d[1] })\r\n                    ;\r\n                chart.interactive(true);\r\n                chart.tooltip.contentGenerator(function (dataPoint) {\r\n                    var idx = dataPoint.index || dataPoint.pointIndex || 0;\r\n                    var item = results[metric][idx];\r\n\r\n                    return '<h4 style=\"border-bottom: 1px solid black;\">' + d3.time.format('%Y/%m/%d %H:%M')(new Date(item.timestamp)) + '</h4>'\r\n                        + '<div><span style=\"background-color: ' + colors.message + ';\" class=\"tooltipLegend\"></span>' + d3.format(\",.2r\")(item.offset) + ' (in '+ interval/60 + ' mins)</div>'\r\n                        + '<div style=\"text-align:right;color:LIGHTSEAGREEN;\"><span style=\"margin-left: 30px;\"></span>' + d3.format(\",.2r\")(item.offset/interval) + ' msg/s</div>'\r\n                        + '<div><span style=\"background-color: ' + colors.lag + ';\" class=\"tooltipLegend\"></span>' + d3.format(\",.2r\")(item.lag) + ' (in '+ interval/60 + ' mins)</div>';\r\n                });\r\n                chart.xAxis\r\n                    .showMaxMin(false)\r\n                    .tickFormat(function (d) {\r\n                        var dx = data[0].values[d] && data[0].values[d][0] || 0;\r\n                        return getDataLabel(dx);\r\n                    });\r\n                chart.y1Axis\r\n                    .tickFormat(d3.format('.2s'));\r\n\r\n                chart.y2Axis\r\n                    .tickFormat(function (d) { return d3.format('.2s')(d) });\r\n\r\n                chart.bars.forceY([0]);\r\n\r\n                d3.select(target)\r\n                    .datum(data)\r\n                    .transition()\r\n                    .duration(0)\r\n                    .call(chart);\r\n\r\n                var svg2 = d3.select(target);\r\n                var width = parseInt(svg2.style(\"width\"));\r\n                var height = parseInt(svg2.style(\"height\"));\r\n                var g = svg2.append('g');\r\n                g.append(\"text\")\r\n                    .attr(\"x\", width / 2)\r\n                    .attr(\"y\", height)\r\n                    .attr('text-anchor', 'middle')\r\n                    .attr(\"font-family\", \"Arial\")\r\n                    .attr(\"font-size\", \"14px\")\r\n                    .attr('alignment-baseline', 'ideographic')\r\n                    .attr(\"fill\", \"black\")\r\n                    .text('Topic: ' + (metric || '') + '/Group: ' + (group || '') + '  (data interval: ' + interval/60 + ' mins)');\r\n                g.append(\"text\")\r\n                    .attr(\"x\", width - 50)\r\n                    .attr(\"y\", height)\r\n                    .attr('text-anchor', 'middle')\r\n                    .attr(\"font-family\", \"Arial\")\r\n                    .attr(\"font-size\", \"10px\")\r\n                    .attr('alignment-baseline', 'ideographic')\r\n                    .attr(\"fill\", \"gray\")\r\n                    .attr(\"fill-opacity\", \"0.3\")\r\n                    .text('@Chickling.Kmanager');\r\n                nv.utils.windowResize(chart.update);\r\n\r\n                return chart;\r\n            });\r\n        }\r\n        function renderChart(start, end) {\r\n            d3.json('http://localhost:8099/group/2/' + group + '/' + topic + '?start=' + start + '&end=' + end, function (d) {\r\n                results = d;\r\n                var i = 0;\r\n                _.forOwn(results, function (val, key) {\r\n                    if(i===0 && val.length){\r\n                        interval = (val[val.length-1].timestamp - val[val.length-2].timestamp)/1000;\r\n                        dayRange = parseInt((val[val.length-1].timestamp - val[0].timestamp)/1000/60/60/24);\r\n                    }\r\n                    i++;\r\n                    d3.select(\"body\")\r\n                        .append('div')\r\n                        .append(\"svg\")\r\n                        .attr('id', 'chart-' + key)\r\n                        .attr(\"width\", \"100%\")\r\n                        .attr(\"height\", \"250px\");\r\n\r\n                    buildChart('#chart-' + key, key, convertData(val));\r\n                });\r\n                if (i === 0) {\r\n                    var key = 'empty';\r\n                    d3.select(\"body\")\r\n                        .append('div')\r\n                        .append(\"svg\")\r\n                        .attr('id', 'chart-' + key)\r\n                        .attr(\"width\", \"100%\")\r\n                        .attr(\"height\", \"250px\");\r\n\r\n                    buildChart('#chart-' + key, topic, []);\r\n                }\r\n            });\r\n        }\r\n        $(function () {\r\n\r\n            var start = moment().subtract(1, 'days');\r\n            var end = moment();\r\n\r\n            function cb(start, end) {\r\n                $('svg').remove();\r\n                renderChart(start.format('MM/DD/YYYY'), end.format('MM/DD/YYYY'));\r\n                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));\r\n            }\r\n\r\n            $('#reportrange').daterangepicker({\r\n                startDate: start,\r\n                endDate: end,\r\n                ranges: {\r\n                    'Today': [moment(), moment()],\r\n                    'Last 3 Days': [moment().subtract(3, 'days'), moment()],\r\n                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],\r\n                    'Last 30 Days': [moment().subtract(29, 'days'), moment()]\r\n                }\r\n            }, cb);\r\n\r\n            cb(start, end);\r\n\r\n        });\r\n    </script>\r\n</body>\r\n\r\n</html>"
+            "text": "<!DOCTYPE html>\r\n<html lang=\"en\">\r\n\r\n<head>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\r\n    <title>Kmanager chart -Chickling</title>\r\n    <script src=\"https://cdn.jsdelivr.net/lodash/4/lodash.min.js\"></script>\r\n    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js\" charset=\"utf-8\"></script>\r\n    <script src=\"https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js\"></script>\r\n    <link href=\"https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.css\" rel=\"stylesheet\" type=\"text/css\">\r\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css\" />\r\n    <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css\">\r\n    <script src=\"https://code.jquery.com/jquery-1.11.3.min.js\"></script>\r\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js\"></script>\r\n    <script src=\"http://www.daterangepicker.com/moment.min.js\"></script>\r\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.daterangepicker.com/daterangepicker.css\" />\r\n\r\n    <script src=\"http://www.daterangepicker.com/daterangepicker.js\"></script>\r\n    <style>\r\n        .tooltipLegend {\r\n            height: 15px;\r\n            width: 15px;\r\n        }\r\n\r\n        span.tooltipLegend {\r\n            margin: 0 5px;\r\n            vertical-align: middle;\r\n        }\r\n    </style>\r\n</head>\r\n\r\n<body>\r\n    <div class=\"container-fluid\">\r\n        <div class=\"col-md-8 col-xs-12\">\r\n        </div>\r\n        <div class=\"col-md-4 col-xs-12\">\r\n            <div id=\"reportrange\" class=\"pull-right\" style=\"background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%\">\r\n                <i class=\"glyphicon glyphicon-calendar fa fa-calendar\"></i>&nbsp;\r\n                <span></span> <b class=\"caret\"></b>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n\r\n\r\n    <script type=\"text/javascript\">\r\n        function getParameterByName(name, url) {\r\n            if (!url) url = window.location.href;\r\n            name = name.replace(/[\\[\\]]/g, \"\\\\$&\");\r\n            var regex = new RegExp(\"[?&]\" + name + \"(=([^&#]*)|&|#|$)\"),\r\n                res = regex.exec(url);\r\n            if (!res) return null;\r\n            if (!res[2]) return '';\r\n            return decodeURIComponent(res[2].replace(/\\+/g, \" \"));\r\n        }\r\n        var group = getParameterByName('group') || '';\r\n        var topic = getParameterByName('topic') || '';\r\n        function objectWithKeySorted(object) {\r\n            var result = {};\r\n            _.forEach(Object.keys(object).sort(), function (key) {\r\n                result[key] = object[key];\r\n            });\r\n            return result;\r\n        }\r\n        var interval = 0;\r\n        var dayRange = 0;\r\n        var colors = { lag: 'red', message: '#ccf' }\r\n        var results = window.results = {};\r\n        function convertData(data) {\r\n            var messages = {\r\n                key: 'Message',\r\n                bar: true,\r\n                color: colors.message,\r\n                values: []\r\n            };\r\n            var lags = {\r\n                key: 'Lag',\r\n                color: colors.lag,\r\n                values: []\r\n            };\r\n            data.forEach(function (item) {\r\n                messages.values.push([item.timestamp, item.offset]);\r\n                lags.values.push([item.timestamp, item.lag]);\r\n            });\r\n            window.test = [lags, messages];\r\n            return [lags, messages];\r\n        }\r\n        function getDataLabel(dx) {\r\n            if (dayRange > 1) {\r\n                return d3.time.format('%m/%d %H:%M')(new Date(dx));\r\n            }\r\n            return d3.time.format('%H:%M')(new Date(dx));\r\n        }\r\n        function buildChart(target, metric, data) {\r\n            nv.addGraph(function () {\r\n                var chart = nv.models.linePlusBarChart()\r\n                    .margin({ top: 30, right: 50, bottom: 50, left: 50 })\r\n                    .focusEnable(false)\r\n                    .x(function (d, i) { return i })\r\n                    .y(function (d, i) { return d[1] })\r\n                    ;\r\n                chart.interactive(true);\r\n                chart.tooltip.contentGenerator(function (dataPoint) {\r\n                    var idx = dataPoint.index || dataPoint.pointIndex || 0;\r\n                    var item = results[metric][idx];\r\n\r\n                    return '<h4 style=\"border-bottom: 1px solid black;\">' + d3.time.format('%Y/%m/%d %H:%M')(new Date(item.timestamp)) + '</h4>'\r\n                        + '<div><span style=\"background-color: ' + colors.message + ';\" class=\"tooltipLegend\"></span>' + d3.format(\",.2r\")(item.offset) + ' (in '+ interval/60 + ' mins)</div>'\r\n                        + '<div style=\"text-align:right;color:LIGHTSEAGREEN;\"><span style=\"margin-left: 30px;\"></span>' + d3.format(\",.2r\")(item.offset/interval) + ' msg/s</div>'\r\n                        + '<div><span style=\"background-color: ' + colors.lag + ';\" class=\"tooltipLegend\"></span>' + d3.format(\",.2r\")(item.lag) + ' (in '+ interval/60 + ' mins)</div>';\r\n                });\r\n                chart.xAxis\r\n                    .showMaxMin(false)\r\n                    .tickFormat(function (d) {\r\n                        var dx = data[0].values[d] && data[0].values[d][0] || 0;\r\n                        return getDataLabel(dx);\r\n                    });\r\n                chart.y1Axis\r\n                    .tickFormat(d3.format('.2s'));\r\n\r\n                chart.y2Axis\r\n                    .tickFormat(function (d) { return d3.format('.2s')(d) });\r\n\r\n                chart.bars.forceY([0]);\r\n\r\n                d3.select(target)\r\n                    .datum(data)\r\n                    .transition()\r\n                    .duration(0)\r\n                    .call(chart);\r\n\r\n                var svg2 = d3.select(target);\r\n                var width = parseInt(svg2.style(\"width\"));\r\n                var height = parseInt(svg2.style(\"height\"));\r\n                var g = svg2.append('g');\r\n                g.append(\"text\")\r\n                    .attr(\"x\", width / 2)\r\n                    .attr(\"y\", height)\r\n                    .attr('text-anchor', 'middle')\r\n                    .attr(\"font-family\", \"Arial\")\r\n                    .attr(\"font-size\", \"14px\")\r\n                    .attr('alignment-baseline', 'ideographic')\r\n                    .attr(\"fill\", \"black\")\r\n                    .text('Topic: ' + (metric || '') + '/Group: ' + (group || '') + '  (data interval: ' + interval/60 + ' mins)');\r\n                g.append(\"text\")\r\n                    .attr(\"x\", width - 50)\r\n                    .attr(\"y\", height)\r\n                    .attr('text-anchor', 'middle')\r\n                    .attr(\"font-family\", \"Arial\")\r\n                    .attr(\"font-size\", \"10px\")\r\n                    .attr('alignment-baseline', 'ideographic')\r\n                    .attr(\"fill\", \"gray\")\r\n                    .attr(\"fill-opacity\", \"0.3\")\r\n                    .text('@Chickling.Kmanager');\r\n                nv.utils.windowResize(chart.update);\r\n\r\n                return chart;\r\n            });\r\n        }\r\n        function renderChart(start, end) {\r\n            d3.json('http://mockuphost/group/2/' + group + '/' + topic + '?start=' + start + '&end=' + end, function (d) {\r\n                results = d;\r\n                var i = 0;\r\n                _.forOwn(results, function (val, key) {\r\n                    if(i===0 && val.length){\r\n                        interval = (val[val.length-1].timestamp - val[val.length-2].timestamp)/1000;\r\n                        dayRange = parseInt((val[val.length-1].timestamp - val[0].timestamp)/1000/60/60/24);\r\n                    }\r\n                    i++;\r\n                    d3.select(\"body\")\r\n                        .append('div')\r\n                        .append(\"svg\")\r\n                        .attr('id', 'chart-' + key)\r\n                        .attr(\"width\", \"100%\")\r\n                        .attr(\"height\", \"250px\");\r\n\r\n                    buildChart('#chart-' + key, key, convertData(val));\r\n                });\r\n                if (i === 0) {\r\n                    var key = 'empty';\r\n                    d3.select(\"body\")\r\n                        .append('div')\r\n                        .append(\"svg\")\r\n                        .attr('id', 'chart-' + key)\r\n                        .attr(\"width\", \"100%\")\r\n                        .attr(\"height\", \"250px\");\r\n\r\n                    buildChart('#chart-' + key, topic, []);\r\n                }\r\n            });\r\n        }\r\n        $(function () {\r\n\r\n            var start = moment().subtract(1, 'days');\r\n            var end = moment();\r\n\r\n            function cb(start, end) {\r\n                $('svg').remove();\r\n                renderChart(start.format('MM/DD/YYYY'), end.format('MM/DD/YYYY'));\r\n                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));\r\n            }\r\n\r\n            $('#reportrange').daterangepicker({\r\n                startDate: start,\r\n                endDate: end,\r\n                ranges: {\r\n                    'Today': [moment(), moment()],\r\n                    'Last 3 Days': [moment().subtract(3, 'days'), moment()],\r\n                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],\r\n                    'Last 30 Days': [moment().subtract(29, 'days'), moment()]\r\n                }\r\n            }, cb);\r\n\r\n            cb(start, end);\r\n\r\n        });\r\n    </script>\r\n</body>\r\n\r\n</html>"
           },
           "redirectURL": "",
           "headersSize": 330,
@@ -3504,7 +3395,7 @@
         "time": 71.67599999229424,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/group/2/EC_HotItem_Sync_Inventory/EC_HotItem_DeductionLog?start=08/17/2017&end=08/18/2017",
+          "url": "http://mockuphost/group/2/EC_HotItem_Sync_Inventory/EC_HotItem_DeductionLog?start=08/17/2017&end=08/18/2017",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -3735,7 +3626,7 @@
         "time": 47.15700000815559,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/topiclist",
+          "url": "http://mockuphost/topiclist",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -3844,7 +3735,7 @@
         "time": 15542.96799999429,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/topic/Channel/consumers",
+          "url": "http://mockuphost/topic/Channel/consumers",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -3953,7 +3844,7 @@
         "time": 1512.563999989652,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/stats/topic/Channel",
+          "url": "http://mockuphost/stats/topic/Channel",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -4062,7 +3953,7 @@
         "time": 51.66899999312591,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/topiclist",
+          "url": "http://mockuphost/topiclist",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -4171,7 +4062,7 @@
         "time": 15674.381999997422,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/topic/EC_BuyBox/consumers",
+          "url": "http://mockuphost/topic/EC_BuyBox/consumers",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -4280,7 +4171,7 @@
         "time": 1214.458000002196,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/stats/topic/EC_BuyBox",
+          "url": "http://mockuphost/stats/topic/EC_BuyBox",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -4502,7 +4393,7 @@
         "time": 9445.495000007213,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/activetopics",
+          "url": "http://mockuphost/activetopics",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -4611,7 +4502,7 @@
         "time": 46.32599999604281,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/topiclist",
+          "url": "http://mockuphost/topiclist",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -4720,7 +4611,7 @@
         "time": 16442.471000002115,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/topic/EC_PacketBeat/consumers",
+          "url": "http://mockuphost/topic/EC_PacketBeat/consumers",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -4829,7 +4720,7 @@
         "time": 1120.956999991904,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/stats/topic/EC_PacketBeat",
+          "url": "http://mockuphost/stats/topic/EC_PacketBeat",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -4938,7 +4829,7 @@
         "time": 72.49000000592787,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/topiclist",
+          "url": "http://mockuphost/topiclist",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -5047,7 +4938,7 @@
         "time": 16533.818000010797,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/topic/EC_Pf_r4/consumers",
+          "url": "http://mockuphost/topic/EC_Pf_r4/consumers",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
@@ -5156,7 +5047,7 @@
         "time": 1048.1270000018412,
         "request": {
           "method": "GET",
-          "url": "http://localhost:8099/stats/topic/EC_Pf_r4",
+          "url": "http://mockuphost/stats/topic/EC_Pf_r4",
           "httpVersion": "HTTP/1.1",
           "headers": [
             {
