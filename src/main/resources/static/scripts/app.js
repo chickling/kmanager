@@ -150,7 +150,7 @@ angular.module("kmanager.services", ["ngResource"])
 			}).value();
 			return groups;
 		}
-		var apiHost = 'http://localhost:8099';
+		var apiHost = '';
 
 		return {
 			getGroup: function (group, cb) {
