@@ -34,6 +34,7 @@
     </div>
 
     <script>
+        var apiHost = 'http://localhost:8099';
         function objectWithKeySorted(object) {
             var result = {};
             _.forEach(Object.keys(object).sort(), function (key) {
@@ -41,12 +42,12 @@
             });
             return result;
         }
-        var interval;
-        var dayRange;
+        var interval = '30m';
+        var dayRange = 1;
         var colors = d3.scale.category20();
         var results = {};
         function renderChart(start, end) {
-            d3.json("http://localhost:8099/stats/trend"+ '?start=' + start + '&end=' + end, function (d) {
+            d3.json(apiHost + "/stats/trend" + '?start=' + start + '&end=' + end, function (d) {
                 _.forOwn(d, function (val, key) {
                     var tempArr = key.split('|');
                     results[tempArr[0]] = results[tempArr[0]] || [];
@@ -60,8 +61,10 @@
                 _.forOwn(results, function (val, key) {
                     if (i === 0 && val.length) {
                         var val2 = val[0].values;
-                        interval = (val2[val2.length - 1][0] - val2[val2.length - 2][0]) / 1000;
-                        dayRange = parseInt((val2[val2.length - 1][0] - val2[0][0]) / 1000 / 60 / 60 / 24);
+                        if (val2.length > 1) {
+                            interval = (val2[val2.length - 1][0] - val2[val2.length - 2][0]) / 1000;
+                            dayRange = parseInt((val2[val2.length - 1][0] - val2[0][0]) / 1000 / 60 / 60 / 24);
+                        }
                     }
                     i++;
                     d3.select("body")
@@ -139,7 +142,7 @@
                 var height = parseInt(svg2.style("height"));
                 var g = svg2.append('g');
                 var text = (metric || '');
-                if(interval){
+                if (interval) {
                     text += '  (data interval: ' + interval / 60 + ' mins)';
                 }
                 g.append("text")

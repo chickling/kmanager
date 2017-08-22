@@ -150,37 +150,38 @@ angular.module("kmanager.services", ["ngResource"])
 			}).value();
 			return groups;
 		}
+		var apiHost = 'http://localhost:8099';
 
 		return {
 			getGroup: function (group, cb) {
-				return $resource("http://localhost:8099/group/:group").get({
+				return $resource(apiHost + "/group/:group").get({
 					group: group
 				}, processConsumer(cb));
 			},
 			topicDetail: function (topic, cb) {
-				return $resource("http://localhost:8099/topicdetails/:topic").get({
+				return $resource(apiHost + "/topicdetails/:topic").get({
 					topic: topic
 				}, cb);
 			},
 			topicConsumers: function (topic, cb) {
-				return $resource("http://localhost:8099/topic/:topic/consumers").get({
+				return $resource(apiHost + "/topic/:topic/consumers").get({
 					topic: topic
 				}, processMultipleConsumers(cb));
 			},
 			loadTopicConsumerViz: function (group, cb) {
-				cb(loadViz("#dataviz-container", "http://localhost:8099/activetopics"))
+				cb(loadViz("#dataviz-container", apiHost + "/activetopics"))
 			},
 			listGroup: function () {
-				return $http.get("http://localhost:8099/group");
+				return $http.get(apiHost + "/group");
 			},
 			cluster: function () {
-				return $http.get("http://localhost:8099/cluster");
+				return $http.get(apiHost + "/cluster");
 			},
 			listTopics: function () {
-				return $http.get("http://localhost:8099/topiclist");
+				return $http.get(apiHost + "/topiclist");
 			},
 			getTopic: function (group, topic, cb) {
-				return $resource("http://localhost:8099/group/:group/:topic").get({
+				return $resource(apiHost + "/group/:group/:topic").get({
 					group: group,
 					topic: topic
 				}, processConsumer(cb));
@@ -196,10 +197,10 @@ angular.module("kmanager.services", ["ngResource"])
 				});
 			},
 			listTasks: function (cb) {
-				return $http.get("http://localhost:8099/alerting/tasks");
+				return $http.get(apiHost + "/alerting/tasks");
 			},
 			deleteTask: function (task, cb) {
-				return $http.delete("http://localhost:8099/alerting/delete/" + task.group + "-" + task.topic)
+				return $http.delete(apiHost + "/alerting/delete/" + task.group + "-" + task.topic)
 					.then(
 					function (response) {
 						cb(response);
@@ -212,7 +213,7 @@ angular.module("kmanager.services", ["ngResource"])
 			queryOffsetHistoryWithOptions: function (requestBody, cb) {
 				$http({
 					method: 'POST',
-					url: "http://localhost:8099/query",
+					url: apiHost + "/query",
 					headers: { 'Content-Type': 'application/json' },
 					data: requestBody
 				}).success(function (response) {
@@ -224,15 +225,15 @@ angular.module("kmanager.services", ["ngResource"])
 				return date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2) + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
 			},
 			getActiveGroups: function (topic) {
-				return $http.get("http://localhost:8099/activeconsumers/" + topic);
+				return $http.get(apiHost + "/activeconsumers/" + topic);
 			},
 			isAlertEnabled: function () {
-				return $http.get("http://localhost:8099/alerting/isAlertEnabled");
+				return $http.get(apiHost + "/alerting/isAlertEnabled");
 			},
 			postSetting: function (requestBody, cb) {
 				$http({
 					method: 'POST',
-					url: "http://localhost:8099/setting",
+					url: apiHost + "/setting",
 					headers: { 'Content-Type': 'application/json' },
 					data: requestBody
 				}).success(function (response) {
@@ -240,14 +241,15 @@ angular.module("kmanager.services", ["ngResource"])
 				});
 			},
 			getSetting: function () {
-				return $http.get("http://localhost:8099/setting");
+				return $http.get(apiHost + "/setting");
 			},
 			stats: function (bid) {
-				var url = bid ? `http://localhost:8099/stats/broker/${bid}` : `http://localhost:8099/stats/brokers`;
+				var url = bid ? `/stats/broker/${bid}` : `/stats/brokers`;
+				url = apiHost + url;
 				return $http.get(url);
 			},
 			statsByTopic: function (topic) {
-				return $http.get("http://localhost:8099/stats/topic/" + topic);
+				return $http.get(apiHost + "/stats/topic/" + topic);
 			}
 		};
 	}]);

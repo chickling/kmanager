@@ -48,7 +48,7 @@ public abstract class OffsetGetter {
 
 	protected static boolean earliest = false;
 
-	protected static final String clientId = "kafkaMonitor";
+	protected static final String clientId = "Kmanager";
 
 	/**
 	 * <code>

@@ -6,7 +6,7 @@ package com.chickling.kmanager.config;
  */
 public class AppConfig {
 	private String clusterName;
-	private String apiType;
+	private String apiType = "";
 	private String esHosts;
 	private String esIndex = "";
 	private Integer dataCollectFrequency = 1;

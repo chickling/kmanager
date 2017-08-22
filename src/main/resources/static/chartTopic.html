@@ -29,6 +29,12 @@
             margin: 0 5px;
             vertical-align: middle;
         }
+        .nv-y1 {
+            fill: #ccf;
+        }
+        .nv-y2 {
+            fill: red;
+        }
     </style>
 </head>
 
@@ -47,6 +53,7 @@
 
 
     <script type="text/javascript">
+        var apiHost = 'http://localhost:8099';
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
             name = name.replace(/[\[\]]/g, "\\$&");
@@ -65,8 +72,8 @@
             });
             return result;
         }
-        var interval = 0;
-        var dayRange = 0;
+        var interval = '30m';
+        var dayRange = 1;
         var colors = { lag: 'red', message: '#ccf' }
         var results = window.results = {};
         function convertData(data) {
@@ -108,9 +115,9 @@
                     var item = results[metric][idx];
 
                     return '<h4 style="border-bottom: 1px solid black;">' + d3.time.format('%Y/%m/%d %H:%M')(new Date(item.timestamp)) + '</h4>'
-                        + '<div><span style="background-color: ' + colors.message + ';" class="tooltipLegend"></span>' + d3.format(",.2r")(item.offset) + ' (in '+ interval/60 + ' mins)</div>'
-                        + '<div style="text-align:right;color:LIGHTSEAGREEN;"><span style="margin-left: 30px;"></span>' + d3.format(",.2r")(item.offset/interval) + ' msg/s</div>'
-                        + '<div><span style="background-color: ' + colors.lag + ';" class="tooltipLegend"></span>' + d3.format(",.2r")(item.lag) + ' (in '+ interval/60 + ' mins)</div>';
+                        + '<div><span style="background-color: ' + colors.message + ';" class="tooltipLegend"></span>' + d3.format(",.2r")(item.offset) + ' (in ' + interval / 60 + ' mins)</div>'
+                        + '<div style="text-align:right;color:LIGHTSEAGREEN;"><span style="margin-left: 30px;"></span>' + d3.format(",.2r")(item.offset / interval) + ' msg/s</div>'
+                        + '<div><span style="background-color: ' + colors.lag + ';" class="tooltipLegend"></span>' + d3.format(",.2r")(item.lag) + ' (in ' + interval / 60 + ' mins)</div>';
                 });
                 chart.xAxis
                     .showMaxMin(false)
@@ -144,7 +151,7 @@
                     .attr("font-size", "14px")
                     .attr('alignment-baseline', 'ideographic')
                     .attr("fill", "black")
-                    .text('Topic: ' + (metric || '') + '/Group: ' + (group || '') + '  (data interval: ' + interval/60 + ' mins)');
+                    .text('Topic: ' + (metric || '') + '/Group: ' + (group || '') + '  (data interval: ' + interval / 60 + ' mins)');
                 g.append("text")
                     .attr("x", width - 50)
                     .attr("y", height)
@@ -161,13 +168,13 @@
             });
         }
         function renderChart(start, end) {
-            d3.json('http://localhost:8099/group/' + group + '/' + topic + '?start=' + start + '&end=' + end, function (d) {
+            d3.json(apiHost + '/group/' + group + '/' + topic + '?start=' + start + '&end=' + end, function (d) {
                 results = d;
                 var i = 0;
                 _.forOwn(results, function (val, key) {
-                    if(i===0 && val.length){
-                        interval = (val[val.length-1].timestamp - val[val.length-2].timestamp)/1000;
-                        dayRange = parseInt((val[val.length-1].timestamp - val[0].timestamp)/1000/60/60/24);
+                    if (i === 0 && val.length > 1) {
+                        interval = (val[val.length - 1].timestamp - val[val.length - 2].timestamp) / 1000;
+                        dayRange = parseInt((val[val.length - 1].timestamp - val[0].timestamp) / 1000 / 60 / 60 / 24);
                     }
                     i++;
                     d3.select("body")

@@ -10,8 +10,8 @@ import org.springframework.context.annotation.ComponentScan;
  */
 @SpringBootApplication
 @ComponentScan("com.chickling.kmanager.**")
-public class KafkaMonitor {
+public class Kmanager {
 	public static void main(String[] args) throws Exception {
-		SpringApplication.run(KafkaMonitor.class, args);
+		SpringApplication.run(Kmanager.class, args);
 	}
 }

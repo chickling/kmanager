@@ -484,7 +484,6 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
       java.util.Collections.sort(list);
       HashMap<String, ArrayList<Long[]>> mappedResult2 = new HashMap<>();
       for (String key : list) {
-        System.out.println(key);
         ArrayList<Long[]> item = mappedResult.get(key);
         ArrayList<Long[]> item2 = new ArrayList<>();
         long val = 0;
