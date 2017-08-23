@@ -1,15 +1,42 @@
-<div class="page-header">
-	<h1>Kafka Cluster Visualization</h1>
+<h1>Kafka Cluster</h1>
+<div class="container">
+<div class="panel panel-default col-md-7">
+	<div class="panel-heading">
+		<h4>Brokers</h4>
+	</div>
+	<div class="panel-body">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Id</th>
+				<th>Host</th>
+				<th>Port</th>
+				<th>JMX Port</th>
+				<th>Messages</th>
+				<th>Bytes In</th>
+				<th>Bytes Out</th>
+			</tr>
+		</thead>
+		<tbody>
+		<tr ng-repeat="broker in cluster">
+			<td>{{ broker.bid }}</td>
+			<td>{{ broker.host }}</td>
+			<td>{{ broker.port }}</td>
+			<td>{{ broker.jmxPort }}</td>
+			<td>{{ stats['broker'+ broker.bid].MessagesInPerSec.oneMinuteRate | size }}</td>
+			<td>{{ stats['broker'+ broker.bid].BytesInPerSec.oneMinuteRate | size }}</td>
+			<td>{{ stats['broker'+ broker.bid].BytesOutPerSec.oneMinuteRate | size }}</td>
+		</tr>
+	</tbody>
+	</table>
+	</div>
 </div>
 
-<div class="alert alert-info" ng-show="loading">Loading ...</div>
-<div id="dataviz-container"></div>
-
-<div ng-show="jmxEnabled">
-	<div class="panel panel-default">
+<div class="panel panel-default col-md-5" ng-show="stats.summary">
 		<div class="panel-heading">
-			<h4>Metrics</h4>
+			<h4>Cluster Metrics</h4>
 		</div>
+	<div class="panel-body">
 		<table class="table">
 			<thead>
 				<tr>
@@ -21,156 +48,21 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
-					<td>Messages in /sec</td>
-					<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.meanRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.oneMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.fiveMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.MessagesInPerSec.fifteenMinuteRate}}</span></td>
-				<tr>
-				<tr>
-					<td>Bytes in /sec</td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.meanRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.oneMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fiveMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesInPerSec.fifteenMinuteRate}}</span></td>
-				<tr>
-				<tr>
-					<td>Bytes out /sec</td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.meanRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.oneMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fiveMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesOutPerSec.fifteenMinuteRate}}</span></td>
-				<tr>
-				<tr>
-					<td>Bytes rejected /sec</td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.meanRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.oneMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fiveMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.BytesRejectedPerSec.fifteenMinuteRate}}</span></td>
-				<tr>
-				<tr>
-					<td>Failed fetch request /sec</td>
-					<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.meanRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.oneMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fiveMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.FailedFetchRequestsPerSec.fifteenMinuteRate}}</span></td>
-				<tr>
-				<tr>
-					<td>Failed produce request /sec</td>
-					<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.meanRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.oneMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fiveMinuteRate}}</span></td>
-					<td><span class="badge">{{brokerTopicMetrics.FailedProduceRequestsPerSec.fifteenMinuteRate}}</span></td>
+				<tr ng-repeat="(key,item) in stats.summary">
+					<td>{{key}}</td>
+					<td>{{item.meanRate | size }}</td>
+					<td>{{item.oneMinuteRate | size }}</td>
+					<td>{{item.fiveMinuteRate | size }}</td>
+					<td>{{item.fifteenMinuteRate | size }}</td>
 				<tr>
 			</tbody>
 		</table>
 	</div>
-	<!-- 	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h4>System Info</h4>
-		</div>
-		<div class="panel-body">
-			<div class="form-group">
-				<label class="col-sm-3 control-label">Broker</label>
-				<div class="col-sm-8">
-					<p>10.16.238.101</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">Name</label>
-				<div class="col-sm-8">
-					<p>Linux</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">Arch</label>
-				<div class="col-sm-8">
-					<p>amd</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">Version</label>
-				<div class="col-sm-8">
-					<p>3.10.0-514.26.2.el7.x86_64</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">AvailableProcessors</label>
-				<div class="col-sm-8">
-					<p>1</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">CommittedVirtualMemorySize</label>
-				<div class="col-sm-8">
-					<p>4,944,248,832</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">FreePhysicalMemorySize</label>
-				<div class="col-sm-8">
-					<p>4,561,178,624</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">TotalSwapSpaceSize</label>
-				<div class="col-sm-8">
-					<p>8,203,460,608</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">FreeSwapSpaceSize</label>
-				<div class="col-sm-8">
-					<p>8,455,712,768</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">TotalSwapSpaceSize</label>
-				<div class="col-sm-8">
-					<p>8,455,712,768</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">ProcessCpuLoad</label>
-				<div class="col-sm-8">
-					<p>0.147</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">SystemCpuLoad</label>
-				<div class="col-sm-8">
-					<p>0.16</p>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-sm-3 control-label">SystemLoadAverage</label>
-				<div class="col-sm-8">
-					<p>0.14</p>
-				</div>
-			</div>
-		</div>
-	</div>
-</div> -->
-
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h4>Choose one to show its change in 8 hours</h4>
-		</div>
-		<div class="panel-body">
-			<div class="form-group">
-				<label for="timerange_select">Metric:</label> <select
-					class="form-control" id="metric_select"
-					ng-model="currentMetric" ng-change="onMetricChanged()"
-					ng-options="metric.code as metric.value for metric in metrics">
-				</select>
-			</div>
-			<div id="metrics" style="height: 400px; min-width: 340px"></div>
-		</div>
-	</div>
 </div>
-
-<div class="alert alert-info" role="alert" ng-hide="jmxEnabled">
-	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-	<span class="sr-only">Info:</span> JMX is not avialable
+</div>
+<h3>Cluster Data Trend</h3>
+<div class="panel panel-default">
+	<div class="panel-body">
+		<iframe src="./chart.html" style="width: 100%;height:790px;border:0;"></iframe>
+	</div>
 </div>

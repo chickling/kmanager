@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module("offsetapp.directives", [])
+angular.module("kmanager.directives", [])
 	.directive('moment', function($timeout) {
 		return {
 			restrict: 'E',

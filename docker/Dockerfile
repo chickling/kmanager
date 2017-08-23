@@ -9,8 +9,9 @@
 #                                     |___/                                              
 #                                                                          --version=1.0.0 #      
 ############################################################################################
-FROM anapsix/docker-alpine-java:8_server-jre_unlimited
-MAINTAINER Hulva Luva.H(lvsweet217@163.com)
-ADD app /opt/app
+FROM anapsix/alpine-java:8_server-jre_unlimited
 WORKDIR /opt/app
-ENTRYPOINT ["sh","start.sh"]
+
+COPY ChicklingKmanager.jar ./
+
+ENTRYPOINT exec java $JAVA_OPTS -jar ChicklingKmanager.jar

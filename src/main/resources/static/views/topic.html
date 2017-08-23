@@ -1,15 +1,10 @@
-<div class="page-header">
-	<h1>
-		Offset History for <strong>{{group}}</strong> &mdash; <strong>
-			{{topic}}</strong>
-	</h1>
-</div>
+<h1>{{group}}: {{topic}} detail</h1>
 
 <ol class="breadcrumb">
-	<li><a href="./#/groups">Groups List</a></li>
+	<li><a href="./#/groups">Groups</a></li>
 	<li><a href="#/group/{{group}}">{{group}}</a></li>
 	<li class="active"><a href="./#/topicdetail/{{topic}}">{{topic}}</a></li>
-	<li class="pull-right"><button type="button"
+	<li class="pull-right" ng-if="isAlertEnabled"><button type="button"
 			class="btn btn-primary btn-sm" data-toggle="modal"
 			data-target="#taskModal" data-topic="{{topic}}"
 			data-group="{{group}}" id="newTask">Add alerting</button></li>
@@ -87,45 +82,11 @@
 	</div>
 </div>
 
-<div class="row">
-	<form ng-submit="offsetHistoryByDateRange()"
-		class="form-inline date-range">
-		<div class="form-group">
-			<label for="timerange_select">Time Range:</label> <select
-				class="form-control" id="timerange_select"
-				ng-model="rangeform.range" ng-change="onRangeChanged()"
-				ng-options="range.code as range.value for range in rangeOptions">
-			</select>
-		</div>
-		<div class="form-group">
-			<label for="datepick_from" class="control-label">From: </label>
-			<div class="input-group date form_datetime"
-				data-date-format="yyyy-mm-dd hh:ii"
-				data-date="{{date | date:'yyyy-MM-dd hh:mm'}}">
-				<input class="form-control" size="16" type="text"
-					value="{{rangeform.rangetoStr}}" readonly name="datepicker_from"
-					id="time" ng-model="rangeform.rangetoStr" /> <span
-					class="input-group-addon"><span
-					class="glyphicon glyphicon-remove"></span></span> <span
-					class="input-group-addon"><span
-					class="glyphicon glyphicon-th"></span></span>
-			</div>
-		</div>
-		<div class="form-group">
-			<label for="timerange_select">Interval:</label> <select
-				class="form-control" id="interval_select"
-				ng-model="rangeform.interval"
-				ng-options="interval.code as interval.value for interval in intervalOptions">
-			</select>
-		</div>
-		<button type="submit" class="btn btn-default">Go</button>
-		<div class="form-group" ng-show="loading">
-			<div class="cssload-square">
-				<div class="cssload-square-part cssload-square-green"></div>
-				<div class="cssload-square-part cssload-square-pink"></div>
-				<div class="cssload-square-blend"></div>
-			</div>
-		</div>
-	</form>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h4>Data</h4>
+	</div>
+	<div class="panel-body">
+		<iframe ng-src="{{'./chartTopic.html?group='+group+'&topic='+topic}}" style="width: 100%;height:500px;border:0;"></iframe>
+	</div>
 </div>
-<chart data="data"></chart>
