@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.chickling</groupId>
-	<artifactId>kmonitor</artifactId>
+	<artifactId>KManager</artifactId>
 	<version>1.0.0</version>
 	<name>Kafka Monitor</name>
 	<packaging>jar</packaging>
@@ -125,7 +125,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>ChicklingKmonitor</finalName>
+		<finalName>ChicklingKManager</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -135,7 +135,7 @@
 				<version>3.0.0</version> <executions> <execution> <phase>package</phase> 
 				<goals> <goal>shade</goal> </goals> <configuration> <transformers> <transformer 
 				implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"> 
-				<mainClass>com.chickling.kmonitor.KafkaMonitor</mainClass> </transformer> 
+				<mainClass>com.chickling.KManager.KafkaMonitor</mainClass> </transformer> 
 				</transformers> </configuration> </execution> </executions> </plugin> -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

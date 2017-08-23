@@ -1,21 +1,31 @@
+<style>
+</style>
+<h1>Settings</h1>
 <form style="margin-bottom: 25px;">
-	<h3>Zookeeper</h3>
 	<div class="form-group">
-		<label for="inputZookeeper">Hosts</label> <input type="text"
+	<label for="clusterName" class="label label-primary settingLabel">Kafka Cluster Name</label> (no need exactly same as your real cluster name) <input type="text"
+		class="form-control" id="clusterName" name="clusterName"
+		ng-model="settingForm.clusterName"
+		placeholder="important, which is using to identity your cluster.">
+	</div>
+	<div class="form-group">
+		<label for="inputZookeeper" class="label label-primary settingLabel">Kafka Zookeepers</label> <input type="text"
 			class="form-control" id="inputZookeeper" name="zkHosts"
 			ng-model="settingForm.zkHosts"
 			placeholder="zk1:2181,zk2:2181,zkN:2181">
 	</div>
-	<!-- <div class="form-group">
-		<label for="exampleInputPassword1">Session timeout</label> <input
-			type="password" class="form-control" id="exampleInputPassword1"
-			placeholder="leave blank, default will be 30s">
+	<div class="form-group">
+	<label for="inputESHosts" class="label label-primary settingLabel">ElasticSearch Hosts</label> <input type="text"
+		class="form-control" id="inputESHosts" name="esHosts"
+		ng-model="settingForm.esHosts"
+		placeholder="JAVA API- esHost1:9300,esHost2:9300,esHostN:9300 REST API- esHost:9200">
 	</div>
 	<div class="form-group">
-		<label for="exampleInputPassword1">Connection timeout</label> <input
-			type="password" class="form-control" id="exampleInputPassword1"
-			placeholder="leave blank, default will be 30s">
-	</div> -->
+		<label for="inputESIndex">ElasticSearch Index</label> (Optional, the raw data will be saved under this index, you can use the default value.) <input type="text"
+			class="form-control" id="inputESIndex" name="esIndex"
+			ng-model="settingForm.esIndex"
+			placeholder="ChicklingKmanager">
+	</div>
 	<div class="form-group">
 		<label for="inputDataCollectFrequency">Data collect frequency
 			(minute default: 1m)</label> <input type="number" min="1"
@@ -31,33 +41,7 @@
 			placeholder="Exclude these consumer's data which was inactive for that long time">
 	</div>
 
-	<h3>Elasticsearch</h3>
-	<div class="form-group">
-		<label for="inputAPIType">API Type</label> <select
-			class="form-control" ng-model="settingForm.apiType">
-			<option ng-repeat="x in apiTypes">{{x}}</option>
-		</select>
-	</div>
-	<div class="form-group">
-		<label for="inputESHosts">Hosts</label> <input type="text"
-			class="form-control" id="inputESHosts" name="esHosts"
-			ng-model="settingForm.esHosts"
-			placeholder="JAVA API- esHost1:9300,esHost2:9300,esHostN:9300 REST API- esHost:9200">
-	</div>
-	<div class="form-group">
-		<label for="inputESIndex">Index</label> <input type="text"
-			class="form-control" id="inputESIndex" name="esIndex"
-			ng-model="settingForm.esIndex"
-			placeholder="Like logx_healthcheck_kafka, whatever">
-	</div>
-	<div class="form-group">
-		<label for="inputESDocType">Doc type</label> <input type="text"
-			class="form-control" id="inputESDocType" name="docTypeForOffset"
-			ng-model="settingForm.docTypeForOffset"
-			placeholder="Leave it blank, it'll set with [kafkaoffsetinfo]">
-	</div>
-
-	<h3>Alerting</h3>
+	<h4>Lag Monitor</h4>
 	<div class="checkbox">
 		<label> <input type="checkbox" name="isAlertEnabled"
 			ng-model="settingForm.isAlertEnabled" ng-model="alertEnabled">
@@ -66,7 +50,7 @@
 	</div>
 
 	<div ng-show="settingForm.isAlertEnabled">
-		<h3>Email</h3>
+		<h5>Email</h5>
 		<div class="form-group">
 			<label for="inputSMTPServer">SMTP server</label> <input type="text"
 				class="form-control" id="inputSMTPServer" name="smtpServer"
@@ -93,7 +77,7 @@
 			<label for="inputMailSender">Mail sender</label> <input type="text"
 				class="form-control" id="inputMailSender"
 				ng-model="settingForm.mailSender"
-				placeholder="Like KafkaAlerting@kmonitor.com or something">
+				placeholder="Like KafkaAlerting@chickling.com or something">
 		</div>
 		<div class="form-group">
 			<label for="inputMailSender">Mail subject</label> <input type="text"
