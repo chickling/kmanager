@@ -416,6 +416,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 		function ($scope, offsetinfo) {
 			var settingFormModal = {
 				clusterName: "",
+				bootstrapServers: "",
 				zkHosts: "",
 				dataCollectFrequency: 1,
 				excludeByLastSeen: 2592000,

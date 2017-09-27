@@ -390,9 +390,10 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
 
       String url = "http://" + esHost[0] + ":" + esHost[1] + "/" + String.join(",", indexes) + "/"
           + SystemManager.getElasticSearchOffsetType() + "/_search?ignore_unavailable=true&allow_no_indices=true";
+      String template = ScrollSearchTemplate.getOffset(group, topic, assistEntity, false);
 
       ResponseEntity<String> response = REST.exchange(url, HttpMethod.POST,
-          new HttpEntity<String>(ScrollSearchTemplate.getOffset(group, topic, assistEntity), headers), String.class);
+          new HttpEntity<String>(template, headers), String.class);
       String searchResult = response.getBody();
       JSONObject temp = new JSONObject(searchResult);
       JSONArray temp2 = temp.getJSONObject("aggregations").getJSONObject("aggs").getJSONArray("buckets");
@@ -454,9 +455,10 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
 
       String url = "http://" + esHost[0] + ":" + esHost[1] + "/" + String.join(",", indexes) + "/"
           + SystemManager.getElasticSearchJmxType() + "/_search?ignore_unavailable=true&allow_no_indices=true";
+      String template = ScrollSearchTemplate.JmxTrend(assistEntity, false);
 
       ResponseEntity<String> response = REST.exchange(url, HttpMethod.POST,
-          new HttpEntity<String>(ScrollSearchTemplate.JmxTrend(assistEntity), headers), String.class);
+          new HttpEntity<String>(template, headers), String.class);
       String searchResult = response.getBody();
       JSONObject temp = new JSONObject(searchResult);
       JSONArray temp2 = temp.getJSONObject("aggregations").getJSONObject("aggs").getJSONArray("buckets");

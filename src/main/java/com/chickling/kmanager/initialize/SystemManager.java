@@ -28,7 +28,7 @@ import com.chickling.kmanager.alert.TaskManager;
 import com.chickling.kmanager.alert.WorkerThreadFactory;
 import com.chickling.kmanager.config.AppConfig;
 import com.chickling.kmanager.core.OffsetGetter;
-import com.chickling.kmanager.core.ZKOffsetGetter;
+import com.chickling.kmanager.core.CombinedOffsetGetter;
 import com.chickling.kmanager.core.db.ElasticsearchOffsetDB;
 import com.chickling.kmanager.core.db.OffsetDB;
 import com.chickling.kmanager.email.EmailSender;
@@ -74,7 +74,7 @@ public class SystemManager {
   public static List<String> excludePath = new ArrayList<String>();
 
   private static AppConfig config;
-
+  
   static {
     excludePath.add("/");
     excludePath.add("/views/setting.html");
@@ -125,7 +125,7 @@ public class SystemManager {
       }
       if (og != null)
         og.close();
-      og = new ZKOffsetGetter(config);
+      og = new CombinedOffsetGetter(config);
       // TODO how cheack og is avialable?
 
       if (scheduler != null)
@@ -143,6 +143,7 @@ public class SystemManager {
         public void run() {
           try {
             List<String> groups = og.getGroups();
+            groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
             groups.forEach(group -> {
               kafkaInfoCollectAndSavePool.submit(new GenerateKafkaInfoTask(group));
             });
@@ -150,7 +151,7 @@ public class SystemManager {
             LOG.warn("Ops..." + e.getMessage());
           }
         }
-      }, 0, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
+      }, 1000, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
 
       // JMX metrics data
       scheduler.scheduleAtFixedRate(new Runnable() {

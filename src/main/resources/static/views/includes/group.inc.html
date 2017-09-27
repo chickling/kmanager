@@ -40,8 +40,14 @@
       <td>{{p.logSize}}</td>
       <td>{{p.logSize - p.offset}}</td>
       <td>{{p.owner}}</td>
-      <td><moment timestamp="{{p.creation}}"></moment></td>
-      <td><moment timestamp="{{p.modified}}"></moment></td>
+      <td ng-switch="p.creation">
+      	<span ng-switch-when="-1">-</span>
+      	<span ng-switch-default><moment timestamp="{{p.creation}}"></moment></span>
+      </td>
+      <td ng-switch="p.modified">
+      	<span ng-switch-when="-1">-</span>
+      	<span ng-switch-default><moment timestamp="{{p.modified}}"></moment></span>
+      </td>
     </tr>
   </tbody>
 </table>

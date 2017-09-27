@@ -9,6 +9,12 @@
 		placeholder="important, which is using to identity your cluster.">
 	</div>
 	<div class="form-group">
+	<label for="kafkaBroker" class="label label-primary settingLabel">kafka Brokers</label> <input type="text"
+		class="form-control" id="kafkaBroker" name="kafkaBroker"
+		ng-model="settingForm.bootstrapServers"
+		placeholder="broker1:9092,broker2:9092,brokerN:9092">
+	</div>
+	<div class="form-group">
 		<label for="inputZookeeper" class="label label-primary settingLabel">Kafka Zookeepers</label> <input type="text"
 			class="form-control" id="inputZookeeper" name="zkHosts"
 			ng-model="settingForm.zkHosts"
