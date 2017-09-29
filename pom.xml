@@ -12,6 +12,7 @@
 		<version>1.5.4.RELEASE</version>
 	</parent>
 	<properties>
+		<main.basedir>${basedir}/../..</main.basedir>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
