@@ -133,7 +133,8 @@ public abstract class OffsetGetter {
       getTopicForGroup = new KafkaConsumerGroupService(opts);
       Tuple2<Option<String>, Option<Seq<PartitionAssignmentState>>> groupAssignment = getTopicForGroup.describeGroup();
       List<PartitionAssignmentState> partitionAssignments = JavaConversions.seqAsJavaList(groupAssignment._2().get());
-      System.out.println(group + " - " + groupAssignment._1().get());
+      
+//      System.out.println(group + " - " + groupAssignment._1().get());
 
 //     System.out.println(String.format("\n%-30s %-10s %-15s %-15s %-10s %-50s", "TOPIC", "PARTITION",
 //       "CURRENT-OFFSET", "LOG-END-OFFSET", "LAG", "CONSUMER-ID"));
