@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Kmanager chart -Chickling</title>
+    <script src="./scripts/js/lodash.min.js"></script>
+    <script src="./scripts/js/d3.min.js" charset="utf-8"></script>
+    <script src="./scripts/js/nv.d3.min.js"></script>
+    <link href="./css/nv.d3.css" rel="stylesheet" type="text/css">
+
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./css/font-awesome.min.css">
+    <script src="./scripts/js/jquery-1.11.3.min.js"></script>
+    <script src="./scripts/js/bootstrap.min.js"></script>
+    <script src="./scripts/js/moment.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/daterangepicker.css" />
+
+    <script src="./scripts/js/daterangepicker.js"></script>
+    <style>
+        .tooltipLegend {
+            height: 15px;
+            width: 15px;
+        }
+
+        span.tooltipLegend {
+            margin: 0 5px;
+            vertical-align: middle;
+        }
+        .nv-y1 {
+            fill: #ccf;
+        }
+        .nv-y2 {
+            fill: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="col-md-8 col-xs-12">
+        </div>
+        <div class="col-md-4 col-xs-12">
+            <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                <span></span> <b class="caret"></b>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script type="text/javascript">
+        var apiHost = '';
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                res = regex.exec(url);
+            if (!res) return null;
+            if (!res[2]) return '';
+            return decodeURIComponent(res[2].replace(/\+/g, " "));
+        }
+        var group = getParameterByName('group') || '';
+        var topic = getParameterByName('topic') || '';
+        function objectWithKeySorted(object) {
+            var result = {};
+            _.forEach(Object.keys(object).sort(), function (key) {
+                result[key] = object[key];
+            });
+            return result;
+        }
+        var interval = '30m';
+        var dayRange = 1;
+        var colors = { lag: 'red', message: '#ccf' }
+        var results = window.results = {};
+        function convertData(data) {
+            var messages = {
+                key: 'Message',
+                bar: true,
+                color: colors.message,
+                values: []
+            };
+            var lags = {
+                key: 'Lag',
+                color: colors.lag,
+                values: []
+            };
+            data.forEach(function (item) {
+                messages.values.push([item.timestamp, item.offset]);
+                lags.values.push([item.timestamp, item.lag]);
+            });
+            window.test = [lags, messages];
+            return [lags, messages];
+        }
+        function getDataLabel(dx) {
+            if (dayRange > 1) {
+                return d3.time.format('%m/%d %H:%M')(new Date(dx));
+            }
+            return d3.time.format('%H:%M')(new Date(dx));
+        }
+        function buildChart(target, metric, data) {
+            nv.addGraph(function () {
+                var chart = nv.models.linePlusBarChart()
+                    .margin({ top: 30, right: 50, bottom: 50, left: 50 })
+                    .focusEnable(false)
+                    .x(function (d, i) { return i })
+                    .y(function (d, i) { return d[1] })
+                    ;
+                chart.interactive(true);
+                chart.tooltip.contentGenerator(function (dataPoint) {
+                    var idx = dataPoint.index || dataPoint.pointIndex || 0;
+                    var item = results[metric][idx];
+
+                    return '<h4 style="border-bottom: 1px solid black;">' + d3.time.format('%Y/%m/%d %H:%M')(new Date(item.timestamp)) + '</h4>'
+                        + '<div><span style="background-color: ' + colors.message + ';" class="tooltipLegend"></span>' + d3.format(",.2r")(item.offset) + ' (in ' + interval / 60 + ' mins)</div>'
+                        + '<div style="text-align:right;color:LIGHTSEAGREEN;"><span style="margin-left: 30px;"></span>' + d3.format(",.2r")(item.offset / interval) + ' msg/s</div>'
+                        + '<div><span style="background-color: ' + colors.lag + ';" class="tooltipLegend"></span>' + d3.format(",.2r")(item.lag) + ' (in ' + interval / 60 + ' mins)</div>';
+                });
+                chart.xAxis
+                    .showMaxMin(false)
+                    .tickFormat(function (d) {
+                        var dx = data[0].values[d] && data[0].values[d][0] || 0;
+                        return getDataLabel(dx);
+                    });
+                chart.y1Axis
+                    .tickFormat(d3.format('.2s'));
+
+                chart.y2Axis
+                    .tickFormat(function (d) { return d3.format('.2s')(d) });
+
+                chart.bars.forceY([0]);
+
+                d3.select(target)
+                    .datum(data)
+                    .transition()
+                    .duration(0)
+                    .call(chart);
+
+                var svg2 = d3.select(target);
+                var width = parseInt(svg2.style("width"));
+                var height = parseInt(svg2.style("height"));
+                var g = svg2.append('g');
+                g.append("text")
+                    .attr("x", width / 2)
+                    .attr("y", height)
+                    .attr('text-anchor', 'middle')
+                    .attr("font-family", "Arial")
+                    .attr("font-size", "14px")
+                    .attr('alignment-baseline', 'ideographic')
+                    .attr("fill", "black")
+                    .text('Topic: ' + (metric || '') + '/Group: ' + (group || '') + '  (data interval: ' + interval / 60 + ' mins)');
+                g.append("text")
+                    .attr("x", width - 50)
+                    .attr("y", height)
+                    .attr('text-anchor', 'middle')
+                    .attr("font-family", "Arial")
+                    .attr("font-size", "10px")
+                    .attr('alignment-baseline', 'ideographic')
+                    .attr("fill", "gray")
+                    .attr("fill-opacity", "0.3")
+                    .text('@Chickling.Kmanager');
+                nv.utils.windowResize(chart.update);
+
+                return chart;
+            });
+        }
+        function renderChart(start, end) {
+            d3.json(apiHost + '/group/' + group + '/' + topic + '?start=' + start + '&end=' + end, function (d) {
+                results = d;
+                var i = 0;
+                _.forOwn(results, function (val, key) {
+                    if (i === 0 && val.length > 1) {
+                        interval = (val[val.length - 1].timestamp - val[val.length - 2].timestamp) / 1000;
+                        dayRange = parseInt((val[val.length - 1].timestamp - val[0].timestamp) / 1000 / 60 / 60 / 24);
+                    }
+                    i++;
+                    d3.select("body")
+                        .append('div')
+                        .append("svg")
+                        .attr('id', 'chart-' + key)
+                        .attr("width", "100%")
+                        .attr("height", "250px");
+
+                    buildChart('#chart-' + key, key, convertData(val));
+                });
+                if (i === 0) {
+                    var key = 'empty';
+                    d3.select("body")
+                        .append('div')
+                        .append("svg")
+                        .attr('id', 'chart-' + key)
+                        .attr("width", "100%")
+                        .attr("height", "250px");
+
+                    buildChart('#chart-' + key, topic, []);
+                }
+            });
+        }
+        $(function () {
+
+            var start = moment().subtract(1, 'days');
+            var end = moment();
+
+            function cb(start, end) {
+                $('svg').remove();
+                renderChart(start.format('MM/DD/YYYY'), end.format('MM/DD/YYYY'));
+                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            }
+
+            $('#reportrange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Last 3 Days': [moment().subtract(3, 'days'), moment()],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()]
+                }
+            }, cb);
+
+            cb(start, end);
+
+        });
+    </script>
+</body>
+
+</html>

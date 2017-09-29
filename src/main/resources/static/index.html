@@ -1,32 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="offsetapp">
+<html lang="en" ng-app="kmanager">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="">
-<meta name="author" content="pierre">
-
-<title>KMonitor</title>
-
-<!-- Bootstrap core CSS
-<link href="./css/bootstrap.css" rel="stylesheet" media="screen"> -->
-<!-- Latest compiled and minified CSS -->
-
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-	crossorigin="anonymous">
-
-<!-- Optional theme -->
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
-	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
-	crossorigin="anonymous">
-
+<title>Kmanager-Chickling</title>
+  <link rel="stylesheet" href="./css/bootstrap.min.css">
 <link href="./css/chosen.css" rel="stylesheet">
 <link href="./css/bootstrap-datetimepicker.css" rel="stylesheet">
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
+<link rel="stylesheet" href="./css/morris.css">
 <link href="./style.css" rel="stylesheet">
 <link href="./css/cluster-viz.css" rel="stylesheet">
 <link href="./css/sweetalert.css" rel="stylesheet">
@@ -37,14 +20,15 @@
 <script
 	src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.9/angular-resource.js"></script>
 
+<script src="./scripts/js/lodash.min.js"></script>
+
 <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
       <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
-<link rel="shortcut icon" type="image/svg" href="./favicon.svg" />
+<link rel="shortcut icon" type="image/x-icon" href="./images/logo2.ico" />
 </head>
-
 <body>
 	<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
 		<div class="container">
@@ -56,7 +40,8 @@
 						class="icon-bar"></span> <span class="icon-bar"></span> <span
 						class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#">KMonitor</a>
+				<img src="./images/logo3.png" style="height: 40px;vertical-align: middle;float: left;margin-right: 5px;"/>
+				<a class="navbar-brand" href="#">Kmanager</a>
 			</div>
 
 			<!-- Collect the nav links, forms, and other content for toggling -->
@@ -65,16 +50,11 @@
 				<ul class="nav navbar-nav">
 					<li><a href="./#/groups">Consumer Groups</a></li>
 					<li><a href="./#/topics">Topic List</a></li>
-					<li><a href="./#/alerts">Alerting</a></li>
-					<li class="dropdown"><a href="javascript:void(0)"
-						class="dropdown-toggle" data-toggle="dropdown">Visualizations
-							<b class="caret"></b>
-					</a>
-						<ul class="dropdown-menu">
-							<li><a href="./#/activetopicsviz">Active Topic Consumers</a></li>
-							<li><a href="./#/clusterviz">Cluster Overview</a></li>
-							<li><a href="./#/setting">Setting</a></li>
-						</ul></li>
+					<li><a href="./#/activetopicsviz">Active Topic Chart</a></li>
+				</ul>
+				<ul class="nav navbar-nav" style="float: right;">
+					<li><a href="./#/alerts">Monitor</a></li>
+					<li><a href="./#/setting"><span class="glyphicon glyphicon-folder-open"></span></a></li>
 				</ul>
 			</div>
 			<!-- /.navbar-collapse -->
@@ -87,7 +67,7 @@
 	<!-- /.container -->
 	<footer class="footer">
 		<div class="container">
-			<p class="text-muted">&copy; 2017 @Chickling.</p>
+			<p class="text-muted">&copy; 2017 <a href="https://github.com/chickling/kmanager">@Chickling</a>.</p>
 		</div>
 	</footer>
 
@@ -110,9 +90,11 @@
 		src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
 	<script src="./scripts/d3.v3.min.js"></script>
 	<script src="./scripts/sweetalert.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
-	
+	<script
+		src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+	<script
+		src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+
 	<script src="./scripts/chosen.jquery.min.js"></script>
 	<script src="./scripts/directives.js"></script>
 	<script src="./scripts/controllers.js"></script>
