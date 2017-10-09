@@ -109,7 +109,7 @@ public class SaveJMXMetricsToES {
                         objectName.put(attr.getName(), attr.getValue());
                       }
                     }
-                    // es.indexDoc(objectName, indexPrefix + indexSufix, docType);
+                     es.bulkIndex(objectName, indexPrefix + indexSufix, docType);
                   }
                 } catch (Exception e) {
                   LOG.error("Ops~" + objectName, e);
@@ -117,7 +117,7 @@ public class SaveJMXMetricsToES {
               }
             });
           }
-          // es.bulkIndex().awaitClose(10 * 6000, TimeUnit.SECONDS);
+//           es.bulkIndex(null, null, null);
         } catch (Exception e) {
           LOG.warn("Ops..." + e.getMessage());
         }
