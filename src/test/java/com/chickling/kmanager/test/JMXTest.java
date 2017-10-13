@@ -38,25 +38,32 @@ public class JMXTest {
 
   private static boolean excludeInternalTopic = true; // like __consumer_offsets
   private static Map<String, ObjectNameHolder> objectNames = new HashMap<String, ObjectNameHolder>();
-
-  public static void main(String[] args) {
-
-    KafkaJMX kafkaJMX = new KafkaJMX();
-    // objectName_Metrics(kafkaJMX);
-    // objectNames(kafkaJMX);
-
-    ZKUtils.init("10.16.238.101:8181,10.16.238.102:8181,10.16.238.103:8181", 30000, 30000);
-    initObjectNames(kafkaJMX);
+  
+  private static Set<String> exceptObjectNames = new HashSet<String>();
+  
+  
+  static {
+    exceptObjectNames.add("java.lang:type=GarbageCollector,name=G1 Young Generation");
   }
 
-  private static void initObjectNames(KafkaJMX kafkaJMX) {
+  public static void main(String[] args) throws Exception {
+
+    KafkaJMX kafkaJMX = new KafkaJMX();
+    ZKUtils.init("10.16.238.101:8181,10.16.238.102:8181,10.16.238.103:8181", 30000, 30000);
+//    objectName_Metrics(kafkaJMX);
+     objectNames(kafkaJMX);
+
+    // initObjectNames(kafkaJMX);
+  }
+
+  public static void initObjectNames(KafkaJMX kafkaJMX) {
     try {
       if (kafkaJMX == null) {
         kafkaJMX = new KafkaJMX();
       }
       List<BrokerInfo> brokers = ZKUtils.getBrokers();
       for (BrokerInfo broker : brokers) {
-        kafkaJMX.doWithConnection(broker.getHost(), broker.getPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
+        kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
           @Override
           public void doWithConnection(MBeanServerConnection mbsc) {
@@ -68,6 +75,9 @@ public class JMXTest {
                 objectNameHolder = new ObjectNameHolder();
                 String objectName = bean.getObjectName().toString();
                 if (excludeInternalTopic && objectName.contains("__consumer_offsets")) {
+                  continue;
+                }
+                if (exceptObjectNames.contains(bean.getObjectName().toString())) {
                   continue;
                 }
                 String[] metric_other = objectName.split(":");
@@ -137,97 +147,109 @@ public class JMXTest {
     }
   }
 
-  public static void objectNames(KafkaJMX kafkaJMX) {
-    kafkaJMX.doWithConnection("10.16.238.94", 8888, Optional.of(""), Optional.of(""), false, new JMXExecutor() {
+  public static void objectNames(KafkaJMX kafkaJMX) throws Exception {
+    List<BrokerInfo> brokers = ZKUtils.getBrokers();
+    for (BrokerInfo broker : brokers) {
+      kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
-      @Override
-      public void doWithConnection(MBeanServerConnection mbsc) {
-        // KafkaMetrics kafkaMetrics = new KafkaMetrics();
-        try (FileWriter fw = new FileWriter("objectNames.json", true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter out = new PrintWriter(bw)) {
-          Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
-          JSONArray objectName = new JSONArray();
-          for (ObjectInstance bean : beans) {
-            if (excludeInternalTopic && bean.getObjectName().toString().contains("__consumer_offsets")) {
-              continue;
-            }
-            System.out.println("ObjectName: " + bean.getObjectName());
-            objectName.put(bean.getObjectName().toString());
-            MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
-            System.out.println("\tMBeanInfo: " + mbeanInfo);
-            MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
-            String[] attributeArr = new String[attributes.length];
-            for (int i = 0; i < attributes.length; i++) {
-              attributeArr[i] = attributes[i].getName();
-            }
-            AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
-            List<Attribute> attributeList1 = attributeList.asList();
+        @Override
+        public void doWithConnection(MBeanServerConnection mbsc) {
+          // KafkaMetrics kafkaMetrics = new KafkaMetrics();
+          try (FileWriter fw = new FileWriter("objectNames.json", true);
+              BufferedWriter bw = new BufferedWriter(fw);
+              PrintWriter out = new PrintWriter(bw)) {
+            Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+            JSONArray objectName = new JSONArray();
+            for (ObjectInstance bean : beans) {
+              if (excludeInternalTopic && bean.getObjectName().toString().contains("__consumer_offsets")) {
+                continue;
+              }
+              if (exceptObjectNames.contains(bean.getObjectName().toString())) {
+                continue;
+              }
+              System.out.println("ObjectName: " + bean.getObjectName());
+              objectName.put(bean.getObjectName().toString());
+              MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
+              System.out.println("\tMBeanInfo: " + mbeanInfo);
+              MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
+              String[] attributeArr = new String[attributes.length];
+              for (int i = 0; i < attributes.length; i++) {
+                attributeArr[i] = attributes[i].getName();
+              }
+              AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
+              List<Attribute> attributeList1 = attributeList.asList();
 
-            for (Attribute attr : attributeList1) {
-              System.out.println("\t\tName: " + attr.getName() + " Value: " + attr.getValue());
+              for (Attribute attr : attributeList1) {
+                System.out.println("\t\tName: " + attr.getName() + " Value: " + attr.getValue());
+              }
             }
+            out.println(objectName.toString());
+          } catch (Exception e) {
+
           }
-          out.println(objectName.toString());
-        } catch (Exception e) {
-
         }
-      }
-    });
+      });
+    }
 
   }
 
-  public static void objectName_Metrics(KafkaJMX kafkaJMX) {
-    kafkaJMX.doWithConnection("10.16.238.94", 8888, Optional.of(""), Optional.of(""), false, new JMXExecutor() {
+  public static void objectName_Metrics(KafkaJMX kafkaJMX) throws Exception {
+    List<BrokerInfo> brokers = ZKUtils.getBrokers();
+    for (BrokerInfo broker : brokers) {
+      kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
-      @Override
-      public void doWithConnection(MBeanServerConnection mbsc) {
-        // KafkaMetrics kafkaMetrics = new KafkaMetrics();
-        try (FileWriter fw = new FileWriter("metrics.json", true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter out = new PrintWriter(bw)) {
-          Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+        @Override
+        public void doWithConnection(MBeanServerConnection mbsc) {
+          // KafkaMetrics kafkaMetrics = new KafkaMetrics();
+          try (FileWriter fw = new FileWriter("metrics.json", true);
+              BufferedWriter bw = new BufferedWriter(fw);
+              PrintWriter out = new PrintWriter(bw)) {
+            Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
 
-          JSONArray objectNameMetrics = new JSONArray();
-          JSONObject objectName = null;
-          for (ObjectInstance bean : beans) {
-            objectName = new JSONObject();
-            String objectNameStr = bean.getObjectName().toString();
-            if (excludeInternalTopic && objectNameStr.contains("__consumer_offsets")) {
-              continue;
-            }
-            System.out.println("ObjectName: " + objectNameStr);
-            String[] metric_other = objectNameStr.split(":");
-            objectName.put("metric", metric_other[0]);
-            String[] type_name_other = metric_other[1].split(",");
-            String[] temp;
-            for (int i = 0; i < type_name_other.length; i++) {
-              temp = type_name_other[i].split("=");
-              objectName.put(temp[0], temp[1]);
-            }
-            objectName.put("objectName", bean.getObjectName().toString());
-            MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
-            System.out.println("\tMBeanInfo: " + mbeanInfo);
-            MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
-            String[] attributeArr = new String[attributes.length];
-            for (int i = 0; i < attributes.length; i++) {
-              attributeArr[i] = attributes[i].getName();
-            }
-            AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
-            List<Attribute> attributeList1 = attributeList.asList();
+            JSONArray objectNameMetrics = new JSONArray();
+            JSONObject objectName = null;
+            for (ObjectInstance bean : beans) {
+              objectName = new JSONObject();
+              String objectNameStr = bean.getObjectName().toString();
+              if (excludeInternalTopic && objectNameStr.contains("__consumer_offsets")) {
+                continue;
+              }
+              if (exceptObjectNames.contains(bean.getObjectName().toString())) {
+                continue;
+              }
+              System.out.println("ObjectName: " + objectNameStr);
+              String[] metric_other = objectNameStr.split(":");
+              objectName.put("metric", metric_other[0]);
+              String[] type_name_other = metric_other[1].split(",");
+              String[] temp;
+              for (int i = 0; i < type_name_other.length; i++) {
+                temp = type_name_other[i].split("=");
+                objectName.put(temp[0], temp[1]);
+              }
+              objectName.put("objectName", bean.getObjectName().toString());
+              MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
+              System.out.println("\tMBeanInfo: " + mbeanInfo);
+              MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
+              String[] attributeArr = new String[attributes.length];
+              for (int i = 0; i < attributes.length; i++) {
+                attributeArr[i] = attributes[i].getName();
+              }
+              AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
+              List<Attribute> attributeList1 = attributeList.asList();
 
-            for (Attribute attr : attributeList1) {
-              objectName.put(attr.getName(), attr.getValue());
-              System.out.println("\t\tName: " + attr.getName() + " Value: " + attr.getValue());
+              for (Attribute attr : attributeList1) {
+                objectName.put(attr.getName(), attr.getValue());
+                System.out.println("\t\tName: " + attr.getName() + " Value: " + attr.getValue());
+              }
+              objectNameMetrics.put(objectName);
             }
-            objectNameMetrics.put(objectName);
+            out.println(objectNameMetrics.toString());
+          } catch (Exception e) {
+
           }
-          out.println(objectNameMetrics.toString());
-        } catch (Exception e) {
-
         }
-      }
-    });
+      });
+    }
   }
 
 }

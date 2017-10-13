@@ -83,7 +83,7 @@
 		Inactive Consumers</div>
 	<hr />
 	
-	<div ng-show="info.consumers.inactive.length > 0">
+	<div ng-show="info.consumers.extra.length > 0">
 		<h2>Consumers Committed to Kafka</h2>
 
 		<table class="table">
@@ -95,9 +95,6 @@
 			<tbody>
 				<tr ng-repeat="c in info.consumers.extra">
 	      			<td><a href="#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
-				</tr>
-				<tr ng-show="">
-					<td>Unable to find Inactive Consumers</td>
 				</tr>
 			</tbody>
 		</table>
