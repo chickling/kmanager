@@ -5,182 +5,204 @@ package com.chickling.kmanager.config;
  *
  */
 public class AppConfig {
-	private String clusterName;
-	private String apiType = "";
-	private String esHosts;
-	private String esIndex = "";
-	private Integer dataCollectFrequency = 1;
+  private String clusterName;
+  private String bootstrapServers;
+  private String apiType = "";
+  private String esHosts;
+  private String esIndex = "";
+  private Integer dataCollectFrequency = 1;
 
-	private String zkHosts;
-	private Integer zkSessionTimeout = 30 * 1000;
-	private Integer zkConnectionTimeout = 30 * 1000;
+  private String zkHosts;
+  private Integer zkSessionTimeout = 30 * 1000;
+  private Integer zkConnectionTimeout = 30 * 1000;
 
-	private Boolean isAlertEnabled = false;
+  private Boolean isAlertEnabled = false;
 
-	private Integer offsetInfoCacheQueue = 500;
-	private Integer offsetInfoHandler;
-	private String taskFolder = "tasks";
+  private Integer offsetInfoCacheQueue = 5000;
+  private Integer offsetInfoHandler;
+  private String taskFolder = "tasks";
 
-	private Boolean smtpAuth = false;
-	private String smtpUser;
-	private String smtpPasswd;
-	private String smtpServer;
-	private String mailSender;
-	private String mailSubject;
+  private Boolean smtpAuth = false;
+  private String smtpUser;
+  private String smtpPasswd;
+  private String smtpServer;
+  private String mailSender;
+  private String mailSubject;
 
-	private Long excludeByLastSeen = 2592000L;
+  private Long excludeByLastSeen = 2592000L;
 
-	public String getApiType() {
-		return apiType;
-	}
+  public String getBootstrapServers() {
+    return bootstrapServers;
+  }
 
-	public void setApiType(String apiType) {
-		this.apiType = apiType;
-	}
+  public void setBootstrapServers(String bootstrapServers) {
+    this.bootstrapServers = bootstrapServers;
+  }
 
-	public String getZkHosts() {
-		return zkHosts;
-	}
+  public String getApiType() {
+    return apiType;
+  }
 
-	public void setZkHosts(String zkHosts) {
-		this.zkHosts = zkHosts;
-	}
+  public void setApiType(String apiType) {
+    this.apiType = apiType;
+  }
 
-	public Boolean getIsAlertEnabled() {
-		return isAlertEnabled;
-	}
+  public String getZkHosts() {
+    return zkHosts;
+  }
 
-	public void setIsAlertEnabled(Boolean isAlertEnabled) {
-		this.isAlertEnabled = isAlertEnabled;
-	}
+  public void setZkHosts(String zkHosts) {
+    this.zkHosts = zkHosts;
+  }
 
-	public String getEsHosts() {
-		return esHosts;
-	}
+  public Boolean getIsAlertEnabled() {
+    return isAlertEnabled;
+  }
 
-	public void setEsHosts(String esHosts) {
-		this.esHosts = esHosts;
-	}
+  public void setIsAlertEnabled(Boolean isAlertEnabled) {
+    this.isAlertEnabled = isAlertEnabled;
+  }
 
-	public String getEsIndex() {
-		return esIndex.toLowerCase();
-	}
+  public String getEsHosts() {
+    return esHosts;
+  }
 
-	public void setEsIndex(String esIndex) {
-		this.esIndex = esIndex;
-	}
+  public void setEsHosts(String esHosts) {
+    this.esHosts = esHosts;
+  }
 
-	public Integer getDataCollectFrequency() {
-		return dataCollectFrequency;
-	}
+  public String getEsIndex() {
+    return esIndex.toLowerCase();
+  }
 
-	public void setDataCollectFrequency(Integer dataCollectFrequency) {
-		this.dataCollectFrequency = dataCollectFrequency;
-	}
+  public void setEsIndex(String esIndex) {
+    this.esIndex = esIndex;
+  }
 
-	public Integer getZkSessionTimeout() {
-		return zkSessionTimeout;
-	}
+  public Integer getDataCollectFrequency() {
+    return dataCollectFrequency;
+  }
 
-	public void setZkSessionTimeout(Integer zkSessionTimeout) {
-		this.zkSessionTimeout = zkSessionTimeout;
-	}
+  public void setDataCollectFrequency(Integer dataCollectFrequency) {
+    this.dataCollectFrequency = dataCollectFrequency;
+  }
 
-	public Integer getZkConnectionTimeout() {
-		return zkConnectionTimeout;
-	}
+  public Integer getZkSessionTimeout() {
+    return zkSessionTimeout;
+  }
 
-	public void setZkConnectionTimeout(Integer zkConnectionTimeout) {
-		this.zkConnectionTimeout = zkConnectionTimeout;
-	}
+  public void setZkSessionTimeout(Integer zkSessionTimeout) {
+    this.zkSessionTimeout = zkSessionTimeout;
+  }
 
-	public Integer getOffsetInfoCacheQueue() {
-		return offsetInfoCacheQueue;
-	}
+  public Integer getZkConnectionTimeout() {
+    return zkConnectionTimeout;
+  }
 
-	public void setOffsetInfoCacheQueue(Integer offsetInfoCacheQueue) {
-		this.offsetInfoCacheQueue = offsetInfoCacheQueue;
-	}
+  public void setZkConnectionTimeout(Integer zkConnectionTimeout) {
+    this.zkConnectionTimeout = zkConnectionTimeout;
+  }
 
-	public Integer getOffsetInfoHandler() {
-		return offsetInfoHandler;
-	}
+  public Integer getOffsetInfoCacheQueue() {
+    return offsetInfoCacheQueue;
+  }
 
-	public void setOffsetInfoHandler(Integer offsetInfoHandler) {
-		this.offsetInfoHandler = offsetInfoHandler;
-	}
+  public void setOffsetInfoCacheQueue(Integer offsetInfoCacheQueue) {
+    this.offsetInfoCacheQueue = offsetInfoCacheQueue;
+  }
 
-	public Boolean getSmtpAuth() {
-		return smtpAuth;
-	}
+  public Integer getOffsetInfoHandler() {
+    return offsetInfoHandler;
+  }
 
-	public void setSmtpAuth(Boolean smtpAuth) {
-		this.smtpAuth = smtpAuth;
-	}
+  public void setOffsetInfoHandler(Integer offsetInfoHandler) {
+    this.offsetInfoHandler = offsetInfoHandler;
+  }
 
-	public String getSmtpUser() {
-		return smtpUser;
-	}
+  public Boolean getSmtpAuth() {
+    return smtpAuth;
+  }
 
-	public void setSmtpUser(String smtpUser) {
-		this.smtpUser = smtpUser;
-	}
+  public void setSmtpAuth(Boolean smtpAuth) {
+    this.smtpAuth = smtpAuth;
+  }
 
-	public String getSmtpPasswd() {
-		return smtpPasswd;
-	}
+  public String getSmtpUser() {
+    return smtpUser;
+  }
 
-	public void setSmtpPasswd(String smtpPasswd) {
-		this.smtpPasswd = smtpPasswd;
-	}
+  public void setSmtpUser(String smtpUser) {
+    this.smtpUser = smtpUser;
+  }
 
-	public String getSmtpServer() {
-		return smtpServer;
-	}
+  public String getSmtpPasswd() {
+    return smtpPasswd;
+  }
 
-	public void setSmtpServer(String smtpServer) {
-		this.smtpServer = smtpServer;
-	}
+  public void setSmtpPasswd(String smtpPasswd) {
+    this.smtpPasswd = smtpPasswd;
+  }
 
-	public String getMailSender() {
-		return mailSender;
-	}
+  public String getSmtpServer() {
+    return smtpServer;
+  }
 
-	public void setMailSender(String mailSender) {
-		this.mailSender = mailSender;
-	}
+  public void setSmtpServer(String smtpServer) {
+    this.smtpServer = smtpServer;
+  }
 
-	public String getMailSubject() {
-		return mailSubject;
-	}
+  public String getMailSender() {
+    return mailSender;
+  }
 
-	public void setMailSubject(String mailSubject) {
-		this.mailSubject = mailSubject;
-	}
+  public void setMailSender(String mailSender) {
+    this.mailSender = mailSender;
+  }
 
-	public String getTaskFolder() {
-		return taskFolder;
-	}
+  public String getMailSubject() {
+    return mailSubject;
+  }
 
-	public void setTaskFolder(String taskFolder) {
-		this.taskFolder = taskFolder;
-	}
+  public void setMailSubject(String mailSubject) {
+    this.mailSubject = mailSubject;
+  }
 
-	public Long getExcludeByLastSeen() {
-		return excludeByLastSeen;
-	}
+  public String getTaskFolder() {
+    return taskFolder;
+  }
 
-	public void setExcludeByLastSeen(Long excludeByLastSeen) {
-		this.excludeByLastSeen = excludeByLastSeen;
-	}
+  public void setTaskFolder(String taskFolder) {
+    this.taskFolder = taskFolder;
+  }
 
-	public void setClusterName(String clusterName){
-		this.clusterName = clusterName;
-	}
-	public String getClusterName(){
-		if(this.clusterName == null){
-			return "";
-		}
-		return this.clusterName;
-	}
+  public Long getExcludeByLastSeen() {
+    return excludeByLastSeen;
+  }
+
+  public void setExcludeByLastSeen(Long excludeByLastSeen) {
+    this.excludeByLastSeen = excludeByLastSeen;
+  }
+
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+  public String getClusterName() {
+    if (this.clusterName == null) {
+      return "";
+    }
+    return this.clusterName;
+  }
+
+  @Override
+  public String toString() {
+    return "AppConfig [clusterName=" + clusterName + ", bootstrapServers=" + bootstrapServers + ", apiType=" + apiType + ", esHosts="
+        + esHosts + ", esIndex=" + esIndex + ", dataCollectFrequency=" + dataCollectFrequency + ", zkHosts=" + zkHosts
+        + ", zkSessionTimeout=" + zkSessionTimeout + ", zkConnectionTimeout=" + zkConnectionTimeout + ", isAlertEnabled=" + isAlertEnabled
+        + ", offsetInfoCacheQueue=" + offsetInfoCacheQueue + ", offsetInfoHandler=" + offsetInfoHandler + ", taskFolder=" + taskFolder
+        + ", smtpAuth=" + smtpAuth + ", smtpUser=" + smtpUser + ", smtpServer=" + smtpServer + ", mailSender=" + mailSender
+        + ", mailSubject=" + mailSubject + ", excludeByLastSeen=" + excludeByLastSeen + "]";
+  }
+
+
 }

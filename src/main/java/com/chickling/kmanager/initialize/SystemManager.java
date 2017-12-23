@@ -28,7 +28,7 @@ import com.chickling.kmanager.alert.TaskManager;
 import com.chickling.kmanager.alert.WorkerThreadFactory;
 import com.chickling.kmanager.config.AppConfig;
 import com.chickling.kmanager.core.OffsetGetter;
-import com.chickling.kmanager.core.ZKOffsetGetter;
+import com.chickling.kmanager.core.CombinedOffsetGetter;
 import com.chickling.kmanager.core.db.ElasticsearchOffsetDB;
 import com.chickling.kmanager.core.db.OffsetDB;
 import com.chickling.kmanager.email.EmailSender;
@@ -58,8 +58,8 @@ public class SystemManager {
 
   public static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
 
-  private static final ExecutorService kafkaInfoCollectAndSavePool = Executors
-      .newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("KafkaInfo Collector"));
+  private static final ExecutorService kafkaInfoCollectAndSavePool =
+      Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("KafkaInfo Collector"));
 
   public static final String JMX_METRIC_ES_DOC_TYPE = "jmxMetrics";
 
@@ -100,14 +100,13 @@ public class SystemManager {
     config = _config;
     initSystem();
     // TODO
-    IS_SYSTEM_READY.set(true);
-    ;
+    IS_SYSTEM_READY.set(true);;
     saveToFile();
   }
 
   private static void saveToFile() {
     try {
-      PrintWriter writer = new PrintWriter("system.json", "UTF-8");
+      PrintWriter writer = new PrintWriter("config/system.json", "UTF-8");
       writer.println(new Gson().toJson(config));
       writer.close();
     } catch (IOException e) {
@@ -116,23 +115,31 @@ public class SystemManager {
   }
 
   private static void initSystem() {
+    LOG.info("init system with config: {}", config);
     try {
-      if (db != null)
+      if (db != null) {
+        LOG.info("ElasticsearchOffsetDB isn't null(This may be a setting change event), will shut it down and restart it...");
         db.close();
+      }
       db = new ElasticsearchOffsetDB(config);
       if (!db.check()) {
         throw new RuntimeException("No elasticsearch node avialable!");
       }
-      if (og != null)
+      if (og != null) {
+        LOG.info("CombinedOffsetGetter isn't null(This may be a setting change event), will shut it down and restart it...");
         og.close();
-      og = new ZKOffsetGetter(config);
+      }
+      og = new CombinedOffsetGetter(config);
       // TODO how cheack og is avialable?
 
-      if (scheduler != null)
+      if (scheduler != null) {
+        LOG.info("ScheduledThreadPool isn't null(This may be a setting change event), will shut it down and renew it...");
         scheduler.shutdownNow();
+      }
       scheduler = Executors.newScheduledThreadPool(2, new WorkerThreadFactory("FixedRateSchedule"));
 
       if (config.getIsAlertEnabled()) {
+        LOG.info("Alert is enabled...");
         initAlert(config);
       }
 
@@ -143,6 +150,7 @@ public class SystemManager {
         public void run() {
           try {
             List<String> groups = og.getGroups();
+            groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
             groups.forEach(group -> {
               kafkaInfoCollectAndSavePool.submit(new GenerateKafkaInfoTask(group));
             });
@@ -150,7 +158,7 @@ public class SystemManager {
             LOG.warn("Ops..." + e.getMessage());
           }
         }
-      }, 0, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
+      }, 1000, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
 
       // JMX metrics data
       scheduler.scheduleAtFixedRate(new Runnable() {
@@ -168,38 +176,34 @@ public class SystemManager {
                 continue;
               }
               KafkaJMX kafkaJMX = new KafkaJMX();
-              kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false,
-                  new JMXExecutor() {
+              kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
-                    @Override
-                    public void doWithConnection(MBeanServerConnection mBeanServerConnection) {
-                      KafkaMetrics metrics = new KafkaMetrics();
-                      JSONObject metric = null;
-                      metric = new JSONObject(new FormatedMeterMetric(
-                          metrics.getMessagesInPerSec(mBeanServerConnection, Optional.empty()), 0));
-                      metric.put("broker", broker.getHost());
-                      metric.put("date", sFormat.format(now));
-                      metric.put("timestamp", now.getTime());
-                      metric.put("metric", "MessagesInPerSec");
-                      data.put("MessagesInPerSec" + broker.getHost(), metric);
+                @Override
+                public void doWithConnection(MBeanServerConnection mBeanServerConnection) {
+                  KafkaMetrics metrics = new KafkaMetrics();
+                  JSONObject metric = null;
+                  metric = new JSONObject(new FormatedMeterMetric(metrics.getMessagesInPerSec(mBeanServerConnection, Optional.empty()), 0));
+                  metric.put("broker", broker.getHost());
+                  metric.put("date", sFormat.format(now));
+                  metric.put("timestamp", now.getTime());
+                  metric.put("metric", "MessagesInPerSec");
+                  data.put("MessagesInPerSec" + broker.getHost(), metric);
 
-                      metric = new JSONObject(
-                          new FormatedMeterMetric(metrics.getBytesInPerSec(mBeanServerConnection, Optional.empty())));
-                      metric.put("broker", broker.getHost());
-                      metric.put("date", sFormat.format(now));
-                      metric.put("timestamp", now.getTime());
-                      metric.put("metric", "BytesInPerSec");
-                      data.put("BytesInPerSec" + broker.getHost(), metric);
+                  metric = new JSONObject(new FormatedMeterMetric(metrics.getBytesInPerSec(mBeanServerConnection, Optional.empty())));
+                  metric.put("broker", broker.getHost());
+                  metric.put("date", sFormat.format(now));
+                  metric.put("timestamp", now.getTime());
+                  metric.put("metric", "BytesInPerSec");
+                  data.put("BytesInPerSec" + broker.getHost(), metric);
 
-                      metric = new JSONObject(
-                          new FormatedMeterMetric(metrics.getBytesOutPerSec(mBeanServerConnection, Optional.empty())));
-                      metric.put("broker", broker.getHost());
-                      metric.put("date", sFormat.format(now));
-                      metric.put("timestamp", now.getTime());
-                      metric.put("metric", "BytesOutPerSec");
-                      data.put("BytesOutPerSec" + broker.getHost(), metric);
-                    }
-                  });
+                  metric = new JSONObject(new FormatedMeterMetric(metrics.getBytesOutPerSec(mBeanServerConnection, Optional.empty())));
+                  metric.put("broker", broker.getHost());
+                  metric.put("date", sFormat.format(now));
+                  metric.put("timestamp", now.getTime());
+                  metric.put("metric", "BytesOutPerSec");
+                  data.put("BytesOutPerSec" + broker.getHost(), metric);
+                }
+              });
             }
             db.getDB().bulkIndex(data, SystemManager.getElasticSearchJmxType(), config.getEsIndex() + "-");
           } catch (Exception e) {
@@ -208,9 +212,7 @@ public class SystemManager {
         }
       }, 0, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
 
-    } catch (
-
-    Exception e) {
+    } catch (Exception e) {
       System.out.print(stackTraceToString(e));
       // TODO
       IS_SYSTEM_READY.set(false);
@@ -218,26 +220,33 @@ public class SystemManager {
 
     }
   }
-public static String stackTraceToString(Throwable e) {
+
+  public static String stackTraceToString(Throwable e) {
     StringBuilder sb = new StringBuilder();
     for (StackTraceElement element : e.getStackTrace()) {
-        sb.append(element.toString());
-        sb.append("\n");
+      sb.append(element.toString());
+      sb.append("\n");
     }
     return sb.toString();
-}
+  }
+
   private static void initAlert(AppConfig config) {
     EmailSender.setConfig(config);
     TaskManager.init(config);
     if (offsetInfoCacheQueue != null) {
+      LOG.info("offsetInfoCacheQueue isn't null, do clear...");
       offsetInfoCacheQueue.clear();
     } else {
+      LOG.info("new offsetInfoCacheQueue...");
       offsetInfoCacheQueue = new LinkedBlockingQueue<KafkaInfo>(config.getOffsetInfoCacheQueue());
     }
-    if (worker != null)
+    if (worker != null) {
+      LOG.info("AlertTaskChecker isn't null, will shut it down and renew it...");
       worker.shutdownNow();
+    }
     int corePoolSize = config.getOffsetInfoHandler() != null ? config.getOffsetInfoHandler() : DEFAULT_THREAD_POOL_SIZE;
     if (worker != null) {
+      LOG.info("AlertTaskChecker isn't null, will shut it down and renew it...");
       worker.shutdownNow();
     }
     worker = Executors.newFixedThreadPool(corePoolSize, new WorkerThreadFactory("AlertTaskChecker"));

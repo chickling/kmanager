@@ -28,19 +28,18 @@ public class EmailSender {
   }
 
   public static void sendEmail(String message, String sendTo, String group_topic) {
-    Properties properties = System.getProperties();
-
-    if (config.getSmtpAuth()) {
-      properties.setProperty("mail.user", config.getSmtpUser());
-      properties.setProperty("mail.password", config.getSmtpPasswd());
-    }
-    properties.setProperty("mail.smtp.host", config.getSmtpServer());
-
-    Session session = Session.getDefaultInstance(properties);
-
-    MimeMessage mimeMessage = new MimeMessage(session);
-
     try {
+      Properties properties = System.getProperties();
+      if (config.getSmtpAuth()) {
+        properties.setProperty("mail.user", config.getSmtpUser());
+        properties.setProperty("mail.password", config.getSmtpPasswd());
+      }
+      properties.setProperty("mail.smtp.host", config.getSmtpServer());
+
+      Session session = Session.getDefaultInstance(properties);
+
+      MimeMessage mimeMessage = new MimeMessage(session);
+
       String[] sendToArr = sendTo.split(";");
       mimeMessage.setFrom(new InternetAddress(config.getMailSender()));
       if (sendToArr.length > 1) {
@@ -52,8 +51,11 @@ public class EmailSender {
       }
       mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(sendToArr[0]));
 
-      String[] group_topicArr = group_topic.split("_");
+      String[] group_topicArr = group_topic.split("@");
       String subject = config.getMailSubject();
+      if (subject.contains("{cluster}")) {
+        subject = subject.replace("{cluster}", config.getClusterName());
+      }
       if (subject.contains("{group}")) {
         subject = subject.replace("{group}", group_topicArr[0]);
       }
@@ -65,9 +67,8 @@ public class EmailSender {
       mimeMessage.setContent(message, "text/html");
 
       Transport.send(mimeMessage);
-    } catch (
-
-    Exception e) {
+      LOG.info("Successfull send mail to {} for {}", sendTo, group_topic);
+    } catch (Exception e) {
       LOG.error("sendEmail faild!", e);
     }
   }

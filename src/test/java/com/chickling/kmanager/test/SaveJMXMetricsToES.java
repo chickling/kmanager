@@ -44,10 +44,10 @@ public class SaveJMXMetricsToES {
   private static final SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
 
   public static void main(String[] args) {
-    ZKUtils.init("10.16.238.101:8181,10.16.238.102:8181,10.16.238.103:8181", 30000, 30000);
+    ZKUtils.init("luva101:8181,luva102:8181,luva103:8181", 30000, 30000);
     // ElasticsearchJavaUtil es = new
-    // ElasticsearchJavaUtil("10.16.238.82:9300,10.16.238.83:9300,10.16.238.84:9300");
-    ElasticsearchJavaUtil es = new ElasticsearchJavaUtil("10.16.232.120:9300");
+    // ElasticsearchJavaUtil("luva82:9300,luva83:9300,luva84:9300");
+    ElasticsearchJavaUtil es = new ElasticsearchJavaUtil("luva120:9300");
     KafkaJMX kafkaJMX = new KafkaJMX();
 
     scheduler.scheduleAtFixedRate(new Runnable() {
@@ -109,7 +109,7 @@ public class SaveJMXMetricsToES {
                         objectName.put(attr.getName(), attr.getValue());
                       }
                     }
-                    // es.indexDoc(objectName, indexPrefix + indexSufix, docType);
+                     es.bulkIndex(objectName, indexPrefix + indexSufix, docType);
                   }
                 } catch (Exception e) {
                   LOG.error("Ops~" + objectName, e);
@@ -117,7 +117,7 @@ public class SaveJMXMetricsToES {
               }
             });
           }
-          // es.bulkIndex().awaitClose(10 * 6000, TimeUnit.SECONDS);
+//           es.bulkIndex(null, null, null);
         } catch (Exception e) {
           LOG.warn("Ops..." + e.getMessage());
         }

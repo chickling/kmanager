@@ -1,9 +1,9 @@
 package com.chickling.kmanager.controller;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.chickling.kmanager.initialize.SystemManager;
 import com.chickling.kmanager.model.KafkaInfo;
-import com.chickling.kmanager.model.OffsetHistory;
 import com.chickling.kmanager.model.OffsetStat;
 import com.chickling.kmanager.utils.elasticsearch.restapi.ElasticsearchRESTUtil;
 
@@ -32,8 +31,8 @@ public class GroupController {
 
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	public List<String> getGroups() {
-		List<String> groups = SystemManager.og.getGroups();
-		Collections.sort(groups);
+	    List<String> groups = SystemManager.og.getGroups();
+        groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
 		return groups;
 	}
 

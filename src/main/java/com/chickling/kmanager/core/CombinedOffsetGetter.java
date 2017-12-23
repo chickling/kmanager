@@ -2,6 +2,7 @@ package com.chickling.kmanager.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,10 +13,14 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.data.Stat;
 
 import com.chickling.kmanager.config.AppConfig;
+import com.chickling.kmanager.initialize.SystemManager;
 import com.chickling.kmanager.model.OffsetInfo;
 import com.chickling.kmanager.model.ZkDataAndStat;
 import com.chickling.kmanager.utils.ZKUtils;
 
+import kafka.admin.ConsumerGroupCommand.ConsumerGroupCommandOptions;
+import kafka.admin.ConsumerGroupCommand.KafkaConsumerGroupService;
+import kafka.admin.ConsumerGroupCommand.PartitionAssignmentState;
 import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.TopicAndPartition;
 import kafka.consumer.ConsumerThreadId;
@@ -23,20 +28,21 @@ import kafka.javaapi.OffsetRequest;
 import kafka.javaapi.OffsetResponse;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.utils.ZkUtils;
+import scala.Option;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
+import scala.collection.Seq;
 
 /**
  * @author Hulva Luva.H from ECBD
- * @date 2017年6月15日
- * @description
+ * @since 2017年6月15日
  *
  */
-public class ZKOffsetGetter extends OffsetGetter {
+public class CombinedOffsetGetter extends OffsetGetter {
 
 	private static Long excludeByLastSeen = 604_800_000L;
 
-	public ZKOffsetGetter(AppConfig config) {
+	public CombinedOffsetGetter(AppConfig config) {
 		excludeByLastSeen = config.getExcludeByLastSeen() * 1000;
 		ZKUtils.init(config.getZkHosts(), config.getZkSessionTimeout(), config.getZkConnectionTimeout());
 	}
@@ -60,7 +66,8 @@ public class ZKOffsetGetter extends OffsetGetter {
 	@Override
 	public Map<String, List<String>> getTopicMap() {
 		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
-		List<String> groups = getGroups();
+		List<String> groups = SystemManager.og.getGroups();
+        groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
 		List<String> topics = null;
 		for (String group : groups) {
 			topics = getTopicList(group);
@@ -78,10 +85,35 @@ public class ZKOffsetGetter extends OffsetGetter {
 		}
 		return topicGroupsMap;
 	}
+	
+	
+	public Set<String> getTopicsForGroupCommittedToKafka(String group) {
+	  Set<String> topics = new HashSet<String>();
+	  KafkaConsumerGroupService getTopicForGroup = null;
+	  try {
+	      String[] cmd = {"--bootstrap-server", SystemManager.getConfig().getBootstrapServers(), "--describe", "--group", group};
+	      ConsumerGroupCommandOptions opts = new ConsumerGroupCommandOptions(cmd);
+	      getTopicForGroup = new KafkaConsumerGroupService(opts);
+	      Tuple2<Option<String>, Option<Seq<PartitionAssignmentState>>> groupAssignment = getTopicForGroup.describeGroup();
+	      List<PartitionAssignmentState> partitionAssignments = JavaConversions.seqAsJavaList(groupAssignment._2().get());
+
+	      partitionAssignments.forEach((partitionAssignment) -> {
+	        String topic = (String) partitionAssignment.topic().getOrElse(elseStringOption);
+	        if(!"-".equals(topic)) {
+	          topics.add(topic);
+	        }
+	      });
+	    } finally {
+	      getTopicForGroup.close();
+	    }
+	  return topics;
+	}
 
 	@Override
 	public Map<String, List<String>> getActiveTopicMap() {
 		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
+		
+		// Consumers committed offsets to Zk
 		List<String> consumers = ZKUtils.getChildren(ZkUtils.ConsumersPath());
 		for (String consumer : consumers) {
 			Map<String, scala.collection.immutable.List<ConsumerThreadId>> consumer_consumerThreadId = null;
@@ -107,8 +139,31 @@ public class ZKOffsetGetter extends OffsetGetter {
 				topicGroupsMap.put(topic, _groups);
 			});
 		}
+		// TODO 	Consumers committed offsets to Kafka that is Active
+		
 		return topicGroupsMap;
 	}
+	
+	@Override
+	public Map<String, List<String>> getTopicMapCommitedToKafka() {
+      Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
+      List<String> consumers = this.getGroupsCommittedToBroker();
+      for (String consumer : consumers) {
+          Set<String> topics = this.getTopicsForGroupCommittedToKafka(consumer);
+          topics.forEach(topic -> {
+              List<String> _groups = null;
+              if (topicGroupsMap.containsKey(topic)) {
+                  _groups = topicGroupsMap.get(topic);
+                  _groups.add(consumer);
+              } else {
+                  _groups = new ArrayList<String>();
+                  _groups.add(consumer);
+              }
+              topicGroupsMap.put(topic, _groups);
+          });
+      }
+      return topicGroupsMap;
+  }
 
 	@Override
 	public List<String> getTopicList(String group) {

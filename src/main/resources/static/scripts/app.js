@@ -123,6 +123,9 @@ angular.module("kmanager.services", ["ngResource"])
 				_(data.consumers.inactive).forEach(function (consumer) {
 					consumer.offsets = groupPartitions(consumer.offsets);
 				});
+				_(data.consumers.extra).forEach(function (consumer) {
+					consumer.offsets = groupPartitions(consumer.offsets);
+				});
 				cb(data);
 			};
 		}

@@ -55,7 +55,6 @@
 	</div>
 	<div ng-show="info.consumers.active.length == 0">Unable to find
 		Active Consumers</div>
-
 	<hr />
 
 	<h2>InActive Consumers</h2>
@@ -83,4 +82,27 @@
 	<div ng-show="info.consumers.inactive.length == 0">Unable to find
 		Inactive Consumers</div>
 	<hr />
+	
+	<div ng-show="info.consumers.extra.length > 0">
+		<h2>Consumers Committed to Kafka</h2>
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Consumer Group</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="c in info.consumers.extra">
+	      			<td><a href="#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
+				</tr>
+			</tbody>
+		</table>
+	
+		<h2>Consumers Offsets Committed to Kafka</h2>
+		<div ng-repeat="info in info.consumers.extra">
+			<div ng-include="'views/includes/group.inc.html'"></div>
+		</div>
+	</div>
+	
 </div>

@@ -64,6 +64,7 @@ public class ZKUtils {
 				zkUtilsFromKafka = new ZkUtils(zkClient, zkConnection, false);
 			}
 		} catch (Exception e) {
+		    LOG.error("Init ZKUtil failed!", e);
 			throw new RuntimeException("Init ZKUtils failed! " + e.getMessage());
 		}
 	}
