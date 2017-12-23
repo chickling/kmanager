@@ -9,19 +9,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.chickling.kmanager.config.AppConfig;
+import com.chickling.kmanager.model.OffsetInfo;
 import com.google.gson.Gson;
 
 /**
- * @ClassName
- * @Description
  * @author Hulva Luva.H
- * @date 2017年2月11日
+ * @since 2017年2月11日
  *
  */
 public class TaskManager {
@@ -29,7 +29,8 @@ public class TaskManager {
 
 	public static String taskFolder;
 
-	public static Map<String, Long> cachedLastSendTime = new HashMap<String, Long>();
+	public static ConcurrentHashMap<String, Long> cachedLastSendTime = new ConcurrentHashMap<>();
+	public static ConcurrentHashMap<String, Set<OffsetInfo>> cachedTriggeredOffsetInfo = new ConcurrentHashMap<>();
 
 	// k:group v:(k:topic v:taskContent)
 	private static Map<String, Map<String, TaskContent>> tasks;

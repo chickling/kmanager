@@ -35,8 +35,7 @@ import scala.collection.Seq;
 
 /**
  * @author Hulva Luva.H from ECBD
- * @date 2017年6月15日
- * @description
+ * @since 2017年6月15日
  *
  */
 public class CombinedOffsetGetter extends OffsetGetter {

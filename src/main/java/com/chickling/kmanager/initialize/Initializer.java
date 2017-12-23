@@ -28,7 +28,7 @@ public class Initializer implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		try {
-			File systemConfigFile = new File("system.json");
+			File systemConfigFile = new File("config/system.json");
 			if (!systemConfigFile.exists()) {
 				SystemManager.IS_SYSTEM_READY.set(false);
 			} else {

@@ -41,9 +41,8 @@ import scala.collection.Seq;
 import scala.runtime.AbstractFunction0;
 
 /**
- * @author Hulva Luva.H from ECBD
- * @date 2017年6月15日
- * @description
+ * @author Hulva Luva.H
+ * @since 2017年6月15日
  *
  */
 public abstract class OffsetGetter {
@@ -57,24 +56,24 @@ public abstract class OffsetGetter {
   protected static final String clientId = "Kmanager";
 
   protected static KafkaConsumerGroupService kafkaConsumerGroupService = null;
-  
-  final AbstractFunction0<Integer> elseIntOption = new AbstractFunction0<Integer>() { 
-    @Override 
-    public Integer apply() { 
+
+  final AbstractFunction0<Integer> elseIntOption = new AbstractFunction0<Integer>() {
+    @Override
+    public Integer apply() {
       return -1;
     }
   };
-  
-  final AbstractFunction0<String> elseStringOption = new AbstractFunction0<String>() { 
-    @Override 
-    public String apply() { 
+
+  final AbstractFunction0<String> elseStringOption = new AbstractFunction0<String>() {
+    @Override
+    public String apply() {
       return "-";
     }
   };
-  
-  final AbstractFunction0<Long> elseLongOption = new AbstractFunction0<Long>() { 
-    @Override 
-    public Long apply() { 
+
+  final AbstractFunction0<Long> elseLongOption = new AbstractFunction0<Long>() {
+    @Override
+    public Long apply() {
       return -1L;
     }
   };
@@ -96,8 +95,8 @@ public abstract class OffsetGetter {
   			}
    * </code>
    * 
-   * @param bId
-   * @return
+   * @param bId broker id
+   * @return SimpleConsumer
    */
   public SimpleConsumer getConsumer(int bId) {
     String jsonString = null;
@@ -133,45 +132,37 @@ public abstract class OffsetGetter {
       getTopicForGroup = new KafkaConsumerGroupService(opts);
       Tuple2<Option<String>, Option<Seq<PartitionAssignmentState>>> groupAssignment = getTopicForGroup.describeGroup();
       List<PartitionAssignmentState> partitionAssignments = JavaConversions.seqAsJavaList(groupAssignment._2().get());
-      
-//      System.out.println(group + " - " + groupAssignment._1().get());
 
-//     System.out.println(String.format("\n%-30s %-10s %-15s %-15s %-10s %-50s", "TOPIC", "PARTITION",
-//       "CURRENT-OFFSET", "LOG-END-OFFSET", "LAG", "CONSUMER-ID"));
-       
+      // System.out.println(group + " - " + groupAssignment._1().get());
+
+      // System.out.println(String.format("\n%-30s %-10s %-15s %-15s %-10s %-50s", "TOPIC", "PARTITION",
+      // "CURRENT-OFFSET", "LOG-END-OFFSET", "LAG", "CONSUMER-ID"));
+
       partitionAssignments.forEach((partitionAssignment) -> {
         if (!topics.isEmpty()) {
-          if(topics.contains(partitionAssignment.topic().getOrElse(elseStringOption))) {
-            offsets.add(new OffsetInfo(
-                group, 
-                (String) partitionAssignment.topic().getOrElse(elseStringOption), 
+          if (topics.contains(partitionAssignment.topic().getOrElse(elseStringOption))) {
+            offsets.add(new OffsetInfo(group, (String) partitionAssignment.topic().getOrElse(elseStringOption),
                 (Integer) partitionAssignment.partition().getOrElse(elseIntOption),
-                (Long) partitionAssignment.offset().getOrElse(elseLongOption), 
+                (Long) partitionAssignment.offset().getOrElse(elseLongOption),
                 (Long) partitionAssignment.logEndOffset().getOrElse(elseLongOption),
-                (String) partitionAssignment.consumerId().getOrElse(elseStringOption), 
-                -1L, 
-                -1L,
+                (String) partitionAssignment.consumerId().getOrElse(elseStringOption), -1L, -1L,
                 (Long) partitionAssignment.lag().getOrElse(elseLongOption)));
           }
         } else {
-          offsets.add(new OffsetInfo(
-              group, 
-              (String) partitionAssignment.topic().getOrElse(elseStringOption), 
+          offsets.add(new OffsetInfo(group, (String) partitionAssignment.topic().getOrElse(elseStringOption),
               (Integer) partitionAssignment.partition().getOrElse(elseIntOption),
-              (Long) partitionAssignment.offset().getOrElse(elseLongOption), 
+              (Long) partitionAssignment.offset().getOrElse(elseLongOption),
               (Long) partitionAssignment.logEndOffset().getOrElse(elseLongOption),
-              (String) partitionAssignment.consumerId().getOrElse(elseStringOption), 
-              -1L, 
-              -1L,
+              (String) partitionAssignment.consumerId().getOrElse(elseStringOption), -1L, -1L,
               (Long) partitionAssignment.lag().getOrElse(elseLongOption)));
         }
-//         System.out.println(String.format("%-30s %-10s %-15s %-15s %-10s %-50s",
-//         partitionAssignment.topic().get(),
-//         partitionAssignment.partition().get(),
-//         partitionAssignment.offset().get(),
-//         partitionAssignment.logEndOffset().get(),
-//         partitionAssignment.lag().get(),
-//         partitionAssignment.consumerId().get()));
+        // System.out.println(String.format("%-30s %-10s %-15s %-15s %-10s %-50s",
+        // partitionAssignment.topic().get(),
+        // partitionAssignment.partition().get(),
+        // partitionAssignment.offset().get(),
+        // partitionAssignment.logEndOffset().get(),
+        // partitionAssignment.lag().get(),
+        // partitionAssignment.consumerId().get()));
       });
     } finally {
       getTopicForGroup.close();
@@ -280,8 +271,7 @@ public abstract class OffsetGetter {
   /**
    * Returns details for a given topic such as the consumers pulling off of it
    * 
-   * @param topic
-   * @return
+   * @return TopicDetails
    */
   public TopicDetails getTopicDetail(String topic) {
     Map<String, List<String>> topicMap = getActiveTopicMap();
@@ -308,7 +298,7 @@ public abstract class OffsetGetter {
    * Returns details for a given topic such as the active consumers pulling off of it and for each of
    * the active consumers it will return the consumer data
    * 
-   * @throws Exception
+   * @throws Exception exception
    */
   public TopicAndConsumersDetails getTopicAndConsumersDetail(String topic) throws Exception {
     Map<String, List<String>> topicMap = getTopicMap();
@@ -324,7 +314,7 @@ public abstract class OffsetGetter {
     if (!activeTopicMap.containsKey(topic) && topicMap.containsKey(topic)) {
       inActiveConsumers = mapConsumersToKafkaInfo(topicMap.get(topic), topic);
     }
-    
+
     List<KafkaInfo> consumersCommittedToBroker = new ArrayList<KafkaInfo>();
     if (topicMapCommittedToBroker.containsKey(topic)) {
       consumersCommittedToBroker = mapConsumersToKafkaInfo(topicMapCommittedToBroker.get(topic), topic);

@@ -18,7 +18,7 @@ public class AppConfig {
 
   private Boolean isAlertEnabled = false;
 
-  private Integer offsetInfoCacheQueue = 500;
+  private Integer offsetInfoCacheQueue = 5000;
   private Integer offsetInfoHandler;
   private String taskFolder = "tasks";
 
@@ -193,4 +193,16 @@ public class AppConfig {
     }
     return this.clusterName;
   }
+
+  @Override
+  public String toString() {
+    return "AppConfig [clusterName=" + clusterName + ", bootstrapServers=" + bootstrapServers + ", apiType=" + apiType + ", esHosts="
+        + esHosts + ", esIndex=" + esIndex + ", dataCollectFrequency=" + dataCollectFrequency + ", zkHosts=" + zkHosts
+        + ", zkSessionTimeout=" + zkSessionTimeout + ", zkConnectionTimeout=" + zkConnectionTimeout + ", isAlertEnabled=" + isAlertEnabled
+        + ", offsetInfoCacheQueue=" + offsetInfoCacheQueue + ", offsetInfoHandler=" + offsetInfoHandler + ", taskFolder=" + taskFolder
+        + ", smtpAuth=" + smtpAuth + ", smtpUser=" + smtpUser + ", smtpServer=" + smtpServer + ", mailSender=" + mailSender
+        + ", mailSubject=" + mailSubject + ", excludeByLastSeen=" + excludeByLastSeen + "]";
+  }
+
+
 }

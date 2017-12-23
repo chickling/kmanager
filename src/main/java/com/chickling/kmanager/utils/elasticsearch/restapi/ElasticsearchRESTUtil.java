@@ -90,7 +90,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
   	}		
    * </code>
    * 
-   * @return
+   * @return just true
    */
   public boolean check() {
 
