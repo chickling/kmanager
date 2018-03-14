@@ -117,15 +117,13 @@ angular.module("kmanager.services", ["ngResource"])
 
 		function processMultipleConsumers(cb) {
 			return function (data) {
-				_(data.consumers.active).forEach(function (consumer) {
+				_(data.consumers.zk).forEach(function (consumer) {
 					consumer.offsets = groupPartitions(consumer.offsets);
 				});
-				_(data.consumers.inactive).forEach(function (consumer) {
+				_(data.consumers.broker).forEach(function (consumer) {
 					consumer.offsets = groupPartitions(consumer.offsets);
 				});
-				_(data.consumers.extra).forEach(function (consumer) {
-					consumer.offsets = groupPartitions(consumer.offsets);
-				});
+				
 				cb(data);
 			};
 		}

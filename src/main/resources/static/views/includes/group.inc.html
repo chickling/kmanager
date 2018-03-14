@@ -13,7 +13,8 @@
     </tr>
   </thead>
   <tbody ng-repeat="c in info.offsets">
-    <tr class="topic-row" ng-show="groupBy == 'consumer'">
+  
+    <tr  class="topic-row" ng-show="groupBy == 'consumer'">
       <td><a href="#/group/{{c.group}}/{{c.topic}}">{{c.topic}}</a></td>
       <td></td>
       <td>{{c.offset}}</td>
@@ -23,7 +24,7 @@
       <td></td>
       <td></td>
     </tr>
-    <tr class="topic-row" ng-show="groupBy == 'topic'">
+    <tr  class="topic-row" ng-show="groupBy == 'topic'">
       <td><a href="#/group/{{c.group}}/{{c.topic}}">{{c.group}}</a></td>
       <td></td>
       <td>{{c.offset}}</td>
@@ -33,7 +34,7 @@
       <td></td>
       <td></td>
     </tr>
-    <tr class="partition-row" ng-repeat="p in c.partitions">
+    <tr  class="partition-row" ng-repeat="p in c.partitions">
       <td></td>
       <td>{{p.partition}}</td>
       <td>{{p.offset}}</td>

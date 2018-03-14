@@ -33,7 +33,7 @@ public class TaskHandler implements Runnable {
           if (task == null) {
             continue;
           }
-          if (offsetInfo.getLag() > task.getThreshold()) {
+          if (offsetInfo.getLag() > task.getThreshold()&&(task.getConsumerAPI()==0||(offsetInfo.isBelongZK()?1==task.getConsumerAPI():2==task.getConsumerAPI()))) {
             tasks.add(task);
             if (TaskManager.cachedTriggeredOffsetInfo.containsKey(offsetInfo.getTopic())) {
               TaskManager.cachedTriggeredOffsetInfo.get(offsetInfo.getTopic()).add(offsetInfo);
@@ -74,7 +74,8 @@ public class TaskHandler implements Runnable {
         blabla.append("<tr><td style=\"border: 1px solid #ddd;\">" + offsetInfo.getGroup() + "</td>");
         blabla.append("<td style=\"border: 1px solid #ddd;\">" + offsetInfo.getTopic() + "</td>");
         blabla.append("<td style=\"border: 1px solid #ddd;\">" + offsetInfo.getPartition() + "</td>");
-        blabla.append("<td style=\"border: 1px solid #ddd;\">" + offsetInfo.getLag() + "</td><tr>");
+        blabla.append("<td style=\"border: 1px solid #ddd;\">" + offsetInfo.getLag() + "</td>");
+        blabla.append("<td style=\"border: 1px solid #ddd;\">" + (offsetInfo.isBelongZK()?"ZK":"Broker") + "</td><tr>");
       }
       template.insertTr(blabla.toString());
       EmailSender.sendEmail(template.getContent(), _task.getMailTo(), _task.getGroup() + "@" + _task.getTopic());

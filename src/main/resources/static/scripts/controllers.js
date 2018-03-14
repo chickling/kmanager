@@ -15,7 +15,17 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 			$scope.loading = true;
 			offsetinfo.listGroup().success(function (d) {
 				$scope.loading = false;
-				$scope.groups = d;
+				if(d.length>1){
+				 //数组去重	
+					var temp = [d[0]];
+					for(var i=1;i<d.length;i++){
+						if(d.indexOf(d[i])==i)temp.push(d[i]);
+					}
+					$scope.groups = temp;
+				}else{
+					$scope.groups = d;
+				}
+				
 			});
 		}])
 	.controller("TopicListCtrl", ["$scope", "offsetinfo",
@@ -233,6 +243,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 							var button = $(event.relatedTarget);
 							var group = button.data('group');
 							var topic = button.data('topic');
+							var consumerAPI = button.data('consumerapi');
 							var threshold = button.data('threshold');
 							var diapause = button.data('diapause');
 							var mailTo = button.data('mailto');
@@ -242,6 +253,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 							var modal = $(this);
 							modal.find('.modal-body #taskDetail-inputTopic').val(
 								topic);
+							modal.find('#taskDetail_inputConsumerAPI[value='+consumerAPI+']').attr("checked",true);
 							modal.find('.modal-body #taskDetail-inputConsumer')
 								.val(group);
 							$('#taskDetail-inputTopic').prop('readonly', true);
@@ -299,7 +311,8 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 						topic: "",
 						threshold: 1,
 						diapause: 60,
-						mailTo: ""
+						mailTo: "",
+						consumerAPI: 0
 					}
 					var topicOptions = new Array();
 					offsetinfo.listTopics().success(function (d) {
@@ -336,7 +349,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 										'#inputTopicName_chosen .chosen-single span')
 										.text();
 									$.ajax({
-										url: "activeconsumers/"
+										url: "consumers/"
 										+ choosedTopic,
 										type: "GET",
 										success: function (groups) {

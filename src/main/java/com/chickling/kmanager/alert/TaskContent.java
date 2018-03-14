@@ -10,18 +10,21 @@ public class TaskContent {
 	private Integer diapause; //
 	private Integer threshold;
 	private String mailTo;
+	
+	private Integer consumerAPI;
 
 	public TaskContent() {
 		super();
 	}
 
-	public TaskContent(String group, String topic, Integer diapause, Integer threshold, String mailTo) {
+	public TaskContent(String group, String topic, Integer diapause, Integer threshold, String mailTo ,Integer consumerAPI) {
 		super();
 		this.group = group;
 		this.topic = topic;
 		this.diapause = diapause;
 		this.threshold = threshold;
 		this.mailTo = mailTo;
+		this.consumerAPI = consumerAPI;
 	}
 
 	public Integer getDiapause() {
@@ -62,6 +65,15 @@ public class TaskContent {
 
 	public void setTopic(String topic) {
 		this.topic = topic;
+	}
+	
+
+	public Integer getConsumerAPI() {
+		return consumerAPI;
+	}
+
+	public void setConsumerAPI(Integer consumerAPI) {
+		this.consumerAPI = consumerAPI;
 	}
 
 	@Override

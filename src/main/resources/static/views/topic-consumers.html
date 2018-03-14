@@ -1,9 +1,9 @@
 <h1>{{topic}} Detail</h1>
 
 <div class="panel panel-default" ng-show="stats.summary">
-		<div class="panel-heading">
-			<h4>Metrics</h4>
-		</div>
+	<div class="panel-heading">
+		<h4>Metrics</h4>
+	</div>
 	<div class="panel-body">
 		<table class="table">
 			<thead>
@@ -31,60 +31,8 @@
 <div class="alert alert-info" ng-show="loading">Loading ...</div>
 
 <div ng-hide="loading">
-	<h2>Active Consumers</h2>
-
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Consumer Group</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="c in info.consumers.active">
-      			<td><a href="#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
-			</tr>
-			<tr ng-show="info.consumers.active.length == 0">
-				<td>Unable to find Active Consumers</td>
-			</tr>
-		</tbody>
-	</table>
-
-	<h2>Active Consumers Offsets</h2>
-	<div ng-repeat="info in info.consumers.active">
-		<div ng-include="'views/includes/group.inc.html'"></div>
-	</div>
-	<div ng-show="info.consumers.active.length == 0">Unable to find
-		Active Consumers</div>
-	<hr />
-
-	<h2>InActive Consumers</h2>
-
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Consumer Group</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="c in info.consumers.inactive">
-      			<td><a href="#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
-			</tr>
-			<tr ng-show="info.consumers.inactive.length == 0">
-				<td>Unable to find Inactive Consumers</td>
-			</tr>
-		</tbody>
-	</table>
-
-	<h2>Inactive Consumers Offsets</h2>
-	<div ng-repeat="info in info.consumers.inactive">
-		<div ng-include="'views/includes/group.inc.html'"></div>
-	</div>
-	<div ng-show="info.consumers.inactive.length == 0">Unable to find
-		Inactive Consumers</div>
-	<hr />
-	
-	<div ng-show="info.consumers.extra.length > 0">
-		<h2>Consumers Committed to Kafka</h2>
+	<div ng-show="info.consumers.broker.length > 0">
+		<h2>Consumers Offsets Committed to Broker</h2>
 
 		<table class="table">
 			<thead>
@@ -93,16 +41,51 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr ng-repeat="c in info.consumers.extra">
-	      			<td><a href="#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
+				<tr ng-repeat="c in info.consumers.broker">
+					<td><a href="#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
+				</tr>
+				<tr ng-show="info.consumers.broker.length == 0">
+					<td>Broker Unable to find Consumers</td>
 				</tr>
 			</tbody>
 		</table>
-	
-		<h2>Consumers Offsets Committed to Kafka</h2>
-		<div ng-repeat="info in info.consumers.extra">
+
+		<h2>Consumers Offsets</h2>
+		<div ng-repeat="info in info.consumers.broker">
 			<div ng-include="'views/includes/group.inc.html'"></div>
 		</div>
+		<div ng-show="info.consumers.broker.length == 0">Broker Unable
+			to find Consumers Offsets</div>
 	</div>
-	
+
+
+	<div ng-show="info.consumers.zk.length > 0">
+		<h2>Consumers Offsets Committed to ZK</h2>
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Consumer Group</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="c in info.consumers.zk">
+					<td><a href="#/group/{{c.name}}/{{topic}}">{{c.name}}</a></td>
+				</tr>
+				<tr ng-show="info.consumers.zk.length == 0">
+					<td>ZK Unable to find Consumers</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Consumers Offsets</h2>
+		<div ng-repeat="info in info.consumers.zk">
+			<div ng-include="'views/includes/group.inc.html'"></div>
+		</div>
+		<div ng-show="info.consumers.zk.length == 0">ZK Unable to find
+			Consumers Offsets</div>
+		<hr />
+	</div>
+
+
 </div>
