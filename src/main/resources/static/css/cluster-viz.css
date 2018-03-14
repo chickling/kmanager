@@ -14,3 +14,23 @@ path.link {
     stroke: #585858;
     stroke-width: 1.7px;
 }
+
+
+.bg-green {
+	background: #1ABB9C !important;
+	border: 1px solid #1ABB9C !important;
+	color: #fff
+}
+
+.bg-red {
+	background: #E74C3C !important;
+	border: 1px solid #E74C3C !important;
+	color: #fff
+}
+
+.statuscircle {
+	width: 25px;
+	height: 25px;
+	padding: 2px;
+	border-radius: 50px;
+}

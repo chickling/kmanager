@@ -110,7 +110,9 @@ angular.module("kmanager.services", ["ngResource"])
 	.factory("offsetinfo", ["$resource", "$http", function ($resource, $http) {
 		function processConsumer(cb) {
 			return function (data) {
-				data.offsets = groupPartitions(data.offsets);
+				//data.offsets = groupPartitions(data.offsets);
+				data.zk.offsets = groupPartitions(data.zk.offsets);
+				data.broker.offsets = groupPartitions(data.broker.offsets);
 				cb(data);
 			}
 		}

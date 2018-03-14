@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -37,14 +38,21 @@ public class GroupController {
 	}
 
 	@RequestMapping(value = "/{group}", method = RequestMethod.GET)
-	public KafkaInfo getGroupInfo(@PathVariable String group) {
-		KafkaInfo kafkaInfo = null;
+	public String getGroupInfo(@PathVariable String group) {
+		KafkaInfo zk = null;
+		KafkaInfo broker = null;
+		JSONObject result = new JSONObject();
 		try {
-			kafkaInfo = SystemManager.og.getInfo(group, new ArrayList<String>());
+			zk = SystemManager.og.getInfo(group, new ArrayList<String>(),true);
+			broker = SystemManager.og.getInfo(group, new ArrayList<String>(),false);
+			result.put("zk", new JSONObject(zk));
+			result.put("broker", new JSONObject(broker));
 		} catch (Exception e) {
 			LOG.warn("Ops~", e);
 		}
-		return kafkaInfo;
+		
+		
+		return result.toString();
 	}
 
 	@RequestMapping(value = "/{group}/{topic}", method = RequestMethod.GET)

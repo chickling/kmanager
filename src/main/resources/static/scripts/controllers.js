@@ -2,7 +2,9 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 	.controller("GroupCtrl", ["$scope", "$interval", "$routeParams", "offsetinfo",
 		function ($scope, $interval, $routeParams, offsetinfo) {
 			offsetinfo.getGroup($routeParams.group, function (d) {
-				$scope.info = d;
+				//$scope.info = d;
+				$scope.broker = [d.broker];
+				$scope.zk = [d.zk];
 				$scope.loading = false;
 			});
 			$scope.loading = true;

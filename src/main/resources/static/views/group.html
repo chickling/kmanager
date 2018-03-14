@@ -12,8 +12,28 @@
 </div>
 
 <div ng-hide="loading">
-  <h2>Consumer Offsets</h2>
+ <!--  <h2>Consumer Offsets</h2>
   <div ng-include="'views/includes/group.inc.html'">
-  </div>
+  </div> -->
+  
+  	<div ng-show="broker.length>0">
+		<h2>Consumers Offsets Committed to Broker</h2>
+		<div ng-repeat="info in broker" >
+			<div ng-include="'views/includes/group.inc.html'"></div>
+		</div>
+		<div ng-show="false">Broker Unable
+			to find Consumers Offsets</div>
+	</div>
+
+
+	<div ng-show="zk.length > 0">
+		<h2>Consumers Offsets Committed to ZK</h2>
+		<div ng-repeat="info in zk">
+			<div ng-include="'views/includes/group.inc.html'"></div>
+		</div>
+		<div ng-show="info.zk.length == 0">ZK Unable to find
+			Consumers Offsets</div>
+		<hr />
+	</div>
   
 </div>
