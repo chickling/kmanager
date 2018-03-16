@@ -108,6 +108,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 				.on(
 				'show.bs.modal',
 				function (event) {
+					$("#taskForm")[0].reset();
 					var button = $(event.relatedTarget);
 					var group = $routeParams.group;
 					var topic = $routeParams.topic;
@@ -242,6 +243,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 						.on(
 						'show.bs.modal',
 						function (event) {
+							$("#taskDetailForm")[0].reset();
 							var button = $(event.relatedTarget);
 							var group = button.data('group');
 							var topic = button.data('topic');
@@ -255,7 +257,13 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 							var modal = $(this);
 							modal.find('.modal-body #taskDetail-inputTopic').val(
 								topic);
-							modal.find('#taskDetail_inputConsumerAPI[value='+consumerAPI+']').attr("checked",true);
+							//modal.find('.modal-body consumerAPI[value='+consumerAPI+']').attr("checked",true);
+							$("#taskDetailForm input[name='consumerAPI']").each(function(){  
+							    if($(this).val() == consumerAPI){  
+							        $(this).prop( "checked", true );  
+							    }  
+							});  
+							
 							modal.find('.modal-body #taskDetail-inputConsumer')
 								.val(group);
 							$('#taskDetail-inputTopic').prop('readonly', true);
@@ -337,6 +345,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 						'show.bs.modal',
 						function (event) {
 							var button = $(event.relatedTarget) // Button that
+							$("#taskForm")[0].reset();
 							var modal = $(this);
 							$('.chosen-select-topic')
 								.trigger("chosen:updated")
