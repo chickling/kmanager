@@ -2,7 +2,9 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 	.controller("GroupCtrl", ["$scope", "$interval", "$routeParams", "offsetinfo",
 		function ($scope, $interval, $routeParams, offsetinfo) {
 			offsetinfo.getGroup($routeParams.group, function (d) {
-				$scope.info = d;
+				//$scope.info = d;
+				$scope.broker = [d.broker];
+				$scope.zk = [d.zk];
 				$scope.loading = false;
 			});
 			$scope.loading = true;
@@ -15,7 +17,17 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 			$scope.loading = true;
 			offsetinfo.listGroup().success(function (d) {
 				$scope.loading = false;
-				$scope.groups = d;
+				if(d.length>1){
+				 //数组去重	
+					var temp = [d[0]];
+					for(var i=1;i<d.length;i++){
+						if(d.indexOf(d[i])==i)temp.push(d[i]);
+					}
+					$scope.groups = temp;
+				}else{
+					$scope.groups = d;
+				}
+				
 			});
 		}])
 	.controller("TopicListCtrl", ["$scope", "offsetinfo",
@@ -96,6 +108,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 				.on(
 				'show.bs.modal',
 				function (event) {
+					$("#taskForm")[0].reset();
 					var button = $(event.relatedTarget);
 					var group = $routeParams.group;
 					var topic = $routeParams.topic;
@@ -230,9 +243,11 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 						.on(
 						'show.bs.modal',
 						function (event) {
+							$("#taskDetailForm")[0].reset();
 							var button = $(event.relatedTarget);
 							var group = button.data('group');
 							var topic = button.data('topic');
+							var consumerAPI = button.data('consumerapi');
 							var threshold = button.data('threshold');
 							var diapause = button.data('diapause');
 							var mailTo = button.data('mailto');
@@ -242,6 +257,13 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 							var modal = $(this);
 							modal.find('.modal-body #taskDetail-inputTopic').val(
 								topic);
+							//modal.find('.modal-body consumerAPI[value='+consumerAPI+']').attr("checked",true);
+							$("#taskDetailForm input[name='consumerAPI']").each(function(){  
+							    if($(this).val() == consumerAPI){  
+							        $(this).prop( "checked", true );  
+							    }  
+							});  
+							
 							modal.find('.modal-body #taskDetail-inputConsumer')
 								.val(group);
 							$('#taskDetail-inputTopic').prop('readonly', true);
@@ -299,7 +321,8 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 						topic: "",
 						threshold: 1,
 						diapause: 60,
-						mailTo: ""
+						mailTo: "",
+						consumerAPI: 0
 					}
 					var topicOptions = new Array();
 					offsetinfo.listTopics().success(function (d) {
@@ -322,6 +345,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 						'show.bs.modal',
 						function (event) {
 							var button = $(event.relatedTarget) // Button that
+							$("#taskForm")[0].reset();
 							var modal = $(this);
 							$('.chosen-select-topic')
 								.trigger("chosen:updated")
@@ -336,7 +360,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 										'#inputTopicName_chosen .chosen-single span')
 										.text();
 									$.ajax({
-										url: "activeconsumers/"
+										url: "consumers/"
 										+ choosedTopic,
 										type: "GET",
 										success: function (groups) {

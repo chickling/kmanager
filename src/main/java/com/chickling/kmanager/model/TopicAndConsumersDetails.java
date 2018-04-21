@@ -7,48 +7,38 @@ import java.util.List;
  *
  */
 public class TopicAndConsumersDetails {
-  private List<KafkaInfo> active;
-  private List<KafkaInfo> inactive;
-  private List<KafkaInfo> extra;
+	private List<KafkaInfo> zk;
+	private List<KafkaInfo> broker;
 
-  public TopicAndConsumersDetails() {
-    super();
-  }
+	public TopicAndConsumersDetails() {
+		super();
+	}
 
-  public TopicAndConsumersDetails(List<KafkaInfo> active, List<KafkaInfo> inactive, List<KafkaInfo> extra) {
-    super();
-    this.active = active;
-    this.inactive = inactive;
-    this.extra = extra;
-  }
+	public TopicAndConsumersDetails(List<KafkaInfo> zk, List<KafkaInfo> broker) {
+		super();
+		this.zk = zk;
+		this.broker = broker;
+	}
 
-  public List<KafkaInfo> getExtra() {
-    return extra;
-  }
+	public List<KafkaInfo> getZk() {
+		return zk;
+	}
 
-  public void setExtra(List<KafkaInfo> extra) {
-    this.extra = extra;
-  }
+	public void setZk(List<KafkaInfo> zk) {
+		this.zk = zk;
+	}
 
-  public List<KafkaInfo> getActive() {
-    return active;
-  }
+	public List<KafkaInfo> getBroker() {
+		return broker;
+	}
 
-  public void setActive(List<KafkaInfo> active) {
-    this.active = active;
-  }
+	public void setBroker(List<KafkaInfo> broker) {
+		this.broker = broker;
+	}
 
-  public List<KafkaInfo> getInactive() {
-    return inactive;
-  }
-
-  public void setInactive(List<KafkaInfo> inactive) {
-    this.inactive = inactive;
-  }
-
-  @Override
-  public String toString() {
-    return "TopicAndConsumersDetails [active=" + active + ", inactive=" + inactive + "]";
-  }
+	@Override
+	public String toString() {
+		return "TopicAndConsumersDetails [zk=" + zk + ", broker=" + broker + "]";
+	}
 
 }

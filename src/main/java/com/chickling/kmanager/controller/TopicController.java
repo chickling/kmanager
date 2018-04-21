@@ -2,7 +2,9 @@ package com.chickling.kmanager.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -67,6 +69,27 @@ public class TopicController {
 	public List<String> getActiveConsumers(@PathVariable String topic) {
 		try {
 			return SystemManager.og.getActiveConsumer(topic);
+		} catch (Exception e) {
+			LOG.error("Get active groups failed!" + e.getMessage());
+		}
+		return new ArrayList<String>();
+	}
+	/**
+	 * 获取所有的consumers包含激活和未激活
+	 * @param topic
+	 * @return
+	 */
+	@RequestMapping(value = "/consumers/{topic}", method = RequestMethod.GET)
+	public List<String> getAllConsumers(@PathVariable String topic) {
+		try {
+			List<String>zkGroups = SystemManager.og.getTopicMap(true).get(topic);
+			List<String>brokerGroups = SystemManager.og.getTopicMap(false).get(topic);
+			Set<String>groups = new HashSet<String>();
+			if(brokerGroups!=null)
+			groups.addAll(brokerGroups);
+			if(zkGroups!=null)
+			groups.addAll(zkGroups);
+			return SystemManager.og.getGroups();
 		} catch (Exception e) {
 			LOG.error("Get active groups failed!" + e.getMessage());
 		}

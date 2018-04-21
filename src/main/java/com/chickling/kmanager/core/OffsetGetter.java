@@ -74,7 +74,7 @@ public abstract class OffsetGetter {
   final AbstractFunction0<Long> elseLongOption = new AbstractFunction0<Long>() {
     @Override
     public Long apply() {
-      return -1L;
+      return 0L;
     }
   };
 
@@ -146,7 +146,7 @@ public abstract class OffsetGetter {
                 (Long) partitionAssignment.offset().getOrElse(elseLongOption),
                 (Long) partitionAssignment.logEndOffset().getOrElse(elseLongOption),
                 (String) partitionAssignment.consumerId().getOrElse(elseStringOption), -1L, -1L,
-                (Long) partitionAssignment.lag().getOrElse(elseLongOption)));
+                (Long) partitionAssignment.lag().getOrElse(elseLongOption),false));
           }
         } else {
           offsets.add(new OffsetInfo(group, (String) partitionAssignment.topic().getOrElse(elseStringOption),
@@ -154,7 +154,7 @@ public abstract class OffsetGetter {
               (Long) partitionAssignment.offset().getOrElse(elseLongOption),
               (Long) partitionAssignment.logEndOffset().getOrElse(elseLongOption),
               (String) partitionAssignment.consumerId().getOrElse(elseStringOption), -1L, -1L,
-              (Long) partitionAssignment.lag().getOrElse(elseLongOption)));
+              (Long) partitionAssignment.lag().getOrElse(elseLongOption),false));
         }
         // System.out.println(String.format("%-30s %-10s %-15s %-15s %-10s %-50s",
         // partitionAssignment.topic().get(),
@@ -245,6 +245,38 @@ public abstract class OffsetGetter {
     // return new KafkaInfo(group, brokerInfo(), offsetInfos);
     return new KafkaInfo(group, null, offsetInfos);
   }
+  /**
+   * 获取指定ZK或者broker信息，将两个信息分离
+   * @param group
+   * @param topics
+   * @param belongZK
+   * @return
+   * @throws Exception
+   */
+  public KafkaInfo getInfo(String group, List<String> topics,boolean belongZK) throws Exception {
+    List<OffsetInfo> offsetInfos = new ArrayList<OffsetInfo>();
+    // for Broker
+    if(!belongZK) {
+    	 offsetInfos.addAll(this.getOffsetInfoCommittedToBroker(group, topics));
+    }else {
+    	offsetInfos = offsetInfo(group, topics);
+    }
+    Collections.sort(offsetInfos, new Comparator<OffsetInfo>() {
+
+      @Override
+      public int compare(OffsetInfo o1, OffsetInfo o2) {
+        int flag = o1.getTopic().compareTo(o2.getTopic());
+        if (flag == 0) {
+          return o1.getPartition().compareTo(o2.getPartition());
+        } else {
+          return flag;
+        }
+      }
+
+    });
+    // return new KafkaInfo(group, brokerInfo(), offsetInfos);
+    return new KafkaInfo(group, null, offsetInfos);
+  }
 
   public List<String> getTopics() {
     List<String> topics = null;
@@ -301,25 +333,27 @@ public abstract class OffsetGetter {
    * @throws Exception exception
    */
   public TopicAndConsumersDetails getTopicAndConsumersDetail(String topic) throws Exception {
-    Map<String, List<String>> topicMap = getTopicMap();
-    Map<String, List<String>> activeTopicMap = getActiveTopicMap();
+    Map<String, List<String>> topicMap = getTopicMap(true);
+    //Map<String, List<String>> activeTopicMap = getActiveTopicMap(true);
     Map<String, List<String>> topicMapCommittedToBroker = getTopicMapCommitedToKafka();
 
-    List<KafkaInfo> activeConsumers = new ArrayList<KafkaInfo>();
-    if (activeTopicMap.containsKey(topic)) {
-      activeConsumers = mapConsumersToKafkaInfo(activeTopicMap.get(topic), topic);
+    List<KafkaInfo> consumersCommittedToZK = new ArrayList<KafkaInfo>();
+    if (topicMap.containsKey(topic)) {
+    	consumersCommittedToZK = mapConsumersToKafkaInfo(topicMap.get(topic), topic,true);
     }
-
-    List<KafkaInfo> inActiveConsumers = new ArrayList<KafkaInfo>();
-    if (!activeTopicMap.containsKey(topic) && topicMap.containsKey(topic)) {
-      inActiveConsumers = mapConsumersToKafkaInfo(topicMap.get(topic), topic);
+    if( consumersCommittedToZK != null ) {
+    	Collections.sort(consumersCommittedToZK);
     }
+    
 
     List<KafkaInfo> consumersCommittedToBroker = new ArrayList<KafkaInfo>();
     if (topicMapCommittedToBroker.containsKey(topic)) {
-      consumersCommittedToBroker = mapConsumersToKafkaInfo(topicMapCommittedToBroker.get(topic), topic);
+      consumersCommittedToBroker = mapConsumersToKafkaInfo(topicMapCommittedToBroker.get(topic), topic,false);
     }
-    return new TopicAndConsumersDetails(activeConsumers, inActiveConsumers, consumersCommittedToBroker);
+    if( consumersCommittedToBroker != null ) {
+    	Collections.sort(consumersCommittedToBroker);
+    }
+      return new TopicAndConsumersDetails(consumersCommittedToZK,consumersCommittedToBroker);
   }
 
   public List<String> getActiveConsumer(String topic) throws Exception {
@@ -332,7 +366,8 @@ public abstract class OffsetGetter {
     return activeConsumers;
   }
 
-  private List<KafkaInfo> mapConsumersToKafkaInfo(List<String> consumers, String topic) throws Exception {
+  @SuppressWarnings("unused")
+private List<KafkaInfo> mapConsumersToKafkaInfo(List<String> consumers, String topic) throws Exception {
     List<KafkaInfo> kafkaInfos = new ArrayList<KafkaInfo>();
     List<String> topics = new ArrayList<String>();
     topics.add(topic);
@@ -341,6 +376,16 @@ public abstract class OffsetGetter {
     }
     return kafkaInfos;
   }
+  
+  private List<KafkaInfo> mapConsumersToKafkaInfo(List<String> consumers, String topic,boolean belongZK) throws Exception {
+	    List<KafkaInfo> kafkaInfos = new ArrayList<KafkaInfo>();
+	    List<String> topics = new ArrayList<String>();
+	    topics.add(topic);
+	    for (String consumer : consumers) {
+	      kafkaInfos.add(getInfo(consumer, topics,belongZK));
+	    }
+	    return kafkaInfos;
+	  }
 
   public Node getActiveTopics() {
     Map<String, List<String>> activeTopicMap = getActiveTopicMap();
@@ -371,8 +416,9 @@ public abstract class OffsetGetter {
   }
 
   public abstract Map<String, List<String>> getTopicMap();
-
+  public abstract Map<String, List<String>> getTopicMap(boolean belongZK);
   public abstract Map<String, List<String>> getActiveTopicMap();
+  public abstract Map<String, List<String>> getActiveTopicMap(boolean belongZK);
 
   public abstract List<String> getTopicList(String group);
 

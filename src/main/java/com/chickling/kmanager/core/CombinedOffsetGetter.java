@@ -86,6 +86,33 @@ public class CombinedOffsetGetter extends OffsetGetter {
 		return topicGroupsMap;
 	}
 	
+	public Map<String, List<String>> getTopicMap(boolean belongZK) {
+		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
+		List<String> groups = new ArrayList<String>();
+		if(belongZK) {
+			groups = SystemManager.og.getGroups();
+			List<String> topics = null;
+			for (String group : groups) {
+				topics = getTopicList(group);
+				topics.forEach(topic -> {
+					List<String> _groups = null;
+					if (topicGroupsMap.containsKey(topic)) {
+						_groups = topicGroupsMap.get(topic);
+						_groups.add(group);
+					} else {
+						_groups = new ArrayList<String>();
+						_groups.add(group);
+					}
+					topicGroupsMap.put(topic, _groups);
+				});
+			}
+		}else {
+			groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
+		}
+        
+		return topicGroupsMap;
+	}
+	
 	
 	public Set<String> getTopicsForGroupCommittedToKafka(String group) {
 	  Set<String> topics = new HashSet<String>();
@@ -110,37 +137,75 @@ public class CombinedOffsetGetter extends OffsetGetter {
 	}
 
 	@Override
-	public Map<String, List<String>> getActiveTopicMap() {
+	public Map<String, List<String>> getActiveTopicMap(boolean belongZK) {
 		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
 		
 		// Consumers committed offsets to Zk
-		List<String> consumers = ZKUtils.getChildren(ZkUtils.ConsumersPath());
-		for (String consumer : consumers) {
-			Map<String, scala.collection.immutable.List<ConsumerThreadId>> consumer_consumerThreadId = null;
-			try {
-				consumer_consumerThreadId = JavaConversions
-						.mapAsJavaMap(ZKUtils.getZKUtilsFromKafka().getConsumersPerTopic(consumer, true));
-			} catch (Exception e) {
-				LOG.warn("getActiveTopicMap-> getConsumersPerTopic for group: " + consumer + "failed! "
-						+ e.getMessage());
-				// TODO /consumers/{group}/ids/{id} 节点的内容不符合要求。这个group有问题
-				continue;
-			}
-			Set<String> topics = consumer_consumerThreadId.keySet();
-			topics.forEach(topic -> {
-				List<String> _groups = null;
-				if (topicGroupsMap.containsKey(topic)) {
-					_groups = topicGroupsMap.get(topic);
-					_groups.add(consumer);
-				} else {
-					_groups = new ArrayList<String>();
-					_groups.add(consumer);
+		if(belongZK) {
+			List<String> consumers = ZKUtils.getChildren(ZkUtils.ConsumersPath());
+			for (String consumer : consumers) {
+				Map<String, scala.collection.immutable.List<ConsumerThreadId>> consumer_consumerThreadId = null;
+				try {
+					consumer_consumerThreadId = JavaConversions
+							.mapAsJavaMap(ZKUtils.getZKUtilsFromKafka().getConsumersPerTopic(consumer, true));
+				} catch (Exception e) {
+					LOG.warn("getActiveTopicMap-> getConsumersPerTopic for group: " + consumer + "failed! "
+							+ e.getMessage());
+					// TODO /consumers/{group}/ids/{id} 节点的内容不符合要求。这个group有问题
+					continue;
 				}
-				topicGroupsMap.put(topic, _groups);
-			});
+				Set<String> topics = consumer_consumerThreadId.keySet();
+				topics.forEach(topic -> {
+					List<String> _groups = null;
+					if (topicGroupsMap.containsKey(topic)) {
+						_groups = topicGroupsMap.get(topic);
+						_groups.add(consumer);
+					} else {
+						_groups = new ArrayList<String>();
+						_groups.add(consumer);
+					}
+					topicGroupsMap.put(topic, _groups);
+				});
+			}
+		}else {
+			// TODO 	Consumers committed offsets to Kafka that is Active
 		}
-		// TODO 	Consumers committed offsets to Kafka that is Active
 		
+		
+		
+		return topicGroupsMap;
+	}
+	
+	@Override
+	public Map<String, List<String>> getActiveTopicMap() {
+		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
+		// Consumers committed offsets to Zk
+			List<String> consumers = ZKUtils.getChildren(ZkUtils.ConsumersPath());
+			for (String consumer : consumers) {
+				Map<String, scala.collection.immutable.List<ConsumerThreadId>> consumer_consumerThreadId = null;
+				try {
+					consumer_consumerThreadId = JavaConversions
+							.mapAsJavaMap(ZKUtils.getZKUtilsFromKafka().getConsumersPerTopic(consumer, true));
+				} catch (Exception e) {
+					LOG.warn("getActiveTopicMap-> getConsumersPerTopic for group: " + consumer + "failed! "
+							+ e.getMessage());
+					// TODO /consumers/{group}/ids/{id} 节点的内容不符合要求。这个group有问题
+					continue;
+				}
+				Set<String> topics = consumer_consumerThreadId.keySet();
+				topics.forEach(topic -> {
+					List<String> _groups = null;
+					if (topicGroupsMap.containsKey(topic)) {
+						_groups = topicGroupsMap.get(topic);
+						_groups.add(consumer);
+					} else {
+						_groups = new ArrayList<String>();
+						_groups.add(consumer);
+					}
+					topicGroupsMap.put(topic, _groups);
+				});
+			}
+	   // TODO 	Consumers committed offsets to Kafka that is Active
 		return topicGroupsMap;
 	}
 	

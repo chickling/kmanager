@@ -110,22 +110,22 @@ angular.module("kmanager.services", ["ngResource"])
 	.factory("offsetinfo", ["$resource", "$http", function ($resource, $http) {
 		function processConsumer(cb) {
 			return function (data) {
-				data.offsets = groupPartitions(data.offsets);
+				//data.offsets = groupPartitions(data.offsets);
+				data.zk.offsets = groupPartitions(data.zk.offsets);
+				data.broker.offsets = groupPartitions(data.broker.offsets);
 				cb(data);
 			}
 		}
 
 		function processMultipleConsumers(cb) {
 			return function (data) {
-				_(data.consumers.active).forEach(function (consumer) {
+				_(data.consumers.zk).forEach(function (consumer) {
 					consumer.offsets = groupPartitions(consumer.offsets);
 				});
-				_(data.consumers.inactive).forEach(function (consumer) {
+				_(data.consumers.broker).forEach(function (consumer) {
 					consumer.offsets = groupPartitions(consumer.offsets);
 				});
-				_(data.consumers.extra).forEach(function (consumer) {
-					consumer.offsets = groupPartitions(consumer.offsets);
-				});
+				
 				cb(data);
 			};
 		}

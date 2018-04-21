@@ -67,7 +67,7 @@ public class TaskManager {
 
 	public static void deleteTask(String taskNameToRemove) {
 		String[] group_topic = taskNameToRemove.split("-");
-		if (exits(new TaskContent(group_topic[0], group_topic[1], null, null, null))) {
+		if (exits(new TaskContent(group_topic[0], group_topic[1], null, null, null,null))) {
 			TaskContent taskToDelete = tasks.get(group_topic[0]).remove(group_topic[1]);
 			deleteTaskFile(taskToDelete);
 		}
