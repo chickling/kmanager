@@ -40,6 +40,8 @@ public class OffsetFetchTest {
 	}
 
 	public static void main(String[] args) {
+		// DefaultOffsetManager
+		// ZookeeperOffsetManager
 		Properties props = new Properties();
 		props.put(StreamsConfig.APPLICATION_ID_CONFIG, "consumer-offsets-consumer-app");
 		props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -84,6 +86,7 @@ public class OffsetFetchTest {
 
 		KafkaStreams streams = new KafkaStreams(builder, props);
 		streams.start();
+		// streams.close();
 	}
 
 }

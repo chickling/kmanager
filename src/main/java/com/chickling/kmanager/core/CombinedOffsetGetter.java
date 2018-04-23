@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
@@ -13,14 +15,13 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.data.Stat;
 
 import com.chickling.kmanager.config.AppConfig;
+import com.chickling.kmanager.core.service.KafkaConsumerGroupService;
+import com.chickling.kmanager.core.service.PartitionAssignmentState;
 import com.chickling.kmanager.initialize.SystemManager;
 import com.chickling.kmanager.model.OffsetInfo;
 import com.chickling.kmanager.model.ZkDataAndStat;
 import com.chickling.kmanager.utils.ZKUtils;
 
-import kafka.admin.ConsumerGroupCommand.ConsumerGroupCommandOptions;
-import kafka.admin.ConsumerGroupCommand.KafkaConsumerGroupService;
-import kafka.admin.ConsumerGroupCommand.PartitionAssignmentState;
 import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.TopicAndPartition;
 import kafka.consumer.ConsumerThreadId;
@@ -28,10 +29,8 @@ import kafka.javaapi.OffsetRequest;
 import kafka.javaapi.OffsetResponse;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.utils.ZkUtils;
-import scala.Option;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
-import scala.collection.Seq;
 
 /**
  * @author Hulva Luva.H from ECBD
@@ -45,6 +44,10 @@ public class CombinedOffsetGetter extends OffsetGetter {
 	public CombinedOffsetGetter(AppConfig config) {
 		excludeByLastSeen = config.getExcludeByLastSeen() * 1000;
 		ZKUtils.init(config.getZkHosts(), config.getZkSessionTimeout(), config.getZkConnectionTimeout());
+		this.kafkaConsumerGroupService = new KafkaConsumerGroupService();
+		Properties props = new Properties();
+		props.setProperty("bootstrapServer", config.getBootstrapServers());
+		this.kafkaConsumerGroupService.setProperties(props);
 	}
 
 	@Override
@@ -67,7 +70,7 @@ public class CombinedOffsetGetter extends OffsetGetter {
 	public Map<String, List<String>> getTopicMap() {
 		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
 		List<String> groups = SystemManager.og.getGroups();
-        groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
+		groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
 		List<String> topics = null;
 		for (String group : groups) {
 			topics = getTopicList(group);
@@ -85,11 +88,11 @@ public class CombinedOffsetGetter extends OffsetGetter {
 		}
 		return topicGroupsMap;
 	}
-	
+
 	public Map<String, List<String>> getTopicMap(boolean belongZK) {
 		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
 		List<String> groups = new ArrayList<String>();
-		if(belongZK) {
+		if (belongZK) {
 			groups = SystemManager.og.getGroups();
 			List<String> topics = null;
 			for (String group : groups) {
@@ -106,42 +109,39 @@ public class CombinedOffsetGetter extends OffsetGetter {
 					topicGroupsMap.put(topic, _groups);
 				});
 			}
-		}else {
+		} else {
 			groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
 		}
-        
+
 		return topicGroupsMap;
 	}
-	
-	
-	public Set<String> getTopicsForGroupCommittedToKafka(String group) {
-	  Set<String> topics = new HashSet<String>();
-	  KafkaConsumerGroupService getTopicForGroup = null;
-	  try {
-	      String[] cmd = {"--bootstrap-server", SystemManager.getConfig().getBootstrapServers(), "--describe", "--group", group};
-	      ConsumerGroupCommandOptions opts = new ConsumerGroupCommandOptions(cmd);
-	      getTopicForGroup = new KafkaConsumerGroupService(opts);
-	      Tuple2<Option<String>, Option<Seq<PartitionAssignmentState>>> groupAssignment = getTopicForGroup.describeGroup();
-	      List<PartitionAssignmentState> partitionAssignments = JavaConversions.seqAsJavaList(groupAssignment._2().get());
 
-	      partitionAssignments.forEach((partitionAssignment) -> {
-	        String topic = (String) partitionAssignment.topic().getOrElse(elseStringOption);
-	        if(!"-".equals(topic)) {
-	          topics.add(topic);
-	        }
-	      });
-	    } finally {
-	      getTopicForGroup.close();
-	    }
-	  return topics;
+	public Set<String> getTopicsForGroupCommittedToKafka(String group) {
+		Set<String> topics = new HashSet<String>();
+		Map<String, List<PartitionAssignmentState>> groupAssignment = this.kafkaConsumerGroupService
+				.describeGroup(group);
+		// "Dead"
+		// "Empty"
+		// "PreparingRebalance"
+		// "Stable"
+		for (Entry<String, List<PartitionAssignmentState>> entry : groupAssignment.entrySet()) {
+			entry.getValue().forEach((partitionAssignment) -> {
+				String topic = partitionAssignment.getTopic().orElse("-");
+				if (!"-".equals(topic)) {
+					topics.add(topic);
+				}
+			});
+		}
+
+		return topics;
 	}
 
 	@Override
 	public Map<String, List<String>> getActiveTopicMap(boolean belongZK) {
 		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
-		
+
 		// Consumers committed offsets to Zk
-		if(belongZK) {
+		if (belongZK) {
 			List<String> consumers = ZKUtils.getChildren(ZkUtils.ConsumersPath());
 			for (String consumer : consumers) {
 				Map<String, scala.collection.immutable.List<ConsumerThreadId>> consumer_consumerThreadId = null;
@@ -167,68 +167,66 @@ public class CombinedOffsetGetter extends OffsetGetter {
 					topicGroupsMap.put(topic, _groups);
 				});
 			}
-		}else {
-			// TODO 	Consumers committed offsets to Kafka that is Active
+		} else {
+			// TODO Consumers committed offsets to Kafka that is Active
 		}
-		
-		
-		
+
 		return topicGroupsMap;
 	}
-	
+
 	@Override
 	public Map<String, List<String>> getActiveTopicMap() {
 		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
 		// Consumers committed offsets to Zk
-			List<String> consumers = ZKUtils.getChildren(ZkUtils.ConsumersPath());
-			for (String consumer : consumers) {
-				Map<String, scala.collection.immutable.List<ConsumerThreadId>> consumer_consumerThreadId = null;
-				try {
-					consumer_consumerThreadId = JavaConversions
-							.mapAsJavaMap(ZKUtils.getZKUtilsFromKafka().getConsumersPerTopic(consumer, true));
-				} catch (Exception e) {
-					LOG.warn("getActiveTopicMap-> getConsumersPerTopic for group: " + consumer + "failed! "
-							+ e.getMessage());
-					// TODO /consumers/{group}/ids/{id} 节点的内容不符合要求。这个group有问题
-					continue;
-				}
-				Set<String> topics = consumer_consumerThreadId.keySet();
-				topics.forEach(topic -> {
-					List<String> _groups = null;
-					if (topicGroupsMap.containsKey(topic)) {
-						_groups = topicGroupsMap.get(topic);
-						_groups.add(consumer);
-					} else {
-						_groups = new ArrayList<String>();
-						_groups.add(consumer);
-					}
-					topicGroupsMap.put(topic, _groups);
-				});
+		List<String> consumers = ZKUtils.getChildren(ZkUtils.ConsumersPath());
+		for (String consumer : consumers) {
+			Map<String, scala.collection.immutable.List<ConsumerThreadId>> consumer_consumerThreadId = null;
+			try {
+				consumer_consumerThreadId = JavaConversions
+						.mapAsJavaMap(ZKUtils.getZKUtilsFromKafka().getConsumersPerTopic(consumer, true));
+			} catch (Exception e) {
+				LOG.warn("getActiveTopicMap-> getConsumersPerTopic for group: " + consumer + "failed! "
+						+ e.getMessage());
+				// TODO /consumers/{group}/ids/{id} 节点的内容不符合要求。这个group有问题
+				continue;
 			}
-	   // TODO 	Consumers committed offsets to Kafka that is Active
+			Set<String> topics = consumer_consumerThreadId.keySet();
+			topics.forEach(topic -> {
+				List<String> _groups = null;
+				if (topicGroupsMap.containsKey(topic)) {
+					_groups = topicGroupsMap.get(topic);
+					_groups.add(consumer);
+				} else {
+					_groups = new ArrayList<String>();
+					_groups.add(consumer);
+				}
+				topicGroupsMap.put(topic, _groups);
+			});
+		}
+		// TODO Consumers committed offsets to Kafka that is Active
 		return topicGroupsMap;
 	}
-	
+
 	@Override
 	public Map<String, List<String>> getTopicMapCommitedToKafka() {
-      Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
-      List<String> consumers = this.getGroupsCommittedToBroker();
-      for (String consumer : consumers) {
-          Set<String> topics = this.getTopicsForGroupCommittedToKafka(consumer);
-          topics.forEach(topic -> {
-              List<String> _groups = null;
-              if (topicGroupsMap.containsKey(topic)) {
-                  _groups = topicGroupsMap.get(topic);
-                  _groups.add(consumer);
-              } else {
-                  _groups = new ArrayList<String>();
-                  _groups.add(consumer);
-              }
-              topicGroupsMap.put(topic, _groups);
-          });
-      }
-      return topicGroupsMap;
-  }
+		Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
+		List<String> consumers = this.getGroupsCommittedToBroker();
+		for (String consumer : consumers) {
+			Set<String> topics = this.getTopicsForGroupCommittedToKafka(consumer);
+			topics.forEach(topic -> {
+				List<String> _groups = null;
+				if (topicGroupsMap.containsKey(topic)) {
+					_groups = topicGroupsMap.get(topic);
+					_groups.add(consumer);
+				} else {
+					_groups = new ArrayList<String>();
+					_groups.add(consumer);
+				}
+				topicGroupsMap.put(topic, _groups);
+			});
+		}
+		return topicGroupsMap;
+	}
 
 	@Override
 	public List<String> getTopicList(String group) {
