@@ -222,17 +222,13 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
         try {
           result.addAll(future.get());
         } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
           LOG.error("Interrupted when get GenerateOffsetHistoryDataset in future...", e);
         } catch (ExecutionException e) {
-          // TODO Auto-generated catch block
           LOG.error("QAQ when get GenerateOffsetHistoryDataset in future...", e);
         }
       }
       pool.shutdown();
-    } catch (
-
-    Exception e) {
+    } catch (Exception e) {
       // TODO
       LOG.error("Damn...", e);
     }
@@ -368,10 +364,8 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
         try {
           result.addAll(future.get());
         } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
           LOG.error("Interrupted when get GenerateOffsetHistoryDataset in future...", e);
         } catch (ExecutionException e) {
-          // TODO Auto-generated catch block
           LOG.error("QAQ when get GenerateOffsetHistoryDataset in future...", e);
         }
       }
