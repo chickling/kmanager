@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,160 +34,170 @@ import scala.collection.JavaConversions;
  */
 public class KafkaConsumerGroupService extends ConsumerGroupService {
 
-	private AdminClient adminClient;
+  private AdminClient adminClient;
 
-	Map<String, KafkaConsumer<String, String>> consumerMap = new HashMap<String, KafkaConsumer<String, String>>();
+  private Map<String, KafkaConsumer<String, String>> kmanagerLogEndOffsetGetter = new HashMap<>();;
+  private Map<String, TopicPartition> nocurrentassignmentMap = new HashMap<String, TopicPartition>();
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.chickling.kmanager.core.service.ConsumerGroupService#listGroups()
-	 */
-	@Override
-	public List<String> listGroups() {
-		return JavaConversions.seqAsJavaList(this.getAdminClient().listAllConsumerGroupsFlattened()).stream()
-				.map(groupOverview -> groupOverview.groupId()).collect(Collectors.toList());
-	}
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.chickling.kmanager.core.service.ConsumerGroupService#listGroups()
+   */
+  @Override
+  public List<String> listGroups() {
+    return JavaConversions.seqAsJavaList(this.getAdminClient().listAllConsumerGroupsFlattened()).stream()
+        .map(groupOverview -> groupOverview.groupId()).collect(Collectors.toList());
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.chickling.kmanager.core.service.ConsumerGroupService#close()
-	 */
-	@Override
-	public void close() {
-		this.adminClient.close();
-		if (this.consumerMap != null && !this.consumerMap.isEmpty()) {
-			this.consumerMap.values().forEach(consumer -> consumer.close());
-			this.consumerMap.clear();
-		}
-	}
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.chickling.kmanager.core.service.ConsumerGroupService#close()
+   */
+  @Override
+  public void close() {
+    this.adminClient.close();
+    if (this.kmanagerLogEndOffsetGetter != null) {
+      Iterator<Entry<String, KafkaConsumer<String, String>>> ite = this.kmanagerLogEndOffsetGetter.entrySet().iterator();
+      while (ite.hasNext()) {
+        ite.next().getValue().close();
+      }
+    }
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.chickling.kmanager.core.service.ConsumerGroupService#
-	 * collectGroupAssignment(java.lang.String)
-	 */
-	@Override
-	protected Map<String, List<PartitionAssignmentState>> collectGroupAssignment(String group) {
-		Map<String, List<PartitionAssignmentState>> ret = new HashMap<String, List<PartitionAssignmentState>>();
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.chickling.kmanager.core.service.ConsumerGroupService#
+   * collectGroupAssignment(java.lang.String)
+   */
+  @Override
+  protected Map<String, List<PartitionAssignmentState>> collectGroupAssignment(String group) {
+    Map<String, List<PartitionAssignmentState>> ret = new HashMap<String, List<PartitionAssignmentState>>();
 
-		ConsumerGroupSummary consumerGroupSummary = this.getAdminClient().describeConsumerGroup(group);
-		consumerGroupSummary.state(); // "Dead"
-		List<ConsumerSummary> consumerSummarys = JavaConversions.seqAsJavaList(consumerGroupSummary.consumers().get());
-		List<TopicPartition> assignedTopicPartitions = new ArrayList<>();
-		// Map<TopicPartition, Long>
-		Map<TopicPartition, Object> offsets = JavaConversions
-				.mapAsJavaMap(this.getAdminClient().listGroupOffsets(group));
-		List<PartitionAssignmentState> rowsWithConsumer = new ArrayList<PartitionAssignmentState>();
-		if (!offsets.isEmpty()) {
-			if (consumerSummarys.size() > 1) {
-				Collections.sort(consumerSummarys, new Comparator<ConsumerSummary>() {
+    ConsumerGroupSummary consumerGroupSummary = this.getAdminClient().describeConsumerGroup(group);
+    consumerGroupSummary.state(); // "Dead"
+    List<ConsumerSummary> consumerSummarys = JavaConversions.seqAsJavaList(consumerGroupSummary.consumers().get());
+    List<TopicPartition> assignedTopicPartitions = new ArrayList<>();
+    // Map<TopicPartition, Long>
+    Map<TopicPartition, Object> offsets = JavaConversions.mapAsJavaMap(this.getAdminClient().listGroupOffsets(group));
+    List<PartitionAssignmentState> rowsWithConsumer = new ArrayList<PartitionAssignmentState>();
+    if (!offsets.isEmpty()) {
+      if (consumerSummarys.size() > 1) {
+        Collections.sort(consumerSummarys, new Comparator<ConsumerSummary>() {
 
-					@Override
-					public int compare(ConsumerSummary cs1, ConsumerSummary cs2) {
-						return cs1.assignment().size() > cs2.assignment().size() ? 1
-								: (cs1.assignment().size() < cs2.assignment().size() ? -1 : 0);
-					}
-				});
-			}
-			consumerSummarys.forEach(consumerSummary -> {
-				List<TopicAndPartition> topicPartitions = JavaConversions.seqAsJavaList(consumerSummary.assignment())
-						.stream().map(topicPartition -> new TopicAndPartition(topicPartition))
-						.collect(Collectors.toList());
-				assignedTopicPartitions.addAll(JavaConversions.seqAsJavaList(consumerSummary.assignment()));
+          @Override
+          public int compare(ConsumerSummary cs1, ConsumerSummary cs2) {
+            return cs1.assignment().size() > cs2.assignment().size() ? 1 : (cs1.assignment().size() < cs2.assignment().size() ? -1 : 0);
+          }
+        });
+      }
+      consumerSummarys.forEach(consumerSummary -> {
+        List<TopicAndPartition> topicPartitions = JavaConversions.seqAsJavaList(consumerSummary.assignment()).stream()
+            .map(topicPartition -> new TopicAndPartition(topicPartition)).collect(Collectors.toList());
+        assignedTopicPartitions.addAll(JavaConversions.seqAsJavaList(consumerSummary.assignment()));
 
-				rowsWithConsumer.addAll(this.collectConsumerAssignment(group,
-						Optional.ofNullable(consumerGroupSummary.coordinator()), topicPartitions, new MyFunctions() {
+        rowsWithConsumer.addAll(this.collectConsumerAssignment(group, Optional.ofNullable(consumerGroupSummary.coordinator()),
+            topicPartitions, new MyFunctions() {
 
-							@Override
-							public Map<TopicAndPartition, Optional<Long>> getPartitionOffset(
-									TopicAndPartition topicAndPartition) {
-								Map<TopicAndPartition, Optional<Long>> partitionOffsets = new HashMap<>();
-								JavaConversions.seqAsJavaList(consumerSummary.assignment()).forEach(topicPartition -> {
-									partitionOffsets.put(new TopicAndPartition(topicPartition),
-											Optional.ofNullable((Long) offsets.get(topicPartition)));
-								});
-								return partitionOffsets;
-							}
+              @Override
+              public Map<TopicAndPartition, Optional<Long>> getPartitionOffset(TopicAndPartition topicAndPartition) {
+                Map<TopicAndPartition, Optional<Long>> partitionOffsets = new HashMap<>();
+                JavaConversions.seqAsJavaList(consumerSummary.assignment()).forEach(topicPartition -> {
+                  partitionOffsets.put(new TopicAndPartition(topicPartition), Optional.ofNullable((Long) offsets.get(topicPartition)));
+                });
+                return partitionOffsets;
+              }
 
-						}, Optional.ofNullable(consumerSummary.consumerId()),
-						Optional.ofNullable(consumerSummary.host()), Optional.ofNullable(consumerSummary.clientId())));
-			});
-		}
+            }, Optional.ofNullable(consumerSummary.consumerId()), Optional.ofNullable(consumerSummary.host()),
+            Optional.ofNullable(consumerSummary.clientId())));
+      });
+    }
 
-		List<PartitionAssignmentState> rowsWithoutConsumer = new ArrayList<PartitionAssignmentState>();
-		TopicAndPartition topicAndPartition = null;
-		for (Entry<TopicPartition, Object> entry : offsets.entrySet()) {
-			if (assignedTopicPartitions.contains(entry.getKey())) {
-				topicAndPartition = new TopicAndPartition(entry.getKey());
-				this.collectConsumerAssignment(group, Optional.ofNullable(consumerGroupSummary.coordinator()),
-						Arrays.asList(topicAndPartition), new MyFunctions() {
+    List<PartitionAssignmentState> rowsWithoutConsumer = new ArrayList<PartitionAssignmentState>();
+    TopicAndPartition topicAndPartition = null;
+    for (Entry<TopicPartition, Object> entry : offsets.entrySet()) {
+      if (assignedTopicPartitions.contains(entry.getKey())) {
+        topicAndPartition = new TopicAndPartition(entry.getKey());
+        this.collectConsumerAssignment(group, Optional.ofNullable(consumerGroupSummary.coordinator()), Arrays.asList(topicAndPartition),
+            new MyFunctions() {
 
-							@Override
-							public Map<TopicAndPartition, Optional<Long>> getPartitionOffset(
-									TopicAndPartition topicAndPartition) {
-								Map<TopicAndPartition, Optional<Long>> temp = new HashMap<TopicAndPartition, Optional<Long>>();
-								temp.put(topicAndPartition, Optional.ofNullable((Long) entry.getValue()));
-								return temp;
-							}
+              @Override
+              public Map<TopicAndPartition, Optional<Long>> getPartitionOffset(TopicAndPartition topicAndPartition) {
+                Map<TopicAndPartition, Optional<Long>> temp = new HashMap<TopicAndPartition, Optional<Long>>();
+                temp.put(topicAndPartition, Optional.ofNullable((Long) entry.getValue()));
+                return temp;
+              }
 
-						}, Optional.of(MISSING_COLUMN_VALUE), Optional.of(MISSING_COLUMN_VALUE),
-						Optional.of(MISSING_COLUMN_VALUE));
-			}
-		}
-		rowsWithConsumer.addAll(rowsWithoutConsumer);
-		ret.put(consumerGroupSummary.state(), rowsWithConsumer);
-		return ret;
-	}
+            }, Optional.of(MISSING_COLUMN_VALUE), Optional.of(MISSING_COLUMN_VALUE), Optional.of(MISSING_COLUMN_VALUE));
+      }
+    }
+    rowsWithConsumer.addAll(rowsWithoutConsumer);
+    ret.put(consumerGroupSummary.state(), rowsWithConsumer);
+    return ret;
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.chickling.kmanager.core.service.ConsumerGroupService#getLogEndOffset(org.
-	 * apache.kafka.common.TopicPartition)
-	 */
-	@Override
-	protected Optional<Long> getLogEndOffset(String group, TopicPartition topicPartition) {
-		KafkaConsumer<String, String> consumer = null;
-		if (this.consumerMap.containsKey(group)) {
-			consumer = this.consumerMap.get(group);
-		} else {
-			consumer = this.getConsumer(group);
-			this.consumerMap.put(group, consumer);
-		}
-		consumer.assign(Arrays.asList(topicPartition));
-		consumer.seekToEnd(Arrays.asList(topicPartition));
-		long logEndOffset = consumer.position(topicPartition);
-		return Optional.ofNullable(logEndOffset);
-	}
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.chickling.kmanager.core.service.ConsumerGroupService#getLogEndOffset(org.
+   * apache.kafka.common.TopicPartition)
+   */
+  @Override
+  public Optional<Long> getLogEndOffset(String group, TopicPartition topicPartition) {
+    long logEndOffset = -1;
+    KafkaConsumer<String, String> consumer = this.getConsumer(group);
+    try {
+      consumer.assign(Arrays.asList(topicPartition));
+      consumer.seekToEnd(Arrays.asList(topicPartition));
+      logEndOffset = consumer.position(topicPartition);
+    } catch (Exception e) {
+      // No current assignment for partition
+      if (this.nocurrentassignmentMap.size() == 100) {
+        this.nocurrentassignmentMap.remove(this.nocurrentassignmentMap.keySet().iterator().next());
+      }
+      this.nocurrentassignmentMap.put(group, topicPartition);
+    }
+    return Optional.ofNullable(logEndOffset);
+  }
 
-	private KafkaConsumer<String, String> getConsumer(String group) {
-		return this.createNewConsumer(group);
-	}
+  private KafkaConsumer<String, String> getConsumer(String group) {
+    KafkaConsumer<String, String> consumer = null;
+    if (this.kmanagerLogEndOffsetGetter.containsKey(group)) {
+      consumer = this.kmanagerLogEndOffsetGetter.get(group);
+    } else {
+      consumer = this.createNewConsumer(group);
+    }
+    return consumer;
+  }
 
-	private AdminClient getAdminClient() {
-		if (this.adminClient == null)
-			this.adminClient = this.createAdminClient();
-		return this.adminClient;
-	}
+  private AdminClient getAdminClient() {
+    if (this.adminClient == null)
+      this.adminClient = this.createAdminClient();
+    return this.adminClient;
+  }
 
-	public AdminClient createAdminClient() {
-		Properties props = new Properties();
-		props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, this.props.get("bootstrapServer"));
-		return AdminClient.create(props);
-	}
+  public AdminClient createAdminClient() {
+    Properties props = new Properties();
+    props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, this.props.get("bootstrapServer"));
+    return AdminClient.create(props);
+  }
 
-	private KafkaConsumer<String, String> createNewConsumer(String group) {
-		Properties properties = new Properties();
-		properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.props.getProperty("bootstrapServer"));
-		properties.put(ConsumerConfig.GROUP_ID_CONFIG, group);
-		properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-		properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
-		properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-		properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-		return new KafkaConsumer<String, String>(properties);
-	}
+  private KafkaConsumer<String, String> createNewConsumer(String group) {
+    Properties properties = new Properties();
+    properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.props.getProperty("bootstrapServer"));
+    properties.put(ConsumerConfig.GROUP_ID_CONFIG, group);
+    properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+    properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "60000");
+    properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    return new KafkaConsumer<String, String>(properties);
+  }
+
+  public Map<String, TopicPartition> getNocurrentassignmentMap() {
+    Map<String, TopicPartition> temp = new HashMap<String, TopicPartition>();
+    temp.putAll(this.nocurrentassignmentMap);
+    return temp;
+  }
 }
