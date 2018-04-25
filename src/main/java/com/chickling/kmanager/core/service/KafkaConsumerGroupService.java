@@ -5,8 +5,6 @@ package com.chickling.kmanager.core.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +31,7 @@ import scala.collection.JavaConversions;
  * @since 2018年4月23日
  */
 public class KafkaConsumerGroupService extends ConsumerGroupService {
+//  private static Logger LOG = LoggerFactory.getLogger(ConsumerGroupService.class);
 
   private AdminClient adminClient;
 
@@ -84,15 +83,6 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
     Map<TopicPartition, Object> offsets = JavaConversions.mapAsJavaMap(this.getAdminClient().listGroupOffsets(group));
     List<PartitionAssignmentState> rowsWithConsumer = new ArrayList<PartitionAssignmentState>();
     if (!offsets.isEmpty()) {
-      if (consumerSummarys.size() > 1) {
-        Collections.sort(consumerSummarys, new Comparator<ConsumerSummary>() {
-
-          @Override
-          public int compare(ConsumerSummary cs1, ConsumerSummary cs2) {
-            return cs1.assignment().size() > cs2.assignment().size() ? 1 : (cs1.assignment().size() < cs2.assignment().size() ? -1 : 0);
-          }
-        });
-      }
       consumerSummarys.forEach(consumerSummary -> {
         List<TopicAndPartition> topicPartitions = JavaConversions.seqAsJavaList(consumerSummary.assignment()).stream()
             .map(topicPartition -> new TopicAndPartition(topicPartition)).collect(Collectors.toList());
@@ -168,6 +158,7 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
       consumer = this.kmanagerLogEndOffsetGetter.get(group);
     } else {
       consumer = this.createNewConsumer(group);
+      this.kmanagerLogEndOffsetGetter.put(group, consumer);
     }
     return consumer;
   }
