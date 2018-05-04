@@ -18,28 +18,31 @@ import com.google.gson.Gson;
 @Component
 public class Initializer implements CommandLineRunner {
 
-	private static Logger LOG = LoggerFactory.getLogger(Initializer.class);
+  private static Logger LOG = LoggerFactory.getLogger(Initializer.class);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.boot.CommandLineRunner#run(java.lang.String[])
-	 */
-	@Override
-	public void run(String... args) throws Exception {
-		try {
-			File systemConfigFile = new File("system.json");
-			if (!systemConfigFile.exists()) {
-				SystemManager.IS_SYSTEM_READY.set(false);
-			} else {
-				String systemConfigFileContent = CommonUtils.loadFileContent(systemConfigFile.getAbsolutePath());
-				AppConfig config = new Gson().fromJson(systemConfigFileContent, AppConfig.class);
-				SystemManager.setConfig(config);
-			}
-		} catch (Exception e) {
-			// If there comes out error, it is mostly the system.json file's fault,
-			SystemManager.IS_SYSTEM_READY.set(false);
-			LOG.error("init system failed!", e);
-		}
-	}
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.springframework.boot.CommandLineRunner#run(java.lang.String[])
+   */
+  @Override
+  public void run(String... args) throws Exception {
+    try {
+      File systemConfigFile = new File("config/system.json");
+      if (!systemConfigFile.exists()) {
+        File configFolder = new File("config");
+        if (!configFolder.exists()) {
+          configFolder.mkdir();
+        }
+        SystemManager.IS_SYSTEM_READY.set(false);
+      } else {
+        String systemConfigFileContent = CommonUtils.loadFileContent(systemConfigFile.getAbsolutePath());
+        AppConfig config = new Gson().fromJson(systemConfigFileContent, AppConfig.class);
+        SystemManager.setConfig(config);
+      }
+    } catch (Exception e) {
+      SystemManager.IS_SYSTEM_READY.set(false);
+      LOG.error("init system failed!", e);
+    }
+  }
 }

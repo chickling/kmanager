@@ -3,8 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.chickling</groupId>
 	<artifactId>KManager</artifactId>
-	<version>1.0.0</version>
-	<name>Kafka Monitor</name>
+	<version>1.0.1</version>
+	<name>Chickling KManager</name>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -12,6 +12,7 @@
 		<version>1.5.4.RELEASE</version>
 	</parent>
 	<properties>
+		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -23,14 +24,6 @@
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
 					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>ch.qos.logback</groupId>
-					<artifactId>logback-classic</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>log4j-over-slf4j</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -44,14 +37,23 @@
 					<artifactId>zookeeper</artifactId>
 				</exclusion>
 				<exclusion>
+					<groupId>com.101tec</groupId>
+					<artifactId>zkclient</artifactId>
+				</exclusion>
+				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-log4j12</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>com.101tec</groupId>
-					<artifactId>zkclient</artifactId>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-streams</artifactId>
+			<version>0.10.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.101tec</groupId>
@@ -104,14 +106,9 @@
 			<artifactId>json</artifactId>
 			<version>20160810</version><!--$NO-MVN-MAN-VER$ -->
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
+		<!-- <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-log4j12</artifactId> 
+			</dependency> <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-api</artifactId> 
+			</dependency> -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -122,6 +119,11 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -131,12 +133,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-shade-plugin</artifactId> 
-				<version>3.0.0</version> <executions> <execution> <phase>package</phase> 
-				<goals> <goal>shade</goal> </goals> <configuration> <transformers> <transformer 
-				implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"> 
-				<mainClass>com.chickling.KManager.KafkaMonitor</mainClass> </transformer> 
-				</transformers> </configuration> </execution> </executions> </plugin> -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.6.1</version><!--$NO-MVN-MAN-VER$ -->
@@ -145,15 +141,6 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<!-- <plugin> <groupId>org.scala-tools</groupId> <artifactId>maven-scala-plugin</artifactId> 
-				<version>2.15.2</version> <executions> <execution> <id>compile</id> <goals> 
-				<goal>compile</goal> </goals> <phase>compile</phase> </execution> <execution> 
-				<id>test-compile</id> <goals> <goal>testCompile</goal> </goals> <phase>test-compile</phase> 
-				</execution> <execution> <phase>process-resources</phase> <goals> <goal>compile</goal> 
-				</goals> </execution> </executions> </plugin> <plugin> <groupId>org.scalatest</groupId> 
-				<artifactId>scalatest-maven-plugin</artifactId> <version>1.0</version> <configuration></configuration> 
-				<executions> <execution> <id>test</id> <goals> <goal>test</goal> </goals> 
-				</execution> </executions> </plugin> -->
 			<!-- java-source -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -170,9 +157,18 @@
 				</executions>
 			</plugin>
 			<!-- java-doc -->
-			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-javadoc-plugin</artifactId> 
-				<version>2.7</version> <executions> <execution> <id>attach-javadocs</id> 
-				<goals> <goal>jar</goal> </goals> </execution> </executions> </plugin> -->
+			<!-- <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin> -->
 		</plugins>
 	</build>
 </project>

@@ -12,6 +12,7 @@ import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
+import org.apache.kafka.common.security.JaasUtils;
 import org.apache.zookeeper.data.Stat;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -61,9 +62,10 @@ public class ZKUtils {
 				});
 			}
 			if (zkUtilsFromKafka == null) {
-				zkUtilsFromKafka = new ZkUtils(zkClient, zkConnection, false);
+				zkUtilsFromKafka = new ZkUtils(zkClient, zkConnection, JaasUtils.isZkSecurityEnabled());
 			}
 		} catch (Exception e) {
+		    LOG.error("Init ZKUtil failed!", e);
 			throw new RuntimeException("Init ZKUtils failed! " + e.getMessage());
 		}
 	}

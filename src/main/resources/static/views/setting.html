@@ -3,28 +3,43 @@
 <h1>Settings</h1>
 <form style="margin-bottom: 25px;">
 	<div class="form-group">
-	<label for="clusterName" class="label label-primary settingLabel">Kafka Cluster Name</label> (no need exactly same as your real cluster name) <input type="text"
-		class="form-control" id="clusterName" name="clusterName"
-		ng-model="settingForm.clusterName"
-		placeholder="important, which is using to identity your cluster.">
+		<label for="clusterName" class="label label-primary settingLabel">Kafka
+			Cluster Name</label> (no need exactly same as your real cluster name) <input
+			type="text" class="form-control" id="clusterName" name="clusterName"
+			ng-model="settingForm.clusterName"
+			placeholder="important, which is using to identity your cluster.">
 	</div>
 	<div class="form-group">
-		<label for="inputZookeeper" class="label label-primary settingLabel">Kafka Zookeepers</label> <input type="text"
-			class="form-control" id="inputZookeeper" name="zkHosts"
-			ng-model="settingForm.zkHosts"
+		<label for="kafkaBroker" class="label label-primary settingLabel">kafka
+			Brokers</label> <input type="text" class="form-control" id="kafkaBroker"
+			name="kafkaBroker" ng-model="settingForm.bootstrapServers"
+			placeholder="broker1:9092,broker2:9092,brokerN:9092">
+	</div>
+	<div class="form-group">
+		<label for="inputZookeeper" class="label label-primary settingLabel">Kafka
+			Zookeepers</label> <input type="text" class="form-control"
+			id="inputZookeeper" name="zkHosts" ng-model="settingForm.zkHosts"
 			placeholder="zk1:2181,zk2:2181,zkN:2181">
 	</div>
 	<div class="form-group">
-	<label for="inputESHosts" class="label label-primary settingLabel">ElasticSearch Hosts</label> <input type="text"
-		class="form-control" id="inputESHosts" name="esHosts"
-		ng-model="settingForm.esHosts"
-		placeholder="JAVA API- esHost1:9300,esHost2:9300,esHostN:9300 REST API- esHost:9200">
+		<label for="inputESHosts" class="label label-primary settingLabel">ElasticSearch
+			Hosts</label> <input type="text" class="form-control" id="inputESHosts"
+			name="esHosts" ng-model="settingForm.esHosts"
+			placeholder="JAVA API- esHost1:9300,esHost2:9300,esHostN:9300 REST API- esHost:9200">
 	</div>
 	<div class="form-group">
-		<label for="inputESIndex">ElasticSearch Index</label> (Optional, the raw data will be saved under this index, you can use the default value.) <input type="text"
-			class="form-control" id="inputESIndex" name="esIndex"
-			ng-model="settingForm.esIndex"
-			placeholder="ChicklingKmanager">
+		<label for="inputESIndex">ElasticSearch Index</label> (Optional, the
+		raw data will be saved under this index, you can use the default
+		value.) <input type="text" class="form-control" id="inputESIndex"
+			name="esIndex" ng-model="settingForm.esIndex"
+			placeholder="chicklingKmanager">
+	</div>
+	<div class="form-group">
+		<label for="inputESIndex">ElasticSearch Template Name</label>
+		(Optional, the raw data will be saved under this index, you can use
+		the default value.) <input type="text" class="form-control"
+			id="inputesTempName" name="esTempName"
+			ng-model="settingForm.esTempName" placeholder="chicklingKmanager">
 	</div>
 	<div class="form-group">
 		<label for="inputDataCollectFrequency">Data collect frequency
@@ -80,8 +95,9 @@
 				placeholder="Like KafkaAlerting@chickling.com or something">
 		</div>
 		<div class="form-group">
-			<label for="inputMailSender">Mail subject</label> <input type="text"
-				class="form-control" id="inputMailSender"
+			<label for="inputMailSubject">Mail subject</label> <input type="text"
+				class="form-control" id=""
+				inputMailSubject""
 				ng-model="settingForm.mailSubject"
 				placeholder="Something like (Alerting)Kafka monitor alerting! ">
 		</div>

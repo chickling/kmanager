@@ -17,7 +17,7 @@ import com.chickling.kmanager.utils.ZKUtils;
 public class ObjectNameManagerTest {
 
 	public static void main(String[] args) {
-		ZKUtils.init("10.16.238.101:8181,10.16.238.102:8181,10.16.238.103:8181", 30000, 30000);
+		ZKUtils.init("luva101:8181,luva102:8181,luva103:8181", 30000, 30000);
 		ObjectNameManager onm = ObjectNameManager.getInstance();
 		Map<String, ObjectNameHolder> objectNames = onm.getObjectNames();
 		System.out.println(objectNames);

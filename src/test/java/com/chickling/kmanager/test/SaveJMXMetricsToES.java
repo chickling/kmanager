@@ -13,8 +13,8 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
-import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
+import javax.management.remote.JMXConnector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -44,10 +44,10 @@ public class SaveJMXMetricsToES {
   private static final SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
 
   public static void main(String[] args) {
-    ZKUtils.init("10.16.238.101:8181,10.16.238.102:8181,10.16.238.103:8181", 30000, 30000);
+    ZKUtils.init("luva101:8181,luva102:8181,luva103:8181", 30000, 30000);
     // ElasticsearchJavaUtil es = new
-    // ElasticsearchJavaUtil("10.16.238.82:9300,10.16.238.83:9300,10.16.238.84:9300");
-    ElasticsearchJavaUtil es = new ElasticsearchJavaUtil("10.16.232.120:9300");
+    // ElasticsearchJavaUtil("luva82:9300,luva83:9300,luva84:9300");
+    ElasticsearchJavaUtil es = new ElasticsearchJavaUtil("luva120:9300");
     KafkaJMX kafkaJMX = new KafkaJMX();
 
     scheduler.scheduleAtFixedRate(new Runnable() {
@@ -61,13 +61,13 @@ public class SaveJMXMetricsToES {
             kafkaJMX.doWithConnection(broker.getHost(), broker.getPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
               @Override
-              public void doWithConnection(MBeanServerConnection mbsc) {
+              public void doWithConnection(JMXConnector jmxConnector) {
                 JSONObject objectName = null;
                 try {
                   Date now = new Date();
                   SimpleDateFormat sFormat1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
                   String indexSufix = sFormat.format(now);
-                  Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+                  Set<ObjectInstance> beans = jmxConnector.getMBeanServerConnection().queryMBeans(null, null);
 
                   for (ObjectInstance bean : beans) {
                     objectName = new JSONObject();
@@ -89,13 +89,13 @@ public class SaveJMXMetricsToES {
                       objectName.put(temp[0], temp[1]);
                     }
                     objectName.put("objectName", bean.getObjectName().toString());
-                    MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
+                    MBeanInfo mbeanInfo = jmxConnector.getMBeanServerConnection().getMBeanInfo(bean.getObjectName());
                     MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
                     String[] attributeArr = new String[attributes.length];
                     for (int i = 0; i < attributes.length; i++) {
                       attributeArr[i] = attributes[i].getName();
                     }
-                    AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
+                    AttributeList attributeList = jmxConnector.getMBeanServerConnection().getAttributes(bean.getObjectName(), attributeArr);
                     List<Attribute> attributeList1 = attributeList.asList();
 
                     for (Attribute attr : attributeList1) {
@@ -109,7 +109,7 @@ public class SaveJMXMetricsToES {
                         objectName.put(attr.getName(), attr.getValue());
                       }
                     }
-                    // es.indexDoc(objectName, indexPrefix + indexSufix, docType);
+                    es.bulkIndex(objectName, indexPrefix + indexSufix, docType);
                   }
                 } catch (Exception e) {
                   LOG.error("Ops~" + objectName, e);
@@ -117,7 +117,7 @@ public class SaveJMXMetricsToES {
               }
             });
           }
-          // es.bulkIndex().awaitClose(10 * 6000, TimeUnit.SECONDS);
+          // es.bulkIndex(null, null, null);
         } catch (Exception e) {
           LOG.warn("Ops..." + e.getMessage());
         }

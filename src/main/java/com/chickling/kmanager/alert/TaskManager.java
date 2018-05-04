@@ -9,19 +9,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.chickling.kmanager.config.AppConfig;
+import com.chickling.kmanager.model.OffsetInfo;
 import com.google.gson.Gson;
 
 /**
- * @ClassName
- * @Description
  * @author Hulva Luva.H
- * @date 2017年2月11日
+ * @since 2017年2月11日
  *
  */
 public class TaskManager {
@@ -29,7 +29,8 @@ public class TaskManager {
 
 	public static String taskFolder;
 
-	public static Map<String, Long> cachedLastSendTime = new HashMap<String, Long>();
+	public static ConcurrentHashMap<String, Long> cachedLastSendTime = new ConcurrentHashMap<>();
+	public static ConcurrentHashMap<String, Set<OffsetInfo>> cachedTriggeredOffsetInfo = new ConcurrentHashMap<>();
 
 	// k:group v:(k:topic v:taskContent)
 	private static Map<String, Map<String, TaskContent>> tasks;
@@ -65,9 +66,9 @@ public class TaskManager {
 	}
 
 	public static void deleteTask(String taskNameToRemove) {
-		String[] group_topic = taskNameToRemove.split("-");
-		if (exits(new TaskContent(group_topic[0], group_topic[1], null, null, null))) {
-			TaskContent taskToDelete = tasks.get(group_topic[0]).remove(group_topic[1]);
+		String[] groupTopic = taskNameToRemove.split("-");
+		if (exits(new TaskContent(groupTopic[0], groupTopic[1], null, null, null,null))) {
+			TaskContent taskToDelete = tasks.get(groupTopic[0]).remove(groupTopic[1]);
 			deleteTaskFile(taskToDelete);
 		}
 	}
@@ -77,14 +78,14 @@ public class TaskManager {
 	}
 
 	public static Set<TaskContent> getTasks() {
-		Set<TaskContent> _tasks = new HashSet<TaskContent>();
-		tasks.forEach((group, topic_task) -> {
-			Set<Entry<String, TaskContent>> entrySet = topic_task.entrySet();
+		Set<TaskContent> tempTasks = new HashSet<TaskContent>();
+		tasks.forEach((group, topicTask) -> {
+			Set<Entry<String, TaskContent>> entrySet = topicTask.entrySet();
 			entrySet.forEach(entry -> {
-				_tasks.add(entry.getValue());
+				tempTasks.add(entry.getValue());
 			});
 		});
-		return _tasks;
+		return tempTasks;
 	}
 
 	public static void saveTaskToFileAndAddToTasks(TaskContent taskContent) {

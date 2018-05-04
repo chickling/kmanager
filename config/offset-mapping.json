@@ -1,0 +1,57 @@
+{
+	"properties": {
+		"date": {
+			"type": "date"
+		},
+		"owner": {
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"lag": {
+			"type": "long"
+		},
+		"partition": {
+			"type": "long"
+		},
+		"offset": {
+			"type": "long"
+		},
+		"logSize": {
+			"type": "long"
+		},
+		"modified": {
+			"type": "long"
+		},
+		"topic": {
+			"fielddata": true,
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"creation": {
+			"type": "long"
+		},
+		"group": {
+			"fielddata": true,
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"timestamp": {
+			"type": "long"
+		}
+	}
+}
