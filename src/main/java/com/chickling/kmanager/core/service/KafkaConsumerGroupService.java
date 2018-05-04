@@ -30,8 +30,8 @@ import scala.collection.JavaConversions;
  * @author Hulva Luva.H
  * @since 2018年4月23日
  */
-public class KafkaConsumerGroupService extends ConsumerGroupService {
-//  private static Logger LOG = LoggerFactory.getLogger(ConsumerGroupService.class);
+public class KafkaConsumerGroupService extends AbstractConsumerGroupService {
+  // private static Logger LOG = LoggerFactory.getLogger(ConsumerGroupService.class);
 
   private AdminClient adminClient;
 
@@ -56,7 +56,9 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
    */
   @Override
   public void close() {
-    this.adminClient.close();
+    if (this.adminClient != null) {
+      this.adminClient.close();
+    }
     if (this.kmanagerLogEndOffsetGetter != null) {
       Iterator<Entry<String, KafkaConsumer<String, String>>> ite = this.kmanagerLogEndOffsetGetter.entrySet().iterator();
       while (ite.hasNext()) {
@@ -109,8 +111,8 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
     for (Entry<TopicPartition, Object> entry : offsets.entrySet()) {
       if (!assignedTopicPartitions.contains(entry.getKey())) {
         topicAndPartition = new TopicAndPartition(entry.getKey());
-        rowsWithoutConsumer.addAll(this.collectConsumerAssignment(group, Optional.ofNullable(consumerGroupSummary.coordinator()), Arrays.asList(topicAndPartition),
-            new MyFunctions() {
+        rowsWithoutConsumer.addAll(this.collectConsumerAssignment(group, Optional.ofNullable(consumerGroupSummary.coordinator()),
+            Arrays.asList(topicAndPartition), new MyFunctions() {
 
               @Override
               public Map<TopicAndPartition, Optional<Long>> getPartitionOffset(TopicAndPartition topicAndPartition) {
@@ -152,6 +154,7 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
   }
 
   private KafkaConsumer<String, String> getConsumer(String group) {
+    // TODO 多线程操作时会有问题
     KafkaConsumer<String, String> consumer = null;
     if (this.kmanagerLogEndOffsetGetter.containsKey(group)) {
       consumer = this.kmanagerLogEndOffsetGetter.get(group);
@@ -163,8 +166,9 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
   }
 
   private AdminClient getAdminClient() {
-    if (this.adminClient == null)
+    if (this.adminClient == null) {
       this.adminClient = this.createAdminClient();
+    }
     return this.adminClient;
   }
 

@@ -2,13 +2,12 @@ package com.chickling.kmanager.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
 import org.apache.kafka.common.TopicPartition;
@@ -16,7 +15,6 @@ import org.apache.zookeeper.data.Stat;
 
 import com.chickling.kmanager.config.AppConfig;
 import com.chickling.kmanager.core.service.KafkaConsumerGroupService;
-import com.chickling.kmanager.core.service.PartitionAssignmentState;
 import com.chickling.kmanager.initialize.SystemManager;
 import com.chickling.kmanager.model.OffsetInfo;
 import com.chickling.kmanager.model.ZkDataAndStat;
@@ -32,7 +30,7 @@ import scala.collection.JavaConversions;
  * @since 2017年6月15日
  *
  */
-public class CombinedOffsetGetter extends OffsetGetter {
+public class CombinedOffsetGetter extends AbstractOffsetGetter {
 
   private static Long excludeByLastSeen = 604_800_000L;
 
@@ -70,20 +68,21 @@ public class CombinedOffsetGetter extends OffsetGetter {
     for (String group : groups) {
       topics = getTopicList(group);
       topics.forEach(topic -> {
-        List<String> _groups = null;
+        List<String> nestedGroups = null;
         if (topicGroupsMap.containsKey(topic)) {
-          _groups = topicGroupsMap.get(topic);
-          _groups.add(group);
+          nestedGroups = topicGroupsMap.get(topic);
+          nestedGroups.add(group);
         } else {
-          _groups = new ArrayList<String>();
-          _groups.add(group);
+          nestedGroups = new ArrayList<String>();
+          nestedGroups.add(group);
         }
-        topicGroupsMap.put(topic, _groups);
+        topicGroupsMap.put(topic, nestedGroups);
       });
     }
     return topicGroupsMap;
   }
 
+  @Override
   public Map<String, List<String>> getTopicMap(boolean belongZK) {
     Map<String, List<String>> topicGroupsMap = new HashMap<String, List<String>>();
     List<String> groups = new ArrayList<String>();
@@ -93,15 +92,15 @@ public class CombinedOffsetGetter extends OffsetGetter {
       for (String group : groups) {
         topics = getTopicList(group);
         topics.forEach(topic -> {
-          List<String> _groups = null;
+          List<String> nestedGroups = null;
           if (topicGroupsMap.containsKey(topic)) {
-            _groups = topicGroupsMap.get(topic);
-            _groups.add(group);
+            nestedGroups = topicGroupsMap.get(topic);
+            nestedGroups.add(group);
           } else {
-            _groups = new ArrayList<String>();
-            _groups.add(group);
+            nestedGroups = new ArrayList<String>();
+            nestedGroups.add(group);
           }
-          topicGroupsMap.put(topic, _groups);
+          topicGroupsMap.put(topic, nestedGroups);
         });
       }
     } else {
@@ -112,22 +111,15 @@ public class CombinedOffsetGetter extends OffsetGetter {
   }
 
   public Set<String> getTopicsForGroupCommittedToKafka(String group) {
-    Set<String> topics = new HashSet<String>();
-    Map<String, List<PartitionAssignmentState>> groupAssignment = this.kafkaConsumerGroupService.describeGroup(group);
     // "Dead"
     // "Empty"
     // "PreparingRebalance"
     // "Stable"
-    for (Entry<String, List<PartitionAssignmentState>> entry : groupAssignment.entrySet()) {
-      entry.getValue().forEach((partitionAssignment) -> {
-        String topic = partitionAssignment.getTopic().orElse("-");
-        if (!"-".equals(topic)) {
-          topics.add(topic);
-        }
-      });
-    }
+    return this.kafkaConsumerGroupService
+        .describeGroup(group).entrySet().stream().map(entry -> entry.getValue()).map(partitionAssignmentList -> partitionAssignmentList
+            .stream().map(partitionAssignment -> partitionAssignment.getTopic().get()).collect(Collectors.toList()))
+        .flatMap(List::stream).collect(Collectors.toSet());
 
-    return topics;
   }
 
   @Override
@@ -148,15 +140,15 @@ public class CombinedOffsetGetter extends OffsetGetter {
         }
         Set<String> topics = consumer_consumerThreadId.keySet();
         topics.forEach(topic -> {
-          List<String> _groups = null;
+          List<String> nestedGroups = null;
           if (topicGroupsMap.containsKey(topic)) {
-            _groups = topicGroupsMap.get(topic);
-            _groups.add(consumer);
+            nestedGroups = topicGroupsMap.get(topic);
+            nestedGroups.add(consumer);
           } else {
-            _groups = new ArrayList<String>();
-            _groups.add(consumer);
+            nestedGroups = new ArrayList<String>();
+            nestedGroups.add(consumer);
           }
-          topicGroupsMap.put(topic, _groups);
+          topicGroupsMap.put(topic, nestedGroups);
         });
       }
     } else {
@@ -182,15 +174,15 @@ public class CombinedOffsetGetter extends OffsetGetter {
       }
       Set<String> topics = consumer_consumerThreadId.keySet();
       topics.forEach(topic -> {
-        List<String> _groups = null;
+        List<String> nestedGroups = null;
         if (topicGroupsMap.containsKey(topic)) {
-          _groups = topicGroupsMap.get(topic);
-          _groups.add(consumer);
+          nestedGroups = topicGroupsMap.get(topic);
+          nestedGroups.add(consumer);
         } else {
-          _groups = new ArrayList<String>();
-          _groups.add(consumer);
+          nestedGroups = new ArrayList<String>();
+          nestedGroups.add(consumer);
         }
-        topicGroupsMap.put(topic, _groups);
+        topicGroupsMap.put(topic, nestedGroups);
       });
     }
     // TODO Consumers committed offsets to Kafka that is Active
@@ -205,15 +197,15 @@ public class CombinedOffsetGetter extends OffsetGetter {
     for (String consumer : consumers) {
       Set<String> topics = this.getTopicsForGroupCommittedToKafka(consumer);
       topics.forEach(topic -> {
-        List<String> _groups = null;
+        List<String> nestedGroups = null;
         if (topicGroupsMap.containsKey(topic)) {
-          _groups = topicGroupsMap.get(topic);
-          _groups.add(consumer);
+          nestedGroups = topicGroupsMap.get(topic);
+          nestedGroups.add(consumer);
         } else {
-          _groups = new ArrayList<String>();
-          _groups.add(consumer);
+          nestedGroups = new ArrayList<String>();
+          nestedGroups.add(consumer);
         }
-        topicGroupsMap.put(topic, _groups);
+        topicGroupsMap.put(topic, nestedGroups);
       });
     }
     return topicGroupsMap;

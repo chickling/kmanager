@@ -44,17 +44,17 @@ public class TaskHandler implements Runnable {
             }
           }
         }
-        for (TaskContent _task : tasks) {
-          Long lastSendTime = TaskManager.cachedLastSendTime.get(_task.getGroup() + "@" + _task.getTopic());
+        for (TaskContent taskCont : tasks) {
+          Long lastSendTime = TaskManager.cachedLastSendTime.get(taskCont.getGroup() + "@" + taskCont.getTopic());
           // if alerting task keeping triggered, that make sure that
           // we do not keep on receiving email in a short time
           if (lastSendTime != null) {
-            if ((System.currentTimeMillis() - lastSendTime) > _task.getDiapause() * 60 * 1000) {
-              generateEmailContentAndSend(_task, TaskManager.cachedTriggeredOffsetInfo.get(_task.getTopic()));
+            if ((System.currentTimeMillis() - lastSendTime) > taskCont.getDiapause() * 60 * 1000) {
+              generateEmailContentAndSend(taskCont, TaskManager.cachedTriggeredOffsetInfo.get(taskCont.getTopic()));
             }
           } else {
-            TaskManager.cachedLastSendTime.put(_task.getGroup() + "@" + _task.getTopic(), System.currentTimeMillis());
-            generateEmailContentAndSend(_task, TaskManager.cachedTriggeredOffsetInfo.get(_task.getTopic()));
+            TaskManager.cachedLastSendTime.put(taskCont.getGroup() + "@" + taskCont.getTopic(), System.currentTimeMillis());
+            generateEmailContentAndSend(taskCont, TaskManager.cachedTriggeredOffsetInfo.get(taskCont.getTopic()));
           }
         }
       } catch (Exception e) {
@@ -63,10 +63,10 @@ public class TaskHandler implements Runnable {
     }
   }
 
-  private void generateEmailContentAndSend(TaskContent _task, Set<OffsetInfo> offsetInfos) throws Exception {
+  private void generateEmailContentAndSend(TaskContent taskCont, Set<OffsetInfo> offsetInfos) throws Exception {
     try {
       LOG.info("generateEmailContentAndSend...");
-      TaskManager.cachedLastSendTime.put(_task.getGroup() + "@" + _task.getTopic(), System.currentTimeMillis());
+      TaskManager.cachedLastSendTime.put(taskCont.getGroup() + "@" + taskCont.getTopic(), System.currentTimeMillis());
       Template template = new Template();
       StringBuilder blabla;
       blabla = new StringBuilder();
@@ -78,7 +78,7 @@ public class TaskHandler implements Runnable {
         blabla.append("<td style=\"border: 1px solid #ddd;\">" + (offsetInfo.isBelongZK()?"ZK":"Broker") + "</td><tr>");
       }
       template.insertTr(blabla.toString());
-      EmailSender.sendEmail(template.getContent(), _task.getMailTo(), _task.getGroup() + "@" + _task.getTopic());
+      EmailSender.sendEmail(template.getContent(), taskCont.getMailTo(), taskCont.getGroup() + "@" + taskCont.getTopic());
     } catch (Exception e) {
       throw new RuntimeException("generateEmailContentAndSendException: ", e);
     }

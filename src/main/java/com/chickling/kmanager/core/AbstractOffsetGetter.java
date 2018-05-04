@@ -39,9 +39,9 @@ import scala.runtime.AbstractFunction0;
  * @since 2017年6月15日
  *
  */
-public abstract class OffsetGetter {
+public abstract class AbstractOffsetGetter {
 
-  static Logger LOG = LoggerFactory.getLogger(OffsetGetter.class);
+  static Logger LOG = LoggerFactory.getLogger(AbstractOffsetGetter.class);
 
   protected static boolean earliest = false;
 
@@ -133,17 +133,17 @@ public abstract class OffsetGetter {
       if (!topics.isEmpty()) {
         if (topics.contains(partitionAssignment.getTopic().orElse("-"))) {
           offsets.add(new OffsetInfo(group, (String) partitionAssignment.getTopic().orElse("-"),
-              (Integer) partitionAssignment.getPartition().orElse(-1), (Long) partitionAssignment.getOffset().orElse(-1l),
-              (Long) partitionAssignment.getLogEndOffset().orElse(-1l),
+              (Integer) partitionAssignment.getPartition().orElse(-1), (Long) partitionAssignment.getOffset().orElse(-1L),
+              (Long) partitionAssignment.getLogEndOffset().orElse(-1L),
               partitionAssignment.getConsumerId().orElse("-") + partitionAssignment.getHost().orElse("-"), -1L, -1L,
-              (Long) partitionAssignment.getLag().orElse(-1l), false));
+              (Long) partitionAssignment.getLag().orElse(-1L), false));
         }
       } else {
         offsets.add(new OffsetInfo(group, (String) partitionAssignment.getTopic().orElse("-"),
-            (Integer) partitionAssignment.getPartition().orElse(-1), (Long) partitionAssignment.getOffset().orElse(-1l),
-            (Long) partitionAssignment.getLogEndOffset().orElse(-1l),
+            (Integer) partitionAssignment.getPartition().orElse(-1), (Long) partitionAssignment.getOffset().orElse(-1L),
+            (Long) partitionAssignment.getLogEndOffset().orElse(-1L),
             partitionAssignment.getConsumerId().orElse("-") + partitionAssignment.getHost().orElse("-"), -1L, -1L,
-            (Long) partitionAssignment.getLag().orElse(-1l), false));
+            (Long) partitionAssignment.getLag().orElse(-1L), false));
       }
       // System.out.println(String.format("%-30s %-10s %-15s %-15s %-10s %-50s",
       // partitionAssignment.topic().get(),
@@ -190,8 +190,9 @@ public abstract class OffsetGetter {
     }
     for (String topic : topics) {
       List<OffsetInfo> offsetInfoList = processTopic(group, topic);
-      if (!(offsetInfoList == null))
+      if (!(offsetInfoList == null)) {
         offsetInfos.addAll(offsetInfoList);
+      }
     }
     return offsetInfos;
   }

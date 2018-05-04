@@ -20,7 +20,7 @@ import com.chickling.kmanager.initialize.SystemManager;
 @RequestMapping("/extra")
 @RestController
 @CrossOrigin(origins = "*")
-public class SyatemController {
+public class SystemController {
   // private static Logger LOG = LoggerFactory.getLogger(SyatemController.class);
 
   @RequestMapping(value = "/nocurrentassignment", method = RequestMethod.GET)

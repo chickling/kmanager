@@ -38,8 +38,8 @@ System.out.println(new Random().nextInt(10));
     if (topic != null && topic.length() > 0) {
       query += "{\"query\": {\"match\": {\"topic\": {\"query\": \"" + topic + "\",\"type\": \"phrase\"}}}},";
     }
-    query += "{\"range\": {\"timestamp\": {" + "\"gte\":" + (new Date().getTime() - 24 * 60 * 60000) + ",\"lte\": "
-        + new Date().getTime() + ",\"format\": \"epoch_millis\"}}}" + "]}}}}}";
+    query += "{\"range\": {\"timestamp\": {" + "\"gte\":" + (System.currentTimeMillis() - 24 * 60 * 60000) + ",\"lte\": "
+        + System.currentTimeMillis() + ",\"format\": \"epoch_millis\"}}}" + "]}}}}}";
     return query;
   }
 }

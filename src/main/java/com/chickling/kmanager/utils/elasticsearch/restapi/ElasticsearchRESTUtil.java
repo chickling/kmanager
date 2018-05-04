@@ -94,6 +94,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
    * 
    * @return just true
    */
+  @Override
   public boolean check() {
     // TODO Elasticsearch status check
     try {
@@ -155,6 +156,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
     return true;
   }
 
+  @Override
   public void bulkIndex(JSONObject data, String docType, String indexPrefix) {
     StringBuilder bulkData = new StringBuilder();
     SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -178,6 +180,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
     response.getBody();
   }
 
+  @Override
   public List<OffsetPoints> scrollsSearcher(OffsetHistoryQueryParams params, String docType, String indexPrefix) {
     ExecutorService pool =
         Executors.newFixedThreadPool(SystemManager.DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("OffsetHistoryQuery-RESTAPI"));
@@ -317,7 +320,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
   // / (60 * 60 * 1000));
   // }
   // }
-
+  @Override
   public List<OffsetPoints> offsetHistory(String indexPrefix, String docType, String group, String topic) {
     ExecutorService pool =
         Executors.newFixedThreadPool(SystemManager.DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("OffsetHistoryQuery-RESTAPI"));

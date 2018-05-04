@@ -14,8 +14,8 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
-import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
+import javax.management.remote.JMXConnector;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,10 +38,10 @@ public class JMXTest {
 
   private static boolean excludeInternalTopic = true; // like __consumer_offsets
   private static Map<String, ObjectNameHolder> objectNames = new HashMap<String, ObjectNameHolder>();
-  
+
   private static Set<String> exceptObjectNames = new HashSet<String>();
-  
-  
+
+
   static {
     exceptObjectNames.add("java.lang:type=GarbageCollector,name=G1 Young Generation");
   }
@@ -50,8 +50,8 @@ public class JMXTest {
 
     KafkaJMX kafkaJMX = new KafkaJMX();
     ZKUtils.init("luva101:8181,luva102:8181,luva103:8181", 30000, 30000);
-//    objectName_Metrics(kafkaJMX);
-     objectNames(kafkaJMX);
+    // objectName_Metrics(kafkaJMX);
+    objectNames(kafkaJMX);
 
     // initObjectNames(kafkaJMX);
   }
@@ -66,9 +66,9 @@ public class JMXTest {
         kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
           @Override
-          public void doWithConnection(MBeanServerConnection mbsc) {
+          public void doWithConnection(JMXConnector jmxConnector) {
             try {
-              Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+              Set<ObjectInstance> beans = jmxConnector.getMBeanServerConnection().queryMBeans(null, null);
               ObjectNameHolder objectNameHolder = null;
               ObjectNameHolder objectNameHolderOld = null;
               for (ObjectInstance bean : beans) {
@@ -153,12 +153,12 @@ public class JMXTest {
       kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
         @Override
-        public void doWithConnection(MBeanServerConnection mbsc) {
+        public void doWithConnection(JMXConnector jmxConnector) {
           // KafkaMetrics kafkaMetrics = new KafkaMetrics();
           try (FileWriter fw = new FileWriter("objectNames.json", true);
               BufferedWriter bw = new BufferedWriter(fw);
               PrintWriter out = new PrintWriter(bw)) {
-            Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+            Set<ObjectInstance> beans = jmxConnector.getMBeanServerConnection().queryMBeans(null, null);
             JSONArray objectName = new JSONArray();
             for (ObjectInstance bean : beans) {
               if (excludeInternalTopic && bean.getObjectName().toString().contains("__consumer_offsets")) {
@@ -169,14 +169,14 @@ public class JMXTest {
               }
               System.out.println("ObjectName: " + bean.getObjectName());
               objectName.put(bean.getObjectName().toString());
-              MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
+              MBeanInfo mbeanInfo = jmxConnector.getMBeanServerConnection().getMBeanInfo(bean.getObjectName());
               System.out.println("\tMBeanInfo: " + mbeanInfo);
               MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
               String[] attributeArr = new String[attributes.length];
               for (int i = 0; i < attributes.length; i++) {
                 attributeArr[i] = attributes[i].getName();
               }
-              AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
+              AttributeList attributeList = jmxConnector.getMBeanServerConnection().getAttributes(bean.getObjectName(), attributeArr);
               List<Attribute> attributeList1 = attributeList.asList();
 
               for (Attribute attr : attributeList1) {
@@ -199,12 +199,12 @@ public class JMXTest {
       kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
         @Override
-        public void doWithConnection(MBeanServerConnection mbsc) {
+        public void doWithConnection(JMXConnector jmxConnector) {
           // KafkaMetrics kafkaMetrics = new KafkaMetrics();
           try (FileWriter fw = new FileWriter("metrics.json", true);
               BufferedWriter bw = new BufferedWriter(fw);
               PrintWriter out = new PrintWriter(bw)) {
-            Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+            Set<ObjectInstance> beans = jmxConnector.getMBeanServerConnection().queryMBeans(null, null);
 
             JSONArray objectNameMetrics = new JSONArray();
             JSONObject objectName = null;
@@ -227,14 +227,14 @@ public class JMXTest {
                 objectName.put(temp[0], temp[1]);
               }
               objectName.put("objectName", bean.getObjectName().toString());
-              MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
+              MBeanInfo mbeanInfo = jmxConnector.getMBeanServerConnection().getMBeanInfo(bean.getObjectName());
               System.out.println("\tMBeanInfo: " + mbeanInfo);
               MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
               String[] attributeArr = new String[attributes.length];
               for (int i = 0; i < attributes.length; i++) {
                 attributeArr[i] = attributes[i].getName();
               }
-              AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
+              AttributeList attributeList = jmxConnector.getMBeanServerConnection().getAttributes(bean.getObjectName(), attributeArr);
               List<Attribute> attributeList1 = attributeList.asList();
 
               for (Attribute attr : attributeList1) {

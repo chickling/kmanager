@@ -66,9 +66,9 @@ public class TaskManager {
 	}
 
 	public static void deleteTask(String taskNameToRemove) {
-		String[] group_topic = taskNameToRemove.split("-");
-		if (exits(new TaskContent(group_topic[0], group_topic[1], null, null, null,null))) {
-			TaskContent taskToDelete = tasks.get(group_topic[0]).remove(group_topic[1]);
+		String[] groupTopic = taskNameToRemove.split("-");
+		if (exits(new TaskContent(groupTopic[0], groupTopic[1], null, null, null,null))) {
+			TaskContent taskToDelete = tasks.get(groupTopic[0]).remove(groupTopic[1]);
 			deleteTaskFile(taskToDelete);
 		}
 	}
@@ -78,14 +78,14 @@ public class TaskManager {
 	}
 
 	public static Set<TaskContent> getTasks() {
-		Set<TaskContent> _tasks = new HashSet<TaskContent>();
-		tasks.forEach((group, topic_task) -> {
-			Set<Entry<String, TaskContent>> entrySet = topic_task.entrySet();
+		Set<TaskContent> tempTasks = new HashSet<TaskContent>();
+		tasks.forEach((group, topicTask) -> {
+			Set<Entry<String, TaskContent>> entrySet = topicTask.entrySet();
 			entrySet.forEach(entry -> {
-				_tasks.add(entry.getValue());
+				tempTasks.add(entry.getValue());
 			});
 		});
-		return _tasks;
+		return tempTasks;
 	}
 
 	public static void saveTaskToFileAndAddToTasks(TaskContent taskContent) {
