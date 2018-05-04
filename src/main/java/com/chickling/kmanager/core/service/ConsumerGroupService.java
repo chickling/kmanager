@@ -45,11 +45,7 @@ public abstract class ConsumerGroupService {
 			List<TopicAndPartition> topicPartitions, MyFunctions myFunc, Optional<String> consumerIdOpt,
 			Optional<String> hostOpt, Optional<String> clientIdOpt) {
 		List<PartitionAssignmentState> ret = new ArrayList<PartitionAssignmentState>();
-		if (topicPartitions.isEmpty())
-			ret.add(new PartitionAssignmentState(group, coordinator, Optional.of(null), Optional.of(null),
-					Optional.of(null), getLag(Optional.of(null), Optional.of(null)), consumerIdOpt, hostOpt,
-					clientIdOpt, Optional.of(null)));
-		else {
+		if (!topicPartitions.isEmpty()) {
 			topicPartitions.sort(new Comparator<TopicAndPartition>() {
 
 				@Override

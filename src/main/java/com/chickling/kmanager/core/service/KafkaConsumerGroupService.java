@@ -76,7 +76,6 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
     Map<String, List<PartitionAssignmentState>> ret = new HashMap<String, List<PartitionAssignmentState>>();
 
     ConsumerGroupSummary consumerGroupSummary = this.getAdminClient().describeConsumerGroup(group);
-    consumerGroupSummary.state(); // "Dead"
     List<ConsumerSummary> consumerSummarys = JavaConversions.seqAsJavaList(consumerGroupSummary.consumers().get());
     List<TopicPartition> assignedTopicPartitions = new ArrayList<>();
     // Map<TopicPartition, Long>
@@ -108,9 +107,9 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
     List<PartitionAssignmentState> rowsWithoutConsumer = new ArrayList<PartitionAssignmentState>();
     TopicAndPartition topicAndPartition = null;
     for (Entry<TopicPartition, Object> entry : offsets.entrySet()) {
-      if (assignedTopicPartitions.contains(entry.getKey())) {
+      if (!assignedTopicPartitions.contains(entry.getKey())) {
         topicAndPartition = new TopicAndPartition(entry.getKey());
-        this.collectConsumerAssignment(group, Optional.ofNullable(consumerGroupSummary.coordinator()), Arrays.asList(topicAndPartition),
+        rowsWithoutConsumer.addAll(this.collectConsumerAssignment(group, Optional.ofNullable(consumerGroupSummary.coordinator()), Arrays.asList(topicAndPartition),
             new MyFunctions() {
 
               @Override
@@ -120,7 +119,7 @@ public class KafkaConsumerGroupService extends ConsumerGroupService {
                 return temp;
               }
 
-            }, Optional.of(MISSING_COLUMN_VALUE), Optional.of(MISSING_COLUMN_VALUE), Optional.of(MISSING_COLUMN_VALUE));
+            }, Optional.of(MISSING_COLUMN_VALUE), Optional.of(MISSING_COLUMN_VALUE), Optional.of(MISSING_COLUMN_VALUE)));
       }
     }
     rowsWithConsumer.addAll(rowsWithoutConsumer);
