@@ -3,10 +3,10 @@
  */
 package com.chickling.kmanager.test;
 
+import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-import java.nio.ByteBuffer;
 
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -17,7 +17,6 @@ import org.json.JSONObject;
 
 import kafka.common.OffsetAndMetadata;
 import kafka.coordinator.BaseKey;
-import kafka.coordinator.GroupMetadataKey;
 import kafka.coordinator.GroupMetadataManager;
 import kafka.coordinator.OffsetKey;
 

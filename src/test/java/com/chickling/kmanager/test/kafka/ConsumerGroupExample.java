@@ -25,13 +25,11 @@ public class ConsumerGroupExample {
 	private ExecutorService executor;
 	private String zookeeper;
 	private String groupId;
-	private String url;
 
 	public ConsumerGroupExample(String zookeeper, String groupId, String topic, String url) {
 		this.topic = topic;
 		this.zookeeper = zookeeper;
 		this.groupId = groupId;
-		this.url = url;
 		consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(createConsumerConfig()));
 	}
 
@@ -42,7 +40,6 @@ public class ConsumerGroupExample {
 		props.put("auto.commit.enable", "true");
 		props.put("auto.offset.reset", "smallest");
 		props.put("offsets.storage", "kafka");
-		// props.put("schema.registry.url", url);
 
 		return props;
 	}
