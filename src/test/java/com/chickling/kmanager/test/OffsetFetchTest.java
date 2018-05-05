@@ -4,6 +4,7 @@
 package com.chickling.kmanager.test;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -27,15 +28,20 @@ import kafka.coordinator.OffsetKey;
  */
 public class OffsetFetchTest {
 	private final static String OFFSET_TOPIC = "__consumer_offsets";
-	// private final static String BOOTSTRAP_SERVERS =
-	// "10.16.238.101:8092,10.16.238.102:8092";
 	private final static String BOOTSTRAP_SERVERS = "localhost:9092";
 	private final static String OUTPUT_TOPIC = "__consumer_offsets_output";
 	private final static Set<String> EXCEPT_TOPIC = new HashSet<String>();
 
+	private final static boolean ENABLE_INCLUDE = true;
+	private final static Set<String> INCLUDE_GROUP = new HashSet<String>();
+
 	static {
 		EXCEPT_TOPIC.add(OFFSET_TOPIC);
 		EXCEPT_TOPIC.add(OUTPUT_TOPIC);
+
+		INCLUDE_GROUP.addAll(Arrays.asList("BI_EC_Pf_Newegg_com_adobe_products", "BI_EC_Pf_Newegg_com_adobe_others",
+				"BI_EC_Pf_Newegg_com_adobe_allpage1", "I_EC_Pf_Newegg_com_adobe_middle_layer",
+				"BI_EC_Pf_Newegg_com_adobe_hbaserawdata", "BI_EC_Pf_Newegg_com_adobe_COUNT"));
 	}
 
 	public static void main(String[] args) {
@@ -56,8 +62,9 @@ public class OffsetFetchTest {
 				.filter((k, v) -> {
 					if (k instanceof OffsetKey) {
 						OffsetKey offsetKey = (OffsetKey) k;
-						System.out.println(offsetKey.key().topicPartition().topic());
-						return !EXCEPT_TOPIC.contains(offsetKey.key().topicPartition().topic());
+						// System.out.println(offsetKey.key().topicPartition().topic());
+						return !EXCEPT_TOPIC.contains(offsetKey.key().topicPartition().topic())
+								&& (ENABLE_INCLUDE ? INCLUDE_GROUP.contains(offsetKey.key().group()) : true);
 					}
 					// if (k instanceof GroupMetadataKey) {
 					// GroupMetadataKey key = (GroupMetadataKey) k;

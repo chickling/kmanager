@@ -209,8 +209,8 @@ public class KafkaMetrics {
   }
 
   private Double getDoubleValue(AttributeList attributes, String name) {
-    List<Attribute> _attributes = attributes.asList();
-    for (Attribute attr : _attributes) {
+    List<Attribute> attries = attributes.asList();
+    for (Attribute attr : attries) {
       if (attr.getName().equalsIgnoreCase(name)) {
         return (Double) attr.getValue();
       }
@@ -219,8 +219,8 @@ public class KafkaMetrics {
   }
 
   private Long getLongValue(AttributeList attributes, String name) {
-    List<Attribute> _attributes = attributes.asList();
-    for (Attribute attr : _attributes) {
+    List<Attribute> attries = attributes.asList();
+    for (Attribute attr : attries) {
       if (attr.getName().equalsIgnoreCase(name)) {
         return (Long) attr.getValue();
       }

@@ -6,7 +6,11 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -16,7 +20,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -27,7 +31,7 @@ import com.chickling.kmanager.alert.TaskHandler;
 import com.chickling.kmanager.alert.TaskManager;
 import com.chickling.kmanager.alert.WorkerThreadFactory;
 import com.chickling.kmanager.config.AppConfig;
-import com.chickling.kmanager.core.OffsetGetter;
+import com.chickling.kmanager.core.AbstractOffsetGetter;
 import com.chickling.kmanager.core.CombinedOffsetGetter;
 import com.chickling.kmanager.core.db.ElasticsearchOffsetDB;
 import com.chickling.kmanager.core.db.OffsetDB;
@@ -67,11 +71,15 @@ public class SystemManager {
 
   public static OffsetDB<Ielasticsearch> db = null;
 
-  public static OffsetGetter og = null;
+  public static AbstractOffsetGetter og = null;
 
   public static AtomicBoolean IS_SYSTEM_READY = new AtomicBoolean(false);
 
   public static List<String> excludePath = new ArrayList<String>();
+
+  public static Map<String, JMXConnector> jmxConnectors = null;
+
+  private final static SimpleDateFormat SFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
   private static AppConfig config;
 
@@ -96,8 +104,8 @@ public class SystemManager {
     return "Jmx-" + config.getClusterName().replaceAll("\\W", "");
   }
 
-  public static synchronized void setConfig(AppConfig _config) throws Exception {
-    config = _config;
+  public static synchronized void setConfig(AppConfig appConfig) throws Exception {
+    config = appConfig;
     initSystem();
     // TODO
     IS_SYSTEM_READY.set(true);;
@@ -161,63 +169,89 @@ public class SystemManager {
       }, 1000, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
 
       // JMX metrics data
-      scheduler.scheduleAtFixedRate(new Runnable() {
-        private final SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-
-        @Override
-        public void run() {
-          Date now = new Date();
-          JSONObject data = new JSONObject();
-          try {
-            List<BrokerInfo> brokers = ZKUtils.getBrokers();
-            for (BrokerInfo broker : brokers) {
-              if (broker.getJmxPort() <= 0) {
-                LOG.warn("JMX disabled in " + broker.getHost());
-                continue;
-              }
-              KafkaJMX kafkaJMX = new KafkaJMX();
-              kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
-
-                @Override
-                public void doWithConnection(MBeanServerConnection mBeanServerConnection) {
-                  KafkaMetrics metrics = new KafkaMetrics();
-                  JSONObject metric = null;
-                  metric = new JSONObject(new FormatedMeterMetric(metrics.getMessagesInPerSec(mBeanServerConnection, Optional.empty()), 0));
-                  metric.put("broker", broker.getHost());
-                  metric.put("date", sFormat.format(now));
-                  metric.put("timestamp", now.getTime());
-                  metric.put("metric", "MessagesInPerSec");
-                  data.put("MessagesInPerSec" + broker.getHost(), metric);
-
-                  metric = new JSONObject(new FormatedMeterMetric(metrics.getBytesInPerSec(mBeanServerConnection, Optional.empty())));
-                  metric.put("broker", broker.getHost());
-                  metric.put("date", sFormat.format(now));
-                  metric.put("timestamp", now.getTime());
-                  metric.put("metric", "BytesInPerSec");
-                  data.put("BytesInPerSec" + broker.getHost(), metric);
-
-                  metric = new JSONObject(new FormatedMeterMetric(metrics.getBytesOutPerSec(mBeanServerConnection, Optional.empty())));
-                  metric.put("broker", broker.getHost());
-                  metric.put("date", sFormat.format(now));
-                  metric.put("timestamp", now.getTime());
-                  metric.put("metric", "BytesOutPerSec");
-                  data.put("BytesOutPerSec" + broker.getHost(), metric);
-                }
-              });
-            }
-            db.getDB().bulkIndex(data, SystemManager.getElasticSearchJmxType(), config.getEsIndex() + "-");
-          } catch (Exception e) {
-            LOG.warn("Ops..." + e.getMessage());
-          }
-        }
-      }, 0, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
-
+      jmxMetrics();
     } catch (Exception e) {
       System.out.print(stackTraceToString(e));
       // TODO
       IS_SYSTEM_READY.set(false);
       throw new RuntimeException("Init system failed! " + e.getMessage());
 
+    }
+  }
+
+  private static void jmxMetrics() {
+    try {
+      List<BrokerInfo> brokers = ZKUtils.getBrokers();
+      jmxConnectors = new HashMap<String, JMXConnector>(brokers.size());
+      for (BrokerInfo broker : brokers) {
+        if (broker.getJmxPort() <= 0) {
+          LOG.warn("JMX disabled in " + broker.getHost());
+          continue;
+        }
+        KafkaJMX kafkaJMX = new KafkaJMX();
+        kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
+
+          @Override
+          public void doWithConnection(JMXConnector jmxConnector) {
+            jmxConnectors.put(broker.getHost(), jmxConnector);
+          }
+        });
+      }
+
+      scheduler.scheduleAtFixedRate(new Runnable() {
+
+        @Override
+        public void run() {
+          try {
+            Date now = new Date();
+            JSONObject data = new JSONObject();
+
+            Iterator<Entry<String, JMXConnector>> ite = jmxConnectors.entrySet().iterator();
+            KafkaMetrics metrics = new KafkaMetrics();
+            Entry<String, JMXConnector> brokerJmxConnector = null;
+            while (ite.hasNext()) {
+              brokerJmxConnector = ite.next();
+              JSONObject metric = null;
+              metric = new JSONObject(new FormatedMeterMetric(
+                  metrics.getMessagesInPerSec(brokerJmxConnector.getValue().getMBeanServerConnection(), Optional.empty()), 0));
+              metric.put("broker", brokerJmxConnector.getKey());
+              metric.put("date", SFORMAT.format(now));
+              metric.put("timestamp", now.getTime());
+              metric.put("metric", "MessagesInPerSec");
+              data.put("MessagesInPerSec" + brokerJmxConnector.getKey(), metric);
+
+              metric = new JSONObject(new FormatedMeterMetric(
+                  metrics.getBytesInPerSec(brokerJmxConnector.getValue().getMBeanServerConnection(), Optional.empty())));
+              metric.put("broker", brokerJmxConnector.getKey());
+              metric.put("date", SFORMAT.format(now));
+              metric.put("timestamp", now.getTime());
+              metric.put("metric", "BytesInPerSec");
+              data.put("BytesInPerSec" + brokerJmxConnector.getKey(), metric);
+
+              metric = new JSONObject(new FormatedMeterMetric(
+                  metrics.getBytesOutPerSec(brokerJmxConnector.getValue().getMBeanServerConnection(), Optional.empty())));
+              metric.put("broker", brokerJmxConnector.getKey());
+              metric.put("date", SFORMAT.format(now));
+              metric.put("timestamp", now.getTime());
+              metric.put("metric", "BytesOutPerSec");
+              data.put("BytesOutPerSec" + brokerJmxConnector.getKey(), metric);
+            }
+
+            db.getDB().bulkIndex(data, SystemManager.getElasticSearchJmxType(), config.getEsIndex() + "-");
+          } catch (Exception e) {
+            LOG.warn("Gather JMX info went wrong...", e);
+          }
+        }
+      }, 0, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
+    } catch (Exception e) {
+      LOG.warn("Ops..." + e.getMessage());
+    } finally {
+      try {
+        if (jmxConnectors != null) {
+        }
+      } catch (Exception e) {
+        LOG.error("Close JMXConnector error! " + e.getMessage());
+      }
     }
   }
 

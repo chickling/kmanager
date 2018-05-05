@@ -28,47 +28,45 @@ import com.chickling.kmanager.utils.elasticsearch.restapi.ElasticsearchRESTUtil;
 @CrossOrigin(origins = "*")
 @RequestMapping("/group")
 public class GroupController {
-	private static Logger LOG = LoggerFactory.getLogger(GroupController.class);
+  private static Logger LOG = LoggerFactory.getLogger(GroupController.class);
 
-	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public List<String> getGroups() {
-	    List<String> groups = SystemManager.og.getGroups();
-        groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
-		return groups;
-	}
+  @RequestMapping(value = {"", "/"}, method = RequestMethod.GET)
+  public List<String> getGroups() {
+    List<String> groups = SystemManager.og.getGroups();
+    groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
+    return groups;
+  }
 
-	@RequestMapping(value = "/{group}", method = RequestMethod.GET)
-	public String getGroupInfo(@PathVariable String group) {
-		KafkaInfo zk = null;
-		KafkaInfo broker = null;
-		JSONObject result = new JSONObject();
-		try {
-			zk = SystemManager.og.getInfo(group, new ArrayList<String>(),true);
-			broker = SystemManager.og.getInfo(group, new ArrayList<String>(),false);
-			result.put("zk", new JSONObject(zk));
-			result.put("broker", new JSONObject(broker));
-		} catch (Exception e) {
-			LOG.warn("Ops~", e);
-		}
-		
-		
-		return result.toString();
-	}
+  @RequestMapping(value = "/{group}", method = RequestMethod.GET)
+  public String getGroupInfo(@PathVariable String group) {
+    KafkaInfo zk = null;
+    KafkaInfo broker = null;
+    JSONObject result = new JSONObject();
+    try {
+      zk = SystemManager.og.getInfo(group, new ArrayList<String>(), true);
+      broker = SystemManager.og.getInfo(group, new ArrayList<String>(), false);
+      result.put("zk", new JSONObject(zk));
+      result.put("broker", new JSONObject(broker));
+    } catch (Exception e) {
+      LOG.warn("Ops~", e);
+    }
 
-	@RequestMapping(value = "/{group}/{topic}", method = RequestMethod.GET)
-	public Map<String, List<OffsetStat>> getOffsetStats(@PathVariable String group, @PathVariable String topic,
-			@RequestParam(value = "start", defaultValue = "") String start,
-			@RequestParam(value = "end", defaultValue = "") String end) {
 
-		return ElasticsearchRESTUtil.offset(group, topic, start, end);
-	}
+    return result.toString();
+  }
 
-	@RequestMapping(value = "/2/{group}/", method = RequestMethod.GET)
-	public Map<String, List<OffsetStat>> getOffsetStats2(@PathVariable String group,
-			@RequestParam(value = "start", defaultValue = "") String start,
-			@RequestParam(value = "end", defaultValue = "") String end) {
+  @RequestMapping(value = "/{group}/{topic}", method = RequestMethod.GET)
+  public Map<String, List<OffsetStat>> getOffsetStats(@PathVariable String group, @PathVariable String topic,
+      @RequestParam(value = "start", defaultValue = "") String start, @RequestParam(value = "end", defaultValue = "") String end) {
 
-		return ElasticsearchRESTUtil.offset(group, null, start, end);
-	}
+    return ElasticsearchRESTUtil.offset(group, topic, start, end);
+  }
+
+  @RequestMapping(value = "/2/{group}/", method = RequestMethod.GET)
+  public Map<String, List<OffsetStat>> getOffsetStats2(@PathVariable String group,
+      @RequestParam(value = "start", defaultValue = "") String start, @RequestParam(value = "end", defaultValue = "") String end) {
+
+    return ElasticsearchRESTUtil.offset(group, null, start, end);
+  }
 
 }

@@ -1,6 +1,6 @@
 package com.chickling.kmanager.jmx;
 
-import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
 
 /**
  * @author Hulva Luva.H
@@ -9,6 +9,6 @@ import javax.management.MBeanServerConnection;
  */
 public interface JMXExecutor {
 
-	public void doWithConnection(MBeanServerConnection mBeanServerConnection);
+	public void doWithConnection(JMXConnector jmxc);
 
 }

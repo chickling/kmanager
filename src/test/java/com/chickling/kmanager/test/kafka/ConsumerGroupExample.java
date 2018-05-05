@@ -40,7 +40,6 @@ public class ConsumerGroupExample {
 		props.put("auto.commit.enable", "true");
 		props.put("auto.offset.reset", "smallest");
 		props.put("offsets.storage", "kafka");
-
 		return props;
 	}
 
@@ -63,10 +62,12 @@ public class ConsumerGroupExample {
 	}
 
 	public void shutdown() {
-		if (consumer != null)
+		if (consumer != null) {
 			consumer.shutdown();
-		if (executor != null)
+		}
+		if (executor != null) {
 			executor.shutdown();
+		}
 		try {
 			if (!executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
 				System.out.println("Timed out waiting for consumer threads to shut down, exiting uncleanly");
