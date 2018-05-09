@@ -45,7 +45,9 @@ public class KafkaConsumerGroupService extends AbstractConsumerGroupService {
    */
   @Override
   public List<String> listGroups() {
-    return JavaConversions.seqAsJavaList(this.getAdminClient().listAllConsumerGroupsFlattened()).stream()
+    // JavaConversions.seqAsJavaList(this.getAdminClient().listAllConsumerGroupsFlattened()).stream()
+    // .map(groupOverview -> groupOverview.groupId()).collect(Collectors.toList());
+    return JavaConversions.seqAsJavaList(this.getAdminClient().listAllGroupsFlattened()).stream()
         .map(groupOverview -> groupOverview.groupId()).collect(Collectors.toList());
   }
 
