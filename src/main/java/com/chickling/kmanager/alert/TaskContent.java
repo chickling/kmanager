@@ -5,112 +5,119 @@ package com.chickling.kmanager.alert;
  *
  */
 public class TaskContent {
-	private String group;
-	private String topic;
-	private Integer diapause; //
-	private Integer threshold;
-	private String mailTo;
-	
-	private Integer consumerAPI;
+  private String group;
+  private String topic;
+  private Integer diapause; //
+  private Integer threshold;
+  private String mailTo;
 
-	public TaskContent() {
-		super();
-	}
+  private Integer consumerAPI;
 
-	public TaskContent(String group, String topic, Integer diapause, Integer threshold, String mailTo ,Integer consumerAPI) {
-		super();
-		this.group = group;
-		this.topic = topic;
-		this.diapause = diapause;
-		this.threshold = threshold;
-		this.mailTo = mailTo;
-		this.consumerAPI = consumerAPI;
-	}
+  public TaskContent() {
+    super();
+  }
 
-	public Integer getDiapause() {
-		return diapause;
-	}
+  public TaskContent(String group, String topic, Integer diapause, Integer threshold, String mailTo, Integer consumerAPI) {
+    super();
+    this.group = group;
+    this.topic = topic;
+    this.diapause = diapause;
+    this.threshold = threshold;
+    this.mailTo = mailTo;
+    this.consumerAPI = consumerAPI;
+  }
 
-	public void setDiapause(Integer diapause) {
-		this.diapause = diapause;
-	}
+  public Integer getDiapause() {
+    return diapause;
+  }
 
-	public Integer getThreshold() {
-		return threshold;
-	}
+  public void setDiapause(Integer diapause) {
+    this.diapause = diapause;
+  }
 
-	public void setThreshold(Integer threshold) {
-		this.threshold = threshold;
-	}
+  public Integer getThreshold() {
+    return threshold;
+  }
 
-	public String getMailTo() {
-		return mailTo;
-	}
+  public void setThreshold(Integer threshold) {
+    this.threshold = threshold;
+  }
 
-	public void setMailTo(String mailTo) {
-		this.mailTo = mailTo;
-	}
+  public String getMailTo() {
+    return mailTo;
+  }
 
-	public String getGroup() {
-		return group;
-	}
+  public void setMailTo(String mailTo) {
+    this.mailTo = mailTo;
+  }
 
-	public void setGroup(String group) {
-		this.group = group;
-	}
+  public String getGroup() {
+    return group;
+  }
 
-	public String getTopic() {
-		return topic;
-	}
+  public void setGroup(String group) {
+    this.group = group;
+  }
 
-	public void setTopic(String topic) {
-		this.topic = topic;
-	}
-	
+  public String getTopic() {
+    return topic;
+  }
 
-	public Integer getConsumerAPI() {
-		return consumerAPI;
-	}
+  public void setTopic(String topic) {
+    this.topic = topic;
+  }
 
-	public void setConsumerAPI(Integer consumerAPI) {
-		this.consumerAPI = consumerAPI;
-	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((group == null) ? 0 : group.hashCode());
-		result = prime * result + ((topic == null) ? 0 : topic.hashCode());
-		return result;
-	}
+  public Integer getConsumerAPI() {
+    return consumerAPI;
+  }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		TaskContent other = (TaskContent) obj;
-		if (group == null) {
-			if (other.group != null)
-				return false;
-		} else if (!group.equals(other.group))
-			return false;
-		if (topic == null) {
-			if (other.topic != null)
-				return false;
-		} else if (!topic.equals(other.topic))
-			return false;
-		return true;
-	}
+  public void setConsumerAPI(Integer consumerAPI) {
+    this.consumerAPI = consumerAPI;
+  }
 
-	@Override
-	public String toString() {
-		return "TaskContent [group=" + group + ", topic=" + topic + ", diapause=" + diapause + ", threshold="
-				+ threshold + ", mailTo=" + mailTo + "]";
-	}
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((group == null) ? 0 : group.hashCode());
+    result = prime * result + ((topic == null) ? 0 : topic.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    TaskContent other = (TaskContent) obj;
+    if (group == null) {
+      if (other.group != null) {
+        return false;
+      }
+    } else if (!group.equals(other.group)) {
+      return false;
+    }
+    if (topic == null) {
+      if (other.topic != null) {
+        return false;
+      }
+    } else if (!topic.equals(other.topic)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return "TaskContent [group=" + group + ", topic=" + topic + ", diapause=" + diapause + ", threshold=" + threshold + ", mailTo=" + mailTo
+        + "]";
+  }
 
 }

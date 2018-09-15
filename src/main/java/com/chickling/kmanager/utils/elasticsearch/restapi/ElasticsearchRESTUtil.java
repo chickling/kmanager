@@ -1,5 +1,6 @@
 package com.chickling.kmanager.utils.elasticsearch.restapi;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import com.chickling.kmanager.model.ElasticsearchAssistEntity;
 import com.chickling.kmanager.model.OffsetHistoryQueryParams;
 import com.chickling.kmanager.model.OffsetPoints;
 import com.chickling.kmanager.model.OffsetStat;
+import com.chickling.kmanager.utils.CommonUtils;
 import com.chickling.kmanager.utils.elasticsearch.Ielasticsearch;
 
 /**
@@ -92,11 +94,69 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
    * 
    * @return just true
    */
+  @Override
   public boolean check() {
-
+    // TODO Elasticsearch status check
+    try {
+      if (!this.templateExists(SystemManager.getConfig().getEsTempName())) {
+        this.indexTemplate(SystemManager.getConfig().getEsTempName());
+      }
+    } catch (Exception e) {
+      LOG.error("Error with ElasticSearch", e);
+      return false;
+    }
     return true;
   }
 
+  /**
+   * 判断index模板是否存在
+   *
+   * @param templateName
+   * @return true/false
+   * @throws Exception
+   */
+  public boolean templateExists(String templateName) throws Exception {
+    try {
+      ResponseEntity<String> response =
+          REST.exchange("http://" + getHost() + "/_template/" + templateName, HttpMethod.HEAD, null, String.class);
+      int responseCode = response.getStatusCodeValue();
+      if (responseCode == 200) {
+        return true;
+      }
+      // 404 will throw Exception
+    } catch (Exception e) {
+      if (e.getMessage().contains("404 Not Found")) {
+        return false;
+      }
+      LOG.error("Check index template exists error: ", e);
+    }
+    return false;
+  }
+
+  public boolean indexTemplate(String templateName) throws Exception {
+    File templateFile = new File("config/template.json");
+    String templateFileContent = CommonUtils.loadFileContent(templateFile.getAbsolutePath());
+    JSONObject template = new JSONObject(templateFileContent);
+    template.put("template", SystemManager.getConfig().getEsIndex() + "*");
+
+    JSONObject mappings = new JSONObject();
+    File templateJMXMappingFile = new File("config/jmx-mapping.json");
+    String templateJMXMappingFileContent = CommonUtils.loadFileContent(templateJMXMappingFile.getAbsolutePath());
+    mappings.put("Jmx-" + SystemManager.getConfig().getClusterName().replaceAll("\\W", ""), new JSONObject(templateJMXMappingFileContent));
+    File templateOffsetMappingFile = new File("config/offset-mapping.json");
+    String templateOffsetMappingFileContent = CommonUtils.loadFileContent(templateOffsetMappingFile.getAbsolutePath());
+    mappings.put("Offset-" + SystemManager.getConfig().getClusterName().replaceAll("\\W", ""),
+        new JSONObject(templateOffsetMappingFileContent));
+
+    template.put("mappings", mappings);
+
+    /* ResponseEntity<String> response = */REST.exchange("http://" + getHost() + "/_template/" + templateName, HttpMethod.PUT,
+        new HttpEntity<String>(template.toString(), headers), String.class);
+    // TODO response?
+    return true;
+  }
+
+  @Override
   public void bulkIndex(JSONObject data, String docType, String indexPrefix) {
     StringBuilder bulkData = new StringBuilder();
     SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -107,8 +167,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
     Iterator<String> keys = data.keys();
     while (keys.hasNext()) {
       hasData = true;
-      bulkData.append("{\"index\": {\"_index\":\"" + indexPrefix + indexSufix + "\",\"_type\":\"" + docType + "\"}}")
-          .append("\n");
+      bulkData.append("{\"index\": {\"_index\":\"" + indexPrefix + indexSufix + "\",\"_type\":\"" + docType + "\"}}").append("\n");
       bulkData.append(data.getJSONObject(keys.next()).toString()).append("\n");
     }
     if (!hasData) {
@@ -121,9 +180,10 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
     response.getBody();
   }
 
+  @Override
   public List<OffsetPoints> scrollsSearcher(OffsetHistoryQueryParams params, String docType, String indexPrefix) {
-    ExecutorService pool = Executors.newFixedThreadPool(SystemManager.DEFAULT_THREAD_POOL_SIZE,
-        new WorkerThreadFactory("OffsetHistoryQuery-RESTAPI"));
+    ExecutorService pool =
+        Executors.newFixedThreadPool(SystemManager.DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("OffsetHistoryQuery-RESTAPI"));
 
     List<OffsetPoints> result = new ArrayList<OffsetPoints>();
 
@@ -133,15 +193,14 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
 
       String rangeFrom = getRangeFrom(params);
 
-      List<String> concernedTimestamp = dateHistogram(sFormat.parse(rangeFrom).getTime(),
-          Long.parseLong(params.getRangeto()), params.getInterval());
+      List<String> concernedTimestamp =
+          dateHistogram(sFormat.parse(rangeFrom).getTime(), Long.parseLong(params.getRangeto()), params.getInterval());
 
       List<Future<List<OffsetPoints>>> futureList = new ArrayList<Future<List<OffsetPoints>>>();
 
-      ResponseEntity<String> response = REST.exchange(
-          "http://" + getHost() + "/" + indexNameSearch + "/" + docType + "/_search?scroll=1m", HttpMethod.POST,
-          new HttpEntity<String>(ScrollSearchTemplate.getScrollSearchBody(params.getTopic(), params.getGroup(),
-              rangeFrom, sFormat.format(new Date(Long.parseLong(params.getRangeto())))), headers),
+      ResponseEntity<String> response = REST.exchange("http://" + getHost() + "/" + indexNameSearch + "/" + docType + "/_search?scroll=1m",
+          HttpMethod.POST, new HttpEntity<String>(ScrollSearchTemplate.getScrollSearchBody(params.getTopic(), params.getGroup(), rangeFrom,
+              sFormat.format(new Date(Long.parseLong(params.getRangeto())))), headers),
           String.class);
 
       JSONObject searchResult = null;
@@ -159,24 +218,20 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
           LOG.warn("Ops...GenerateOffsetHistoryDataset went wrong! " + e.getMessage());
         }
 
-        response = REST.exchange("http://" + getHost() + "/_search/scroll", HttpMethod.POST, new HttpEntity<String>(
-            ScrollSearchTemplate.getScrollNextBody(searchResult.getString("_scroll_id")), headers), String.class);
+        response = REST.exchange("http://" + getHost() + "/_search/scroll", HttpMethod.POST,
+            new HttpEntity<String>(ScrollSearchTemplate.getScrollNextBody(searchResult.getString("_scroll_id")), headers), String.class);
       }
       for (Future<List<OffsetPoints>> future : futureList) {
         try {
           result.addAll(future.get());
         } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
           LOG.error("Interrupted when get GenerateOffsetHistoryDataset in future...", e);
         } catch (ExecutionException e) {
-          // TODO Auto-generated catch block
           LOG.error("QAQ when get GenerateOffsetHistoryDataset in future...", e);
         }
       }
       pool.shutdown();
-    } catch (
-
-    Exception e) {
+    } catch (Exception e) {
       // TODO
       LOG.error("Damn...", e);
     }
@@ -185,18 +240,18 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
 
   private List<String> dateHistogram(long from, long to, String interval) {
     switch (interval) {
-    case "1m":
-      return dateHistogram(from, to, 1 * 60 * 1000);
-    case "10m":
-      return dateHistogram(from, to, 10 * 60 * 1000);
-    case "30m":
-      return dateHistogram(from, to, 30 * 60 * 1000);
-    case "1h":
-      return dateHistogram(from, to, 1 * 60 * 60 * 1000);
-    case "1d":
-      return dateHistogram(from, to, 24 * 60 * 60 * 1000);
-    default:
-      return dateHistogram(from, to, 1 * 60 * 1000);
+      case "1m":
+        return dateHistogram(from, to, 1 * 60 * 1000);
+      case "10m":
+        return dateHistogram(from, to, 10 * 60 * 1000);
+      case "30m":
+        return dateHistogram(from, to, 30 * 60 * 1000);
+      case "1h":
+        return dateHistogram(from, to, 1 * 60 * 60 * 1000);
+      case "1d":
+        return dateHistogram(from, to, 24 * 60 * 60 * 1000);
+      default:
+        return dateHistogram(from, to, 1 * 60 * 1000);
     }
   }
 
@@ -214,27 +269,27 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
     Calendar cal = Calendar.getInstance();
     cal.setTime(new Date(Long.parseLong(params.getRangeto())));
     switch (params.getRange()) {
-    case "1h":
-      cal.add(Calendar.HOUR, -1);
-      break;
-    case "8h":
-      cal.add(Calendar.HOUR, -8);
-      break;
-    case "16h":
-      cal.add(Calendar.HOUR, -16);
-      break;
-    case "1d":
-      cal.add(Calendar.DATE, -1);
-      break;
-    case "2d":
-      cal.add(Calendar.DATE, -2);
-      break;
-    case "1w":
-      cal.add(Calendar.WEEK_OF_MONTH, -1);
-      break;
-    default:
-      cal.add(Calendar.HOUR, -1);
-      break;
+      case "1h":
+        cal.add(Calendar.HOUR, -1);
+        break;
+      case "8h":
+        cal.add(Calendar.HOUR, -8);
+        break;
+      case "16h":
+        cal.add(Calendar.HOUR, -16);
+        break;
+      case "1d":
+        cal.add(Calendar.DATE, -1);
+        break;
+      case "2d":
+        cal.add(Calendar.DATE, -2);
+        break;
+      case "1w":
+        cal.add(Calendar.WEEK_OF_MONTH, -1);
+        break;
+      default:
+        cal.add(Calendar.HOUR, -1);
+        break;
     }
     return sFormat.format(cal.getTime());
   }
@@ -265,10 +320,10 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
   // / (60 * 60 * 1000));
   // }
   // }
-
+  @Override
   public List<OffsetPoints> offsetHistory(String indexPrefix, String docType, String group, String topic) {
-    ExecutorService pool = Executors.newFixedThreadPool(SystemManager.DEFAULT_THREAD_POOL_SIZE,
-        new WorkerThreadFactory("OffsetHistoryQuery-RESTAPI"));
+    ExecutorService pool =
+        Executors.newFixedThreadPool(SystemManager.DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("OffsetHistoryQuery-RESTAPI"));
 
     List<OffsetPoints> result = new ArrayList<OffsetPoints>();
     SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
@@ -287,8 +342,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
       ResponseEntity<String> response = REST.exchange(
 
           "http://" + getHost() + "/" + indexNameSearch + "/" + docType + "/_search?scroll=1m", HttpMethod.POST,
-          new HttpEntity<String>(ScrollSearchTemplate.getScrollSearchBody(topic, group, rangeFrom, sFormat.format(now)),
-              headers),
+          new HttpEntity<String>(ScrollSearchTemplate.getScrollSearchBody(topic, group, rangeFrom, sFormat.format(now)), headers),
           String.class);
 
       JSONObject searchResult = null;
@@ -306,17 +360,15 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
           LOG.warn("Ops...GenerateOffsetHistoryDataset went wrong! " + e.getMessage());
         }
 
-        response = REST.exchange("http://" + getHost() + "/_search/scroll", HttpMethod.POST, new HttpEntity<String>(
-            ScrollSearchTemplate.getScrollNextBody(searchResult.getString("_scroll_id")), headers), String.class);
+        response = REST.exchange("http://" + getHost() + "/_search/scroll", HttpMethod.POST,
+            new HttpEntity<String>(ScrollSearchTemplate.getScrollNextBody(searchResult.getString("_scroll_id")), headers), String.class);
       }
       for (Future<List<OffsetPoints>> future : futureList) {
         try {
           result.addAll(future.get());
         } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
           LOG.error("Interrupted when get GenerateOffsetHistoryDataset in future...", e);
         } catch (ExecutionException e) {
-          // TODO Auto-generated catch block
           LOG.error("QAQ when get GenerateOffsetHistoryDataset in future...", e);
         }
       }
@@ -359,8 +411,8 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
           Long offset = source.getLong("offset");
           Long logsize = source.getLong("logSize");
 
-          datasets.add(new OffsetPoints(source.getLong("timestamp"), source.getInt("partition"),
-              source.getString("owner"), offset, logsize));
+          datasets
+              .add(new OffsetPoints(source.getLong("timestamp"), source.getInt("partition"), source.getString("owner"), offset, logsize));
         }
       } catch (Exception e) {
         LOG.error("GenerateOffsetHistoryDataset error! " + e.getMessage());
@@ -392,8 +444,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
           + SystemManager.getElasticSearchOffsetType() + "/_search?ignore_unavailable=true&allow_no_indices=true";
       String template = ScrollSearchTemplate.getOffset(group, topic, assistEntity, false);
 
-      ResponseEntity<String> response = REST.exchange(url, HttpMethod.POST,
-          new HttpEntity<String>(template, headers), String.class);
+      ResponseEntity<String> response = REST.exchange(url, HttpMethod.POST, new HttpEntity<String>(template, headers), String.class);
       String searchResult = response.getBody();
       JSONObject temp = new JSONObject(searchResult);
       JSONArray temp2 = temp.getJSONObject("aggregations").getJSONObject("aggs").getJSONArray("buckets");
@@ -453,12 +504,11 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
 
       String[] esHost = SystemManager.getConfig().getEsHosts().split("[,;]")[0].split(":");
 
-      String url = "http://" + esHost[0] + ":" + esHost[1] + "/" + String.join(",", indexes) + "/"
-          + SystemManager.getElasticSearchJmxType() + "/_search?ignore_unavailable=true&allow_no_indices=true";
+      String url = "http://" + esHost[0] + ":" + esHost[1] + "/" + String.join(",", indexes) + "/" + SystemManager.getElasticSearchJmxType()
+          + "/_search?ignore_unavailable=true&allow_no_indices=true";
       String template = ScrollSearchTemplate.JmxTrend(assistEntity, false);
 
-      ResponseEntity<String> response = REST.exchange(url, HttpMethod.POST,
-          new HttpEntity<String>(template, headers), String.class);
+      ResponseEntity<String> response = REST.exchange(url, HttpMethod.POST, new HttpEntity<String>(template, headers), String.class);
       String searchResult = response.getBody();
       JSONObject temp = new JSONObject(searchResult);
       JSONArray temp2 = temp.getJSONObject("aggregations").getJSONObject("aggs").getJSONArray("buckets");
@@ -476,8 +526,8 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
             if (array == null) {
               array = new ArrayList<Long[]>();
             }
-            array.add(new Long[] { Long.parseLong(item.get("key").toString()),
-                (long) Double.parseDouble(item3.getJSONObject("offset").get("value").toString()) });
+            array.add(new Long[] {Long.parseLong(item.get("key").toString()),
+                (long) Double.parseDouble(item3.getJSONObject("offset").get("value").toString())});
             mappedResult.put(key, array);
           }
         }
@@ -491,7 +541,7 @@ public class ElasticsearchRESTUtil implements Ielasticsearch {
         long val = 0;
         for (Integer i = 0; i < item.size(); i++) {
           if (i > 0) {
-            item2.add(new Long[] { item.get(i)[0], item.get(i)[1] - val });
+            item2.add(new Long[] {item.get(i)[0], item.get(i)[1] - val});
           }
           val = item.get(i)[1];
         }

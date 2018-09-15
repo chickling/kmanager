@@ -1,6 +1,5 @@
 package com.chickling.kmanager.jmx;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -51,17 +50,9 @@ public class KafkaJMX {
 				env.put("com.sun.jndi.rmi.factory.socket", new SslRMIClientSocketFactory());
 			}
 			jmxc = JMXConnectorFactory.connect(url, env);
-			excutor.doWithConnection(jmxc.getMBeanServerConnection());
+			excutor.doWithConnection(jmxc);
 		} catch (Exception e) {
 			LOG.error("KafkaJMX doWithConnection error! " + e.getMessage());
-		} finally {
-			try {
-				if (jmxc != null) {
-					jmxc.close();
-				}
-			} catch (IOException e) {
-				LOG.error("Close JMXConnector error! " + e.getMessage());
-			}
 		}
 	}
 

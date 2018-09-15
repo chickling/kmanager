@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
+import javax.management.remote.JMXConnector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -56,17 +56,17 @@ public class ObjectNameManager {
         kafkaJMX = new KafkaJMX();
       }
       List<BrokerInfo> brokers = ZKUtils.getBrokers();
-      for (BrokerInfo broker: brokers) {
-        if (broker.getJmxPort()<=0) {
+      for (BrokerInfo broker : brokers) {
+        if (broker.getJmxPort() <= 0) {
           continue;
         }
         kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
           @SuppressWarnings("unchecked")
           @Override
-          public void doWithConnection(MBeanServerConnection mbsc) {
+          public void doWithConnection(JMXConnector jmxConnector) {
             try {
-              Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+              Set<ObjectInstance> beans = jmxConnector.getMBeanServerConnection().queryMBeans(null, null);
 
               beans.forEach(bean -> {
                 ObjectNameHolder objectNameHolder = new ObjectNameHolder();
@@ -89,8 +89,9 @@ public class ObjectNameManager {
                       if (objectNames.containsKey(key)) {
                         ObjectNameHolder objectNameHolderOld = objectNames.get(key);
                         Map<String, Object> extras = objectNameHolderOld.getExtra();
-                        if (extras == null)
+                        if (extras == null) {
                           extras = new HashMap<String, Object>();
+                        }
 
                         if (extras.containsKey(firstLevelK)) {
                           String secondLevelK = tempArr[0] + "=" + tempArr[1];
@@ -103,8 +104,9 @@ public class ObjectNameManager {
                           firstLevelInExtras = (Map<String, Object>) extras.get(firstLevelK);
 
                           // has next level?
-                          if (i == type_name_other.length - 1)
+                          if (i == type_name_other.length - 1) {
                             continue;
+                          }
                           i++;
                           tempArr = type_name_other[i].split("=");
                           String thirdLevelK = tempArr[0] + "=" + tempArr[1];
@@ -117,8 +119,9 @@ public class ObjectNameManager {
                           secondLevelInExtras = (Map<String, Object>) firstLevelInExtras.get(secondLevelK);
 
                           // has next level?
-                          if (i == type_name_other.length - 1)
+                          if (i == type_name_other.length - 1) {
                             continue;
+                          }
                           i++;
                           tempArr = type_name_other[i].split("=");
                           String fourthLevelK = tempArr[0] + "=" + tempArr[1];
@@ -130,8 +133,9 @@ public class ObjectNameManager {
                           }
                           // thirdLevelInExtras = (Map<String, Object>) secondLevelInExtras.get(thirdLevelK);
                           // TODO so far as i know, there's no more than two level
-                          if (i < type_name_other.length - 1)
+                          if (i < type_name_other.length - 1) {
                             LOG.warn("Ops~ There's do have a objectName over thrid level! objectName -> " + objectName);
+                          }
                         } else {
                           // TODO that Metric has same metric, type and name with an exits one
                           firstLevelK = tempArr[0] + "=" + tempArr[1];

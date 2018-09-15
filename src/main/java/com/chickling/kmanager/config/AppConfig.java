@@ -10,6 +10,7 @@ public class AppConfig {
   private String apiType = "";
   private String esHosts;
   private String esIndex = "";
+  private String esTempName = "";
   private Integer dataCollectFrequency = 1;
 
   private String zkHosts;
@@ -77,6 +78,14 @@ public class AppConfig {
 
   public void setEsIndex(String esIndex) {
     this.esIndex = esIndex;
+  }
+
+  public String getEsTempName() {
+    return esTempName.toLowerCase();
+  }
+
+  public void setEsTempName(String esTempName) {
+    this.esTempName = esTempName;
   }
 
   public Integer getDataCollectFrequency() {

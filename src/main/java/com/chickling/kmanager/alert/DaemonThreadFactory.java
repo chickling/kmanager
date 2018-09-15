@@ -7,19 +7,20 @@ import java.util.concurrent.ThreadFactory;
  *
  */
 public class DaemonThreadFactory implements ThreadFactory {
-	private String prefix = "";
+  private String prefix = "";
 
-	public DaemonThreadFactory(String prefix) {
-		this.prefix = prefix;
-	}
+  public DaemonThreadFactory(String prefix) {
+    this.prefix = prefix;
+  }
 
-	@Override
-	public Thread newThread(Runnable r) {
-		Thread t = new Thread(r, "DaemonThread-" + prefix);
-		t.setDaemon(true);
-		if (t.getPriority() != Thread.NORM_PRIORITY)
-			t.setPriority(Thread.NORM_PRIORITY);
-		return t;
-	}
+  @Override
+  public Thread newThread(Runnable r) {
+    Thread t = new Thread(r, "DaemonThread-" + prefix);
+    t.setDaemon(true);
+    if (t.getPriority() != Thread.NORM_PRIORITY) {
+      t.setPriority(Thread.NORM_PRIORITY);
+    }
+    return t;
+  }
 
 }

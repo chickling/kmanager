@@ -13,8 +13,8 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
-import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
+import javax.management.remote.JMXConnector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -61,13 +61,13 @@ public class SaveJMXMetricsToES {
             kafkaJMX.doWithConnection(broker.getHost(), broker.getPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
 
               @Override
-              public void doWithConnection(MBeanServerConnection mbsc) {
+              public void doWithConnection(JMXConnector jmxConnector) {
                 JSONObject objectName = null;
                 try {
                   Date now = new Date();
                   SimpleDateFormat sFormat1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
                   String indexSufix = sFormat.format(now);
-                  Set<ObjectInstance> beans = mbsc.queryMBeans(null, null);
+                  Set<ObjectInstance> beans = jmxConnector.getMBeanServerConnection().queryMBeans(null, null);
 
                   for (ObjectInstance bean : beans) {
                     objectName = new JSONObject();
@@ -89,13 +89,13 @@ public class SaveJMXMetricsToES {
                       objectName.put(temp[0], temp[1]);
                     }
                     objectName.put("objectName", bean.getObjectName().toString());
-                    MBeanInfo mbeanInfo = mbsc.getMBeanInfo(bean.getObjectName());
+                    MBeanInfo mbeanInfo = jmxConnector.getMBeanServerConnection().getMBeanInfo(bean.getObjectName());
                     MBeanAttributeInfo[] attributes = mbeanInfo.getAttributes();
                     String[] attributeArr = new String[attributes.length];
                     for (int i = 0; i < attributes.length; i++) {
                       attributeArr[i] = attributes[i].getName();
                     }
-                    AttributeList attributeList = mbsc.getAttributes(bean.getObjectName(), attributeArr);
+                    AttributeList attributeList = jmxConnector.getMBeanServerConnection().getAttributes(bean.getObjectName(), attributeArr);
                     List<Attribute> attributeList1 = attributeList.asList();
 
                     for (Attribute attr : attributeList1) {
@@ -109,7 +109,7 @@ public class SaveJMXMetricsToES {
                         objectName.put(attr.getName(), attr.getValue());
                       }
                     }
-                     es.bulkIndex(objectName, indexPrefix + indexSufix, docType);
+                    es.bulkIndex(objectName, indexPrefix + indexSufix, docType);
                   }
                 } catch (Exception e) {
                   LOG.error("Ops~" + objectName, e);
@@ -117,7 +117,7 @@ public class SaveJMXMetricsToES {
               }
             });
           }
-//           es.bulkIndex(null, null, null);
+          // es.bulkIndex(null, null, null);
         } catch (Exception e) {
           LOG.warn("Ops..." + e.getMessage());
         }

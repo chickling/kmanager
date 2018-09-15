@@ -3,8 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.chickling</groupId>
 	<artifactId>KManager</artifactId>
-	<version>1.0.0</version>
-	<name>Kafka Monitor</name>
+	<version>1.0.1</version>
+	<name>Chickling KManager</name>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -49,6 +49,11 @@
 					<artifactId>log4j</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-streams</artifactId>
+			<version>0.10.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.101tec</groupId>
@@ -152,7 +157,7 @@
 				</executions>
 			</plugin>
 			<!-- java-doc -->
-			<plugin>
+			<!-- <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<executions>
@@ -163,7 +168,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin> -->
 		</plugins>
 	</build>
 </project>

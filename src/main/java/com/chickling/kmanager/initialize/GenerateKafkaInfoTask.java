@@ -17,8 +17,8 @@ public class GenerateKafkaInfoTask implements Runnable {
 
   private String group;
 
-  public GenerateKafkaInfoTask(String _group) {
-    this.group = _group;
+  public GenerateKafkaInfoTask(String group) {
+    this.group = group;
   }
 
   @Override

@@ -445,7 +445,8 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 				dataCollectFrequency: 1,
 				excludeByLastSeen: 2592000,
 				esHosts: "",
-				esIndex: "ChicklingKmanager",
+				esIndex: "chicklingKmanager",
+				esTempName: "chicklingKmanager",
 				isAlertEnabled: false,
 				smtpServer: "",
 				smtpAuth: false,
@@ -454,7 +455,7 @@ angular.module('kmanager.controllers', ["kmanager.services"])
 				mailSender: "",
 				mailSubject: ""
 			};
-
+			// TODO esIndex 和 esTempName 首字母小写控制
 			offsetinfo.getSetting().success(function (d) {
 				if (d.isSystemReady != undefined && !d.isSystemReady) {
 					$scope.settingForm = settingFormModal;

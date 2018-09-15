@@ -23,8 +23,8 @@ public class EmailSender {
 
   private static AppConfig config;
 
-  public static void setConfig(AppConfig _config) {
-    config = _config;
+  public static void setConfig(AppConfig appConfig) {
+    config = appConfig;
   }
 
   public static void sendEmail(String message, String sendTo, String group_topic) {
