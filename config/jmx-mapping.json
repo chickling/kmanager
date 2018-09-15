@@ -1,0 +1,69 @@
+{
+	"properties": {
+		"date": {
+			"type": "date"
+		},
+		"oneMinuteRate": {
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"fifteenMinuteRate": {
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"fiveMinuteRate": {
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"meanRate": {
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"metric": {
+			"fielddata": true,
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"count": {
+			"type": "long"
+		},
+		"broker": {
+			"fielddata": true,
+			"type": "text",
+			"fields": {
+				"keyword": {
+					"ignore_above": 256,
+					"type": "keyword"
+				}
+			}
+		},
+		"timestamp": {
+			"type": "long"
+		}
+	}
+}

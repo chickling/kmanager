@@ -39,6 +39,18 @@
 							</div>
 						</div>
 						<div class="form-group">
+							<label for="inputConsumerAPI" class="col-sm-4 control-label">Consumer
+								API</label>
+							<div class="col-sm-8">
+							     All: &nbsp;<input type="radio"  id="inputConsumerAPI"
+									 name="consumerAPI" value="0"/>&nbsp;&nbsp;&nbsp;
+							      ZK: &nbsp;<input type="radio" id="inputConsumerAPI"
+									 name="consumerAPI" value="1"/>&nbsp;&nbsp;&nbsp;
+							      Borker: &nbsp;<input type="radio" id="inputConsumerAPI" 
+									 name="consumerAPI" value="2"/>
+							</div>
+						</div>
+						<div class="form-group">
 							<label for="inputThreshold" class="col-sm-4 control-label">Message
 								Lag Threshold</label>
 							<div class="col-sm-8">
@@ -91,7 +103,7 @@
 					<td><a data-toggle="modal" data-target="#taskDetailModal"
 						data-group="{{t.group}}" data-topic="{{t.topic}}"
 						data-threshold="{{t.threshold}}" data-diapause="{{t.diapause}}"
-						data-mailto="{{t.mailTo}}">{{t.group}}-{{t.topic}}</a></td>
+						data-mailto="{{t.mailTo}}" data-consumerapi="{{t.consumerAPI}}">{{t.group}}-{{t.topic}}</a></td>
 					<!-- <td>{{t.mailTo}}</td> -->
 					<td><button class="btn btn-primary btn-sm"
 							ng-click="deleteTask(t)">delete</button></td>
@@ -132,6 +144,18 @@
 							<input type="text" class="form-control"
 								id="taskDetail-inputConsumer" name="group" />
 						</div>
+					</div>
+					<div class="form-group">
+							<label for="taskDetail_inputConsumerAPI" class="col-sm-4 control-label">Consumer
+								API</label>
+							<div class="col-sm-8">
+							     All: &nbsp;<input type="radio"  id="taskDetail_inputConsumerAPI"
+									 name="consumerAPI" value="0"/>&nbsp;&nbsp;&nbsp;
+							      ZK: &nbsp;<input type="radio" id="taskDetail_inputConsumerAPI"
+									 name="consumerAPI" value="1"/>&nbsp;&nbsp;&nbsp;
+							      Borker: &nbsp;<input type="radio" id="taskDetail_inputConsumerAPI" 
+									 name="consumerAPI" value="2"/>
+							</div>
 					</div>
 					<div class="form-group">
 						<label for="taskDetail-inputThreshold"

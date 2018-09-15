@@ -16,12 +16,12 @@ public class EsSearchTest {
 
   public static void main(String[] args) throws InterruptedException {
     // ElasticsearchJavaUtil es = new
-    // ElasticsearchJavaUtil("10.16.238.82:9300,10.16.238.83:9300,10.16.238.84:9300");
+    // ElasticsearchJavaUtil("luva82:9300,luva83:9300,luva84:9300");
     // List<OffsetPoints> result = es.offsetHistory("logx_healthcheck_test", "kafkaoffset", "testkafka",
     // "EC2_Test");
     //
     // System.out.println(result);
-    ElasticsearchRESTUtil esUtil = new ElasticsearchRESTUtil("10.16.238.92:9200");
+    ElasticsearchRESTUtil esUtil = new ElasticsearchRESTUtil("luva92:9200");
     JSONObject root = new JSONObject();
     JSONObject doc = null;
     SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");

@@ -6,7 +6,7 @@ package com.chickling.kmanager.email;
  */
 public class Template {
 
-	private static String[] thead = { "Group", "Topic", "Partition", "Lag" };
+	private static String[] thead = { "Group", "Topic", "Partition", "Lag","ConsumerAPI" };
 
 	private String partStart = "<html><body><h2 style=\"width: 100%; text-align: center;\">Kafka topic consume lag alerting</h2>";
 	private StringBuilder content = new StringBuilder();

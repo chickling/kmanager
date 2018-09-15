@@ -34,3 +34,4 @@ tasks/
 system.json
 metrics.json
 objectNames.json
+.sts4-cache/
