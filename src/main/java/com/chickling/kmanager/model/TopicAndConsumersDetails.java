@@ -7,38 +7,38 @@ import java.util.List;
  *
  */
 public class TopicAndConsumersDetails {
-	private List<KafkaInfo> active;
-	private List<KafkaInfo> inactive;
+	private List<KafkaInfo> zk;
+	private List<KafkaInfo> broker;
 
 	public TopicAndConsumersDetails() {
 		super();
 	}
 
-	public TopicAndConsumersDetails(List<KafkaInfo> active, List<KafkaInfo> inactive) {
+	public TopicAndConsumersDetails(List<KafkaInfo> zk, List<KafkaInfo> broker) {
 		super();
-		this.active = active;
-		this.inactive = inactive;
+		this.zk = zk;
+		this.broker = broker;
 	}
 
-	public List<KafkaInfo> getActive() {
-		return active;
+	public List<KafkaInfo> getZk() {
+		return zk;
 	}
 
-	public void setActive(List<KafkaInfo> active) {
-		this.active = active;
+	public void setZk(List<KafkaInfo> zk) {
+		this.zk = zk;
 	}
 
-	public List<KafkaInfo> getInactive() {
-		return inactive;
+	public List<KafkaInfo> getBroker() {
+		return broker;
 	}
 
-	public void setInactive(List<KafkaInfo> inactive) {
-		this.inactive = inactive;
+	public void setBroker(List<KafkaInfo> broker) {
+		this.broker = broker;
 	}
 
 	@Override
 	public String toString() {
-		return "TopicAndConsumersDetails [active=" + active + ", inactive=" + inactive + "]";
+		return "TopicAndConsumersDetails [zk=" + zk + ", broker=" + broker + "]";
 	}
 
 }

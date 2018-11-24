@@ -6,9 +6,13 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -17,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -27,8 +32,8 @@ import com.chickling.kmanager.alert.TaskHandler;
 import com.chickling.kmanager.alert.TaskManager;
 import com.chickling.kmanager.alert.WorkerThreadFactory;
 import com.chickling.kmanager.config.AppConfig;
-import com.chickling.kmanager.core.OffsetGetter;
-import com.chickling.kmanager.core.ZKOffsetGetter;
+import com.chickling.kmanager.core.AbstractOffsetGetter;
+import com.chickling.kmanager.core.CombinedOffsetGetter;
 import com.chickling.kmanager.core.db.ElasticsearchOffsetDB;
 import com.chickling.kmanager.core.db.OffsetDB;
 import com.chickling.kmanager.email.EmailSender;
@@ -67,11 +72,16 @@ public class SystemManager {
 
   public static OffsetDB<Ielasticsearch> db = null;
 
-  public static OffsetGetter og = null;
+  public static AbstractOffsetGetter og = null;
 
   public static AtomicBoolean IS_SYSTEM_READY = new AtomicBoolean(false);
 
   public static List<String> excludePath = new ArrayList<String>();
+
+  public static Map<String, JMXConnector> jmxConnectors = null;
+
+  private final static SimpleDateFormat SFORMAT =
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
   private static AppConfig config;
 
@@ -96,18 +106,17 @@ public class SystemManager {
     return "Jmx-" + config.getClusterName().replaceAll("\\W", "");
   }
 
-  public static synchronized void setConfig(AppConfig _config) throws Exception {
-    config = _config;
+  public static synchronized void setConfig(AppConfig appConfig) throws Exception {
+    config = appConfig;
     initSystem();
     // TODO
-    IS_SYSTEM_READY.set(true);
-    ;
+    IS_SYSTEM_READY.set(true);;
     saveToFile();
   }
 
   private static void saveToFile() {
     try {
-      PrintWriter writer = new PrintWriter("system.json", "UTF-8");
+      PrintWriter writer = new PrintWriter("config/system.json", "UTF-8");
       writer.println(new Gson().toJson(config));
       writer.close();
     } catch (IOException e) {
@@ -116,23 +125,34 @@ public class SystemManager {
   }
 
   private static void initSystem() {
+    LOG.info("init system with config: {}", config);
     try {
-      if (db != null)
+      if (db != null) {
+        LOG.info(
+            "ElasticsearchOffsetDB isn't null(This may be a setting change event), will shut it down and restart it...");
         db.close();
+      }
       db = new ElasticsearchOffsetDB(config);
       if (!db.check()) {
         throw new RuntimeException("No elasticsearch node avialable!");
       }
-      if (og != null)
+      if (og != null) {
+        LOG.info(
+            "CombinedOffsetGetter isn't null(This may be a setting change event), will shut it down and restart it...");
         og.close();
-      og = new ZKOffsetGetter(config);
+      }
+      og = new CombinedOffsetGetter(config);
       // TODO how cheack og is avialable?
 
-      if (scheduler != null)
+      if (scheduler != null) {
+        LOG.info(
+            "ScheduledThreadPool isn't null(This may be a setting change event), will shut it down and renew it...");
         scheduler.shutdownNow();
+      }
       scheduler = Executors.newScheduledThreadPool(2, new WorkerThreadFactory("FixedRateSchedule"));
 
       if (config.getIsAlertEnabled()) {
+        LOG.info("Alert is enabled...");
         initAlert(config);
       }
 
@@ -143,6 +163,7 @@ public class SystemManager {
         public void run() {
           try {
             List<String> groups = og.getGroups();
+            groups.addAll(SystemManager.og.getGroupsCommittedToBroker());
             groups.forEach(group -> {
               kafkaInfoCollectAndSavePool.submit(new GenerateKafkaInfoTask(group));
             });
@@ -150,67 +171,11 @@ public class SystemManager {
             LOG.warn("Ops..." + e.getMessage());
           }
         }
-      }, 0, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
+      }, 1000, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
 
       // JMX metrics data
-      scheduler.scheduleAtFixedRate(new Runnable() {
-        private final SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-
-        @Override
-        public void run() {
-          Date now = new Date();
-          JSONObject data = new JSONObject();
-          try {
-            List<BrokerInfo> brokers = ZKUtils.getBrokers();
-            for (BrokerInfo broker : brokers) {
-              if (broker.getJmxPort() <= 0) {
-                LOG.warn("JMX disabled in " + broker.getHost());
-                continue;
-              }
-              KafkaJMX kafkaJMX = new KafkaJMX();
-              kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false,
-                  new JMXExecutor() {
-
-                    @Override
-                    public void doWithConnection(MBeanServerConnection mBeanServerConnection) {
-                      KafkaMetrics metrics = new KafkaMetrics();
-                      JSONObject metric = null;
-                      metric = new JSONObject(new FormatedMeterMetric(
-                          metrics.getMessagesInPerSec(mBeanServerConnection, Optional.empty()), 0));
-                      metric.put("broker", broker.getHost());
-                      metric.put("date", sFormat.format(now));
-                      metric.put("timestamp", now.getTime());
-                      metric.put("metric", "MessagesInPerSec");
-                      data.put("MessagesInPerSec" + broker.getHost(), metric);
-
-                      metric = new JSONObject(
-                          new FormatedMeterMetric(metrics.getBytesInPerSec(mBeanServerConnection, Optional.empty())));
-                      metric.put("broker", broker.getHost());
-                      metric.put("date", sFormat.format(now));
-                      metric.put("timestamp", now.getTime());
-                      metric.put("metric", "BytesInPerSec");
-                      data.put("BytesInPerSec" + broker.getHost(), metric);
-
-                      metric = new JSONObject(
-                          new FormatedMeterMetric(metrics.getBytesOutPerSec(mBeanServerConnection, Optional.empty())));
-                      metric.put("broker", broker.getHost());
-                      metric.put("date", sFormat.format(now));
-                      metric.put("timestamp", now.getTime());
-                      metric.put("metric", "BytesOutPerSec");
-                      data.put("BytesOutPerSec" + broker.getHost(), metric);
-                    }
-                  });
-            }
-            db.getDB().bulkIndex(data, SystemManager.getElasticSearchJmxType(), config.getEsIndex() + "-");
-          } catch (Exception e) {
-            LOG.warn("Ops..." + e.getMessage());
-          }
-        }
-      }, 0, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
-
-    } catch (
-
-    Exception e) {
+      jmxMetrics();
+    } catch (Exception e) {
       System.out.print(stackTraceToString(e));
       // TODO
       IS_SYSTEM_READY.set(false);
@@ -218,29 +183,124 @@ public class SystemManager {
 
     }
   }
-public static String stackTraceToString(Throwable e) {
+
+  private static void jmxMetrics() {
+    try {
+      List<BrokerInfo> brokers = ZKUtils.getBrokers();
+      jmxConnectors = new ConcurrentHashMap<String, JMXConnector>(brokers.size());
+      for (BrokerInfo broker : brokers) {
+        if (broker.getJmxPort() <= 0) {
+          LOG.warn("JMX disabled in " + broker.getHost());
+          continue;
+        }
+        KafkaJMX kafkaJMX = new KafkaJMX();
+        kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""),
+            Optional.of(""), false, new JMXExecutor() {
+
+              @Override
+              public void doWithConnection(JMXConnector jmxConnector) {
+                jmxConnectors.put(broker.getHost(), jmxConnector);
+              }
+            });
+      }
+
+      scheduler.scheduleAtFixedRate(new Runnable() {
+
+        @Override
+        public void run() {
+          try {
+            Date now = new Date();
+            JSONObject data = new JSONObject();
+
+            Iterator<Entry<String, JMXConnector>> ite = jmxConnectors.entrySet().iterator();
+            KafkaMetrics metrics = new KafkaMetrics();
+            Entry<String, JMXConnector> brokerJmxConnector = null;
+            while (ite.hasNext()) {
+              brokerJmxConnector = ite.next();
+              JSONObject metric = null;
+              MBeanServerConnection mbsc = null;
+              try {
+                mbsc = brokerJmxConnector.getValue().getMBeanServerConnection();
+              } catch (Exception e) {
+                // jmx connection has went wrong, try to rebuild it
+                jmxMetrics();
+                continue;
+              }
+              metric = new JSONObject(
+                  new FormatedMeterMetric(metrics.getMessagesInPerSec(mbsc, Optional.empty()), 0));
+              metric.put("broker", brokerJmxConnector.getKey());
+              metric.put("date", SFORMAT.format(now));
+              metric.put("timestamp", now.getTime());
+              metric.put("metric", "MessagesInPerSec");
+              data.put("MessagesInPerSec" + brokerJmxConnector.getKey(), metric);
+
+              metric = new JSONObject(
+                  new FormatedMeterMetric(metrics.getBytesInPerSec(mbsc, Optional.empty())));
+              metric.put("broker", brokerJmxConnector.getKey());
+              metric.put("date", SFORMAT.format(now));
+              metric.put("timestamp", now.getTime());
+              metric.put("metric", "BytesInPerSec");
+              data.put("BytesInPerSec" + brokerJmxConnector.getKey(), metric);
+
+              metric = new JSONObject(
+                  new FormatedMeterMetric(metrics.getBytesOutPerSec(mbsc, Optional.empty())));
+              metric.put("broker", brokerJmxConnector.getKey());
+              metric.put("date", SFORMAT.format(now));
+              metric.put("timestamp", now.getTime());
+              metric.put("metric", "BytesOutPerSec");
+              data.put("BytesOutPerSec" + brokerJmxConnector.getKey(), metric);
+            }
+
+            db.getDB().bulkIndex(data, SystemManager.getElasticSearchJmxType(),
+                config.getEsIndex() + "-");
+          } catch (Exception e) {
+            LOG.warn("Gather JMX info went wrong...", e);
+          }
+        }
+      }, 0, config.getDataCollectFrequency() * 60 * 1000, TimeUnit.MILLISECONDS);
+    } catch (Exception e) {
+      LOG.warn("Ops..." + e.getMessage());
+    } finally {
+      try {
+        if (jmxConnectors != null) {
+        }
+      } catch (Exception e) {
+        LOG.error("Close JMXConnector error! " + e.getMessage());
+      }
+    }
+  }
+
+  public static String stackTraceToString(Throwable e) {
     StringBuilder sb = new StringBuilder();
     for (StackTraceElement element : e.getStackTrace()) {
-        sb.append(element.toString());
-        sb.append("\n");
+      sb.append(element.toString());
+      sb.append("\n");
     }
     return sb.toString();
-}
+  }
+
   private static void initAlert(AppConfig config) {
     EmailSender.setConfig(config);
     TaskManager.init(config);
     if (offsetInfoCacheQueue != null) {
+      LOG.info("offsetInfoCacheQueue isn't null, do clear...");
       offsetInfoCacheQueue.clear();
     } else {
+      LOG.info("new offsetInfoCacheQueue...");
       offsetInfoCacheQueue = new LinkedBlockingQueue<KafkaInfo>(config.getOffsetInfoCacheQueue());
     }
-    if (worker != null)
-      worker.shutdownNow();
-    int corePoolSize = config.getOffsetInfoHandler() != null ? config.getOffsetInfoHandler() : DEFAULT_THREAD_POOL_SIZE;
     if (worker != null) {
+      LOG.info("AlertTaskChecker isn't null, will shut it down and renew it...");
       worker.shutdownNow();
     }
-    worker = Executors.newFixedThreadPool(corePoolSize, new WorkerThreadFactory("AlertTaskChecker"));
+    int corePoolSize = config.getOffsetInfoHandler() != null ? config.getOffsetInfoHandler()
+        : DEFAULT_THREAD_POOL_SIZE;
+    if (worker != null) {
+      LOG.info("AlertTaskChecker isn't null, will shut it down and renew it...");
+      worker.shutdownNow();
+    }
+    worker =
+        Executors.newFixedThreadPool(corePoolSize, new WorkerThreadFactory("AlertTaskChecker"));
 
     for (int i = 0; i < corePoolSize; i++) {
       worker.submit(new TaskHandler());
@@ -253,7 +313,8 @@ public static String stackTraceToString(Throwable e) {
     // Scan task folder load tasks to memory
     File[] listOfFiles = dir.listFiles();
     for (File file : listOfFiles) {
-      if (file.isFile() && (file.getName().substring(file.getName().lastIndexOf('.') + 1).equals("task"))) {
+      if (file.isFile()
+          && (file.getName().substring(file.getName().lastIndexOf('.') + 1).equals("task"))) {
         String strTaskContent = CommonUtils.loadFileContent(file.getAbsolutePath());
         TaskManager.addTask(new Gson().fromJson(strTaskContent, TaskContent.class));
       }

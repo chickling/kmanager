@@ -3,9 +3,8 @@ package com.chickling.kmanager.jmx;
 import com.chickling.kmanager.utils.MetricUtils;
 
 /**
- * @author Hulva Luva.H from ECBD
- * @date 2017年7月20日
- * @description
+ * @author Hulva Luva.H
+ * @since 2017年7月20日
  *
  */
 public class FormatedMeterMetric {

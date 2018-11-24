@@ -6,7 +6,7 @@ import java.util.List;
  * @author Hulva Luva.H
  *
  */
-public class KafkaInfo {
+public class KafkaInfo implements Comparable<KafkaInfo>{
 	private String GroupName;
 	private List<BrokerInfo> brokers;
 	private List<OffsetInfo> offsets;
@@ -49,6 +49,12 @@ public class KafkaInfo {
 	@Override
 	public String toString() {
 		return "KafkaInfo [GroupName=" + GroupName + ", brokers=" + brokers + ", offsets=" + offsets + "]";
+	}
+
+
+	@Override
+	public int compareTo(KafkaInfo o) {
+		return this.getName().compareTo(o.getName());
 	}
 
 }
