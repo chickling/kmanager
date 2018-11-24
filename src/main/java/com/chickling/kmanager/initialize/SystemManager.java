@@ -6,13 +6,13 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -20,6 +20,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 
 import org.json.JSONObject;
@@ -62,8 +63,8 @@ public class SystemManager {
 
   public static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
 
-  private static final ExecutorService kafkaInfoCollectAndSavePool =
-      Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("KafkaInfo Collector"));
+  private static final ExecutorService kafkaInfoCollectAndSavePool = Executors
+      .newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new WorkerThreadFactory("KafkaInfo Collector"));
 
   public static final String JMX_METRIC_ES_DOC_TYPE = "jmxMetrics";
 
@@ -79,7 +80,8 @@ public class SystemManager {
 
   public static Map<String, JMXConnector> jmxConnectors = null;
 
-  private final static SimpleDateFormat SFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+  private final static SimpleDateFormat SFORMAT =
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
   private static AppConfig config;
 
@@ -126,7 +128,8 @@ public class SystemManager {
     LOG.info("init system with config: {}", config);
     try {
       if (db != null) {
-        LOG.info("ElasticsearchOffsetDB isn't null(This may be a setting change event), will shut it down and restart it...");
+        LOG.info(
+            "ElasticsearchOffsetDB isn't null(This may be a setting change event), will shut it down and restart it...");
         db.close();
       }
       db = new ElasticsearchOffsetDB(config);
@@ -134,14 +137,16 @@ public class SystemManager {
         throw new RuntimeException("No elasticsearch node avialable!");
       }
       if (og != null) {
-        LOG.info("CombinedOffsetGetter isn't null(This may be a setting change event), will shut it down and restart it...");
+        LOG.info(
+            "CombinedOffsetGetter isn't null(This may be a setting change event), will shut it down and restart it...");
         og.close();
       }
       og = new CombinedOffsetGetter(config);
       // TODO how cheack og is avialable?
 
       if (scheduler != null) {
-        LOG.info("ScheduledThreadPool isn't null(This may be a setting change event), will shut it down and renew it...");
+        LOG.info(
+            "ScheduledThreadPool isn't null(This may be a setting change event), will shut it down and renew it...");
         scheduler.shutdownNow();
       }
       scheduler = Executors.newScheduledThreadPool(2, new WorkerThreadFactory("FixedRateSchedule"));
@@ -182,20 +187,21 @@ public class SystemManager {
   private static void jmxMetrics() {
     try {
       List<BrokerInfo> brokers = ZKUtils.getBrokers();
-      jmxConnectors = new HashMap<String, JMXConnector>(brokers.size());
+      jmxConnectors = new ConcurrentHashMap<String, JMXConnector>(brokers.size());
       for (BrokerInfo broker : brokers) {
         if (broker.getJmxPort() <= 0) {
           LOG.warn("JMX disabled in " + broker.getHost());
           continue;
         }
         KafkaJMX kafkaJMX = new KafkaJMX();
-        kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""), Optional.of(""), false, new JMXExecutor() {
+        kafkaJMX.doWithConnection(broker.getHost(), broker.getJmxPort(), Optional.of(""),
+            Optional.of(""), false, new JMXExecutor() {
 
-          @Override
-          public void doWithConnection(JMXConnector jmxConnector) {
-            jmxConnectors.put(broker.getHost(), jmxConnector);
-          }
-        });
+              @Override
+              public void doWithConnection(JMXConnector jmxConnector) {
+                jmxConnectors.put(broker.getHost(), jmxConnector);
+              }
+            });
       }
 
       scheduler.scheduleAtFixedRate(new Runnable() {
@@ -212,24 +218,32 @@ public class SystemManager {
             while (ite.hasNext()) {
               brokerJmxConnector = ite.next();
               JSONObject metric = null;
-              metric = new JSONObject(new FormatedMeterMetric(
-                  metrics.getMessagesInPerSec(brokerJmxConnector.getValue().getMBeanServerConnection(), Optional.empty()), 0));
+              MBeanServerConnection mbsc = null;
+              try {
+                mbsc = brokerJmxConnector.getValue().getMBeanServerConnection();
+              } catch (Exception e) {
+                // jmx connection has went wrong, try to rebuild it
+                jmxMetrics();
+                continue;
+              }
+              metric = new JSONObject(
+                  new FormatedMeterMetric(metrics.getMessagesInPerSec(mbsc, Optional.empty()), 0));
               metric.put("broker", brokerJmxConnector.getKey());
               metric.put("date", SFORMAT.format(now));
               metric.put("timestamp", now.getTime());
               metric.put("metric", "MessagesInPerSec");
               data.put("MessagesInPerSec" + brokerJmxConnector.getKey(), metric);
 
-              metric = new JSONObject(new FormatedMeterMetric(
-                  metrics.getBytesInPerSec(brokerJmxConnector.getValue().getMBeanServerConnection(), Optional.empty())));
+              metric = new JSONObject(
+                  new FormatedMeterMetric(metrics.getBytesInPerSec(mbsc, Optional.empty())));
               metric.put("broker", brokerJmxConnector.getKey());
               metric.put("date", SFORMAT.format(now));
               metric.put("timestamp", now.getTime());
               metric.put("metric", "BytesInPerSec");
               data.put("BytesInPerSec" + brokerJmxConnector.getKey(), metric);
 
-              metric = new JSONObject(new FormatedMeterMetric(
-                  metrics.getBytesOutPerSec(brokerJmxConnector.getValue().getMBeanServerConnection(), Optional.empty())));
+              metric = new JSONObject(
+                  new FormatedMeterMetric(metrics.getBytesOutPerSec(mbsc, Optional.empty())));
               metric.put("broker", brokerJmxConnector.getKey());
               metric.put("date", SFORMAT.format(now));
               metric.put("timestamp", now.getTime());
@@ -237,7 +251,8 @@ public class SystemManager {
               data.put("BytesOutPerSec" + brokerJmxConnector.getKey(), metric);
             }
 
-            db.getDB().bulkIndex(data, SystemManager.getElasticSearchJmxType(), config.getEsIndex() + "-");
+            db.getDB().bulkIndex(data, SystemManager.getElasticSearchJmxType(),
+                config.getEsIndex() + "-");
           } catch (Exception e) {
             LOG.warn("Gather JMX info went wrong...", e);
           }
@@ -278,12 +293,14 @@ public class SystemManager {
       LOG.info("AlertTaskChecker isn't null, will shut it down and renew it...");
       worker.shutdownNow();
     }
-    int corePoolSize = config.getOffsetInfoHandler() != null ? config.getOffsetInfoHandler() : DEFAULT_THREAD_POOL_SIZE;
+    int corePoolSize = config.getOffsetInfoHandler() != null ? config.getOffsetInfoHandler()
+        : DEFAULT_THREAD_POOL_SIZE;
     if (worker != null) {
       LOG.info("AlertTaskChecker isn't null, will shut it down and renew it...");
       worker.shutdownNow();
     }
-    worker = Executors.newFixedThreadPool(corePoolSize, new WorkerThreadFactory("AlertTaskChecker"));
+    worker =
+        Executors.newFixedThreadPool(corePoolSize, new WorkerThreadFactory("AlertTaskChecker"));
 
     for (int i = 0; i < corePoolSize; i++) {
       worker.submit(new TaskHandler());
@@ -296,7 +313,8 @@ public class SystemManager {
     // Scan task folder load tasks to memory
     File[] listOfFiles = dir.listFiles();
     for (File file : listOfFiles) {
-      if (file.isFile() && (file.getName().substring(file.getName().lastIndexOf('.') + 1).equals("task"))) {
+      if (file.isFile()
+          && (file.getName().substring(file.getName().lastIndexOf('.') + 1).equals("task"))) {
         String strTaskContent = CommonUtils.loadFileContent(file.getAbsolutePath());
         TaskManager.addTask(new Gson().fromJson(strTaskContent, TaskContent.class));
       }

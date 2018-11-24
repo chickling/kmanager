@@ -60,7 +60,7 @@ public class CommonUtils {
 			url = new URL(urlStr);
 			uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), null);
 		} catch (Exception e) {
-			LOG.error("URL error!");
+			LOG.error("URL error!", e);
 			// TODO
 			return null;
 		}
